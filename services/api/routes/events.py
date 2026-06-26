@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from packages.praxis_core.models import Event
 
 router = APIRouter(tags=["events"])
+# Scaffold-only single-process placeholder until repository-backed persistence exists.
 _EVENTS: list[Event] = []
 _EVENTS_LOCK = Lock()
 

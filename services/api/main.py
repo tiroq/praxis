@@ -1,4 +1,9 @@
-"""Minimal FastAPI scaffold for the Praxis API."""
+"""Minimal FastAPI scaffold for the Praxis API.
+
+This app is scaffold-only and intended for local/private development.
+Authentication, authorization, and production-grade deployment hardening
+remain TODO items before any wider network exposure.
+"""
 
 from __future__ import annotations
 

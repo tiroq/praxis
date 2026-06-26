@@ -10,6 +10,7 @@ from packages.praxis_core.enums import WorkItemStatus
 from packages.praxis_core.models import WorkItem
 
 router = APIRouter(tags=["work-items"])
+# Scaffold-only single-process placeholder until repository-backed persistence exists.
 _WORK_ITEMS: list[WorkItem] = []
 _WORK_ITEMS_LOCK = Lock()
 
