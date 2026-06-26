@@ -26,7 +26,8 @@ class EventCreateRequest(BaseModel):
 @router.get("/events")
 def list_events() -> list[dict[str, object]]:
     with _EVENTS_LOCK:
-        return [asdict(event) for event in _EVENTS]
+        events = list(_EVENTS)
+    return [asdict(event) for event in events]
 
 
 @router.post("/events")

@@ -27,7 +27,8 @@ class WorkItemCreateRequest(BaseModel):
 @router.get("/work-items")
 def list_work_items() -> list[dict[str, object]]:
     with _WORK_ITEMS_LOCK:
-        return [asdict(item) for item in _WORK_ITEMS]
+        items = list(_WORK_ITEMS)
+    return [asdict(item) for item in items]
 
 
 @router.post("/work-items")
