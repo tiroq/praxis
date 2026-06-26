@@ -1,29 +1,43 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+from threading import Lock
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter
+from pydantic import BaseModel, Field
 
 from packages.praxis_core.models import Event
 
 router = APIRouter(tags=["events"])
 _EVENTS: list[Event] = []
+_EVENTS_LOCK = Lock()
+
+
+class EventCreateRequest(BaseModel):
+    kind: str = "note"
+    title: str = "Untitled event"
+    summary: str = ""
+    domain: str = "work"
+    source: str = "api"
+    payload: dict[str, object] = Field(default_factory=dict)
 
 
 @router.get("/events")
 def list_events() -> list[dict[str, object]]:
-    return [asdict(event) for event in _EVENTS]
+    with _EVENTS_LOCK:
+        return [asdict(event) for event in _EVENTS]
 
 
 @router.post("/events")
-def create_event(payload: dict[str, object] = Body(...)) -> dict[str, object]:
+def create_event(payload: EventCreateRequest) -> dict[str, object]:
     event = Event(
-        kind=str(payload.get("kind", "note")),
-        title=str(payload.get("title", "Untitled event")),
-        summary=str(payload.get("summary", "")),
-        domain=str(payload.get("domain", "work")),
-        source=str(payload.get("source", "api")),
-        payload=dict(payload.get("payload") or {}),
+        kind=payload.kind,
+        title=payload.title,
+        summary=payload.summary,
+        domain=payload.domain,
+        source=payload.source,
+        payload=payload.payload,
     )
-    _EVENTS.append(event)
+    with _EVENTS_LOCK:
+        _EVENTS.append(event)
     return asdict(event)
