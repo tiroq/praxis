@@ -11,6 +11,7 @@ Current scaffold:
 Important scaffold note:
 - The current in-memory route storage is for local single-process development only.
 - It is not suitable for multi-worker or multi-process FastAPI deployment.
+- Run it as a single-process app (for example, `uvicorn` without a `--workers` setting) until shared persistence exists.
 - Production-ready deployments must replace it with shared persistence and authentication.
 
 TODO:

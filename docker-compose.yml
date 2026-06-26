@@ -103,7 +103,7 @@ services:
     restart: unless-stopped
     working_dir: /workspace/apps/admin
     command: >-
-      sh -c "echo 'TODO: wire admin frontend build/runtime' && tail -f /dev/null"
+      sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
     environment:
       ADMIN_BASE_URL: ${ADMIN_BASE_URL}
     volumes:

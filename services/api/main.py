@@ -2,7 +2,9 @@
 
 This app is scaffold-only and intended for local/private development.
 Authentication, authorization, and production-grade deployment hardening
-remain TODO items before any wider network exposure.
+remain TODO items before any wider network exposure. The current in-memory
+route storage also assumes single-process execution without multi-worker
+Uvicorn or Gunicorn settings.
 """
 
 from __future__ import annotations
