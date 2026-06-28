@@ -142,6 +142,17 @@ flowchart TD
     QUAL --> SCHEMA[Schema Version]
 ```
 
+### Event Identity Model
+
+| Identifier     | Purpose                                                |
+|---------------|--------------------------------------------------------|
+| Event ID      | Globally unique identity of an Event                   |
+| Correlation ID| Groups related Events into one logical activity        |
+| Causation ID  | References the Event that directly caused this Event   |
+| Trace ID      | End-to-end distributed tracing across adapters and services |
+
+These identifiers serve different architectural concerns and must never be conflated.
+
 Every integration must produce this canonical envelope regardless of protocol.
 ---
 
@@ -189,9 +200,25 @@ Events may produce derived events and artifacts, which in turn may produce revie
 
 ## 11. Event Immutability
 
-An Event becomes immutable once it has been accepted as an Immutable Event by the canonical Event Envelope.
+An Event becomes immutable once it has been accepted as an Event Record by the canonical Event Envelope.
 
-Events are **append-only**. After being persisted, they can never be modified or deleted. If a correction is needed, a new event is appended that references the original, describing the correction or retraction.
+- The **Event Envelope** is the canonical transport-independent contract.
+- The **Event Record** is the accepted immutable fact stored by Praxis.
+- The Event Record never changes after acceptance.
+
+Events are **append-only**. After being persisted as an Event Record, they can never be modified or deleted. If a correction is needed, a new event is appended that references the original, describing the correction or retraction.
+
+---
+
+## Event States
+
+Event States represent processing states, not mutable business states.
+
+The typical lifecycle of an Event is:
+
+Captured → Validated → Accepted → Understood → Archived.
+
+These states describe processing progress only; they never mutate the Event Record itself.
 
 ---
 
@@ -210,7 +237,7 @@ Correlation and causation are distinct: correlation groups, causation tracks dir
 
 ---
 
-## Event Quality
+## 14. Event Quality
 
 Event quality attributes influence routing and processing but do not alter the original Event:
 
@@ -224,7 +251,7 @@ These attributes help determine how events are handled but never change the immu
 
 ---
 
-## 14. Event Invariants
+## 15. Event Invariants
 
 - Every Event has an immutable identity.
 - Events are append-only.
@@ -238,19 +265,19 @@ These attributes help determine how events are handled but never change the immu
 
 ---
 
-## 15. Event Replay
+## 16. Event Replay
 
-Replay enables rebuilding Projections, Read Models, Knowledge Graph relationships, and other derived representations by reprocessing the event log from a known state, without modifying original Events. This supports system recovery, migration, and auditing.
+Replay enables rebuilding Projections, Read Models, Knowledge Graph relationships, Search Indexes, Analytics Views, and other derived representations by reprocessing the event log from a known state, without modifying original Event Records. This supports system recovery, migration, and auditing.
 
 ---
 
-## 16. Event Retention
+## 17. Event Retention
 
 Events are retained for the maximum feasible period, outliving any projections or read models built from them. This guarantees the ability to reconstruct system state and provenance at any time.
 
 ---
 
-## 17. Event Security
+## 18. Event Security
 
 - **Trust Levels**: Each event's trustworthiness is recorded.
 - **Signature Verification**: Events from external sources may be signed and verified.
@@ -259,7 +286,7 @@ Events are retained for the maximum feasible period, outliving any projections o
 
 ---
 
-## 18. Open Questions
+## 19. Open Questions
 
 - How to handle schema evolution for event payloads?
 - Should all events be cryptographically signed?
@@ -268,19 +295,37 @@ Events are retained for the maximum feasible period, outliving any projections o
 
 ---
 
-## 19. Event Contract
+## 20. Event Contract
 
 Every integration—Telegram, Gmail, GitHub, Upwork, Calendar, API, Webhooks, and future connectors—must emit the canonical Event Envelope regardless of transport protocol. This ensures consistency and interoperability across the Praxis ecosystem.
 
+Supported adapter examples include:
+
+- Telegram
+- Gmail
+- Calendar
+- GitHub
+- Upwork
+- HTTP APIs
+- Webhooks
+- Kafka
+- NATS
+- CLI
+- Filesystem
+
+Adapters normalize external protocols into the canonical Event Envelope.
+
 Transport protocols (HTTP, Telegram, Email, Webhooks, Kafka, NATS, etc.) are adapter concerns and are intentionally excluded from the canonical Event definition.
 
-## Event Processing Boundary
+## 21. Event Processing Boundary
 
 This RFC defines the event lifecycle up to (and including) Immutable Event creation and Understanding. Review, Decision, Action, Learning, routing, and orchestration are defined in later RFCs. The processing boundary for this RFC stops at Artifact creation; subsequent RFCs specify how events are evaluated, acted upon, and incorporated into system learning and workflows.
 
+The Event Model intentionally stops before orchestration. Workflow execution begins only after Understanding has produced one or more Artifacts.
+
 ---
 
-## 20. Future Evolution
+## 22. Future Evolution
 
 This RFC will inform and be extended by:
 - **RFC-014**: Identity & Representation Model
@@ -289,14 +334,14 @@ This RFC will inform and be extended by:
 
 ---
 
-## 21. Dependencies
+## 23. Dependencies
 
 - Depends on: RFC-000 through RFC-012
 - Required before: RFC-020, RFC-030, RFC-032, RFC-043
 
 ---
 
-## 22. Acceptance Criteria
+## 24. Acceptance Criteria
 
 - All Events in Praxis conform to the defined structure and invariants.
 - All Artifacts, Reviews, and Decisions are fully traceable to Events.
@@ -305,11 +350,21 @@ This RFC will inform and be extended by:
 
 ---
 
-## 23. Decision Log
+## 25. Decision Log
 
 | Date       | Change         | Author           |
 |------------|----------------|------------------|
 | 2026-06-28 | Initial draft  | Tiroq + ChatGPT  |
+
+---
+
+## Architectural Summary
+
+- Events are immutable facts.
+- Event Envelope is the canonical contract.
+- Event Record is the canonical stored fact.
+- Artifacts are products of Understanding.
+- Every downstream capability depends on trustworthy Events.
 
 ---
 
