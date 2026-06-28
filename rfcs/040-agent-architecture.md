@@ -47,7 +47,7 @@ This RFC prepares the ground for:
 - RFC-041 LLM Routing
 - RFC-042 Prompt Versioning
 - RFC-043 Memory & Knowledge Graph
-- RFC-050 Freelance Domain
+- RFC-050 Space Model
 - RFC-060 Testing Strategy
 - RFC-061 Verification Scripts
 - RFC-062 Benchmarking
@@ -749,7 +749,7 @@ Required before:
 - RFC-041 LLM Routing
 - RFC-042 Prompt Versioning
 - RFC-043 Memory & Knowledge Graph
-- RFC-050 Freelance Domain
+- RFC-050 Space Model
 - RFC-060 Testing Strategy
 - RFC-061 Verification Scripts
 - RFC-062 Benchmarking

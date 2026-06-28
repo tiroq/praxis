@@ -580,10 +580,10 @@ Depends on:
 
 Required before:
 
-- RFC-050 Freelance Domain
-- RFC-053 Personal Space
-- RFC-054 Work Space
-- RFC-055 Product Space
+- RFC-050 Space Model
+- RFC-053 Product Space
+- RFC-054 Freelance Space
+- RFC-055 Education Space
 - RFC-060 Testing Strategy
 - RFC-061 Verification Scripts
 - RFC-062 Benchmarking

@@ -158,3 +158,12 @@ Praxis evolves through four architectural layers: Foundation RFCs, Platform RFCs
 - **Architecture is a Long-Term Asset**: Invest in sustainable design to support future growth and adaptability.
 - **Small Iterations Over Large Rewrites**: Favor incremental improvements to reduce risk and increase learning.
 - **Build for Decades, Not Demos**: Design systems for longevity and real-world impact, not just prototypes.
+## Domain Spaces
+
+- RFC-050 — Space Model
+- RFC-051 — Personal Space
+- RFC-052 — Work Space
+- RFC-053 — Product Space
+- RFC-054 — Freelance Space
+- RFC-055 — Education Space
+- RFC-056 — Finance Space
