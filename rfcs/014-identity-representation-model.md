@@ -90,6 +90,15 @@ A **Concept** is an element of the ubiquitous language with no runtime identity 
 
 The **Canonical Object** is the single authoritative runtime object for a business entity. It contains all business invariants, lifecycle state, and relationships.
 
+### Responsibilities
+- Own business identity.
+- Enforce business invariants.
+- Own lifecycle.
+- Maintain relationships.
+- Maintain revision history.
+- Maintain mappings to external identities.
+- Serve as the authoritative source for projections.
+
 ## 10. Projection
 
 **Projections** adapt Canonical Objects for use in different Spaces, workflows, or integrations. They do not create new ownership or identity, but provide context-specific adaptation.
@@ -108,6 +117,16 @@ The **Canonical Object** is the single authoritative runtime object for a busine
 - Calendar view  
 - Dashboard metrics  
 - Search index
+
+## 11.1 Representation Types
+
+| Representation | Purpose | Disposable |
+|---------------|---------|------------|
+| Projection | Adapt Canonical Objects to a Space or workflow | No |
+| Read Model | Optimize queries and navigation | Yes |
+| View | Present information to a consumer (UI/API/Telegram) | Yes |
+
+These representations exist at different architectural layers and should not be treated as interchangeable. Each serves a specific role in adapting, optimizing, or presenting information, and their boundaries must be maintained.
 
 ## 12. View
 
@@ -142,6 +161,17 @@ flowchart LR
 - **External IDs (GitHub, Google, Upwork, etc.) are references only.**
 - **Spaces never own Canonical Objects.**
 
+## 15.1 Identity Boundaries
+
+- Spaces never own identity.
+- Integrations never own identity.
+- Read Models never own identity.
+- Views never own identity.
+- Knowledge Graph never owns identity.
+- Only Canonical Objects own business identity.
+
+Identity has exactly one authoritative owner. Every other representation is a reference.
+
 ## 16. External Identity Mapping
 
 Canonical IDs are mapped to external system IDs (e.g., GitHub issues, Google Tasks, Calendar events, Upwork contracts) via reference tables or mappings. These references do not confer ownership or identity; they only link Canonical Objects to external representations.
@@ -158,6 +188,8 @@ This model enables:
 - Multi-space organization and cross-space consistency.
 - Provider independence and seamless integration with external systems.
 - Semantic navigation and reasoning via the Knowledge Graph.
+- Enables replay-driven reconstruction from Events.
+- Separates business identity from presentation, storage and transport.
 
 ## 19. Dependencies
 
@@ -169,6 +201,15 @@ This model enables:
     - RFC-032 Data Flow
     - RFC-043 Memory & Knowledge Graph
 
+## Architectural Summary
+- Concept defines language.
+- Identity defines uniqueness.
+- Canonical Object owns business truth.
+- Projections adapt context.
+- Read Models optimize access.
+- Views present information.
+- Knowledge Graph connects meaning.
+
 ## 20. Acceptance Criteria
 
 - All business objects have globally unique, immutable identity.
@@ -177,6 +218,9 @@ This model enables:
 - Identity mapping to external systems is reference-only.
 - Knowledge Graph integration is semantic, not owning.
 - All invariants in section 15 are enforced.
+- Identity ownership is unambiguous.
+- Representation layers remain independent.
+- Canonical Objects remain the only business source of truth.
 
 ## 21. Decision Log
 
