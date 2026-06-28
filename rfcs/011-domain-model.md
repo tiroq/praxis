@@ -1,5 +1,3 @@
-
-
 # RFC-011 Domain Model
 
 **Status:** Draft  
@@ -10,130 +8,157 @@
 
 ## 1. Summary
 
-This RFC defines the Domain Model for the Praxis system, establishing the principles, boundaries, and objects that organize business concepts into bounded contexts. Domains are responsible for contextualizing universal capabilities and encapsulating business logic, while sharing a common capability pipeline.
+This RFC redefines the architectural role of Spaces, Domain Objects, and Capabilities within the Praxis system. It clarifies that Personal, Work, Freelance, Products, and Content are **Spaces**—user-facing workspaces—rather than Domain-Driven Design (DDD) domains or bounded contexts. The document introduces a layered conceptual model and updates the ownership and architectural principles accordingly.
 
 ## 2. Relationship to Previous RFCs
 
-- **RFC-000:** System Overview – establishes foundational concepts.
-- **RFC-001:** Capabilities – defines universal system capabilities.
-- **RFC-002:** Event Model – initial event concepts, further refined here.
-- **RFC-003:** Understanding – describes how meaning is derived from events.
-- **RFC-010:** Capability Pipeline – specifies the shared pipeline all domains use.
+- **RFC-000:** System Overview – foundational concepts.  
+- **RFC-001:** Capabilities – universal system capabilities.  
+- **RFC-002:** Event Model – initial event concepts.  
+- **RFC-003:** Understanding – deriving meaning from events.  
+- **RFC-010:** Capability Pipeline – shared pipeline architecture.
 
-This RFC builds on these, formalizing how business meaning is layered atop the universal pipeline.
+This RFC builds on these by redefining how business concepts are organized and presented to users.
 
-## 3. Goals
+## 3. Conceptual Layers
 
-- Define clear domain boundaries and responsibilities.
-- Specify a shared approach for modeling business concepts.
-- Enable domain isolation and event-driven collaboration.
-- Establish a provisional domain object model.
-- Lay the groundwork for future domain and artifact modeling.
+The architecture of Praxis is organized into the following conceptual layers, each with distinct responsibilities:
 
-## 4. Non-Goals
+```
+Architecture
+↓
+Capabilities
+↓
+Domain Objects
+↓
+Spaces (UI)
+↓
+Workflows
+```
 
-- Does not prescribe implementation details for any domain.
-- Does not finalize the artifact or event model.
-- Does not define UI or API specifics.
+- **Architecture:** The foundational system design, including infrastructure, event pipelines, and system-wide protocols.
 
-## 5. Domain Philosophy
+- **Capabilities:** Universal, reusable functions and services that provide core system abilities independent of business context.
 
-Praxis organizes business logic into **bounded contexts** called domains. Each domain owns its business concepts, rules, and objects, contextualizing the same universal capabilities. All domains share the same capability pipeline, ensuring consistency and interoperability, but their business logic and models are isolated. Communication between domains occurs only via Events, never through direct coupling.
+- **Domain Objects:** Reusable business concepts representing core entities such as Project, Task, Client, and Meeting. These objects encapsulate business data and rules but are independent of user-facing contexts.
 
-## 6. Domain Hierarchy
+- **Spaces (UI):** Logical, user-facing workspaces that organize and present Domain Objects in meaningful ways. Spaces provide contextual boundaries for users but do not own business logic.
 
-| Domain    | Purpose                            | Primary Objects                           | Integrations                  |
-|-----------|------------------------------------|-------------------------------------------|-------------------------------|
-| Personal  | Manage individual productivity     | Project, Task, Reminder, Note             | Calendar, Notifications       |
-| Work      | Organize professional activities   | Project, Meeting, Document, Research      | HR, Email, Calendar           |
-| Freelance | Track freelance engagements        | Lead, Proposal, Client, Project, Task     | Invoicing, CRM                |
-| Products  | Oversee product development        | Product, Backlog, Roadmap, Release        | Issue Tracker, Repo           |
-| Content   | Plan and manage content creation   | Content Piece, Research, Document, Note   | CMS, Publishing, Social Media |
+- **Workflows:** Orchestrations of capabilities and interactions within Spaces, guiding users through sequences of tasks and decisions.
 
-## 7. Shared Domain Object Model
+## 4. Spaces
 
-The following are **provisional domain objects** produced after the Understanding phase. They are not fundamental architectural concepts, but rather business objects derived from the interpretation of events and user input:
+A **Space** is a logical organizational boundary presented to the user as a workspace tailored to specific contexts or activities. Spaces help users organize and manage their work but are not technical domains or bounded contexts.
 
-- **Project:** A collection of related tasks or objectives.
-- **Task:** A unit of work to be completed.
-- **Lead:** A potential client or opportunity (Freelance).
-- **Proposal:** An offer or plan submitted to a client.
-- **Client:** An entity receiving services (Freelance).
-- **Meeting:** A scheduled gathering (Work).
-- **Research:** Investigative work supporting other objects.
-- **Document:** A persistent record of information.
-- **Note:** A brief, informal piece of information.
-- **Reminder:** A scheduled prompt for attention.
+Example Spaces include:
 
-These objects are created through Understanding and are contextualized by their owning domain.
+- Personal  
+- Freelance  
+- Work  
+- Family  
+- Open Source  
+- Products  
 
-## 8. Domain Object Lifecycle
+Users will be able to create custom Spaces in the future, enabling flexible organization of their work according to individual needs.
+
+## 5. Domain Objects
+
+Domain Objects are reusable business concepts shared across multiple Spaces. They represent the fundamental entities of work and collaboration, including but not limited to:
+
+- Project  
+- Task  
+- Client  
+- Proposal  
+- Meeting  
+- Research  
+- Document  
+- Note  
+- Reminder  
+
+These objects are not owned or confined to any single Space. Instead, they maintain canonical identities and may appear in multiple Spaces through projections or views.
+
+## 6. Domain Object Lifecycle
 
 ```mermaid
 flowchart LR
-    Event --> Understanding --> DomainObject --> Review --> Decision --> Action
+    Event --> Understanding --> DomainObject --> Space --> Workflow --> Review --> Decision --> Action
 ```
 
-## 9. Bounded Contexts
+This flow illustrates how events are understood to produce Domain Objects, which are then presented within Spaces and orchestrated through Workflows leading to Reviews, Decisions, and Actions.
 
-Each domain is a **bounded context**, encapsulating its own business rules, models, and invariants. Domains communicate exclusively via Events, never through direct references or business logic coupling. This ensures isolation, autonomy, and the ability to evolve independently.
+## 7. Domain Object Identity and Projection
 
-## 10. Cross-Domain Relationships
+A Domain Object may appear in multiple Spaces through projections while maintaining a single canonical identity. This approach ensures consistency and prevents duplication of business entities across user workspaces.
 
-Some concepts are reusable or referenced across domains, but **ownership** and **business rules** reside within a single domain. Cross-domain relationships are managed through events and shared knowledge, not shared logic.
+## 8. Bounded Contexts
 
-| Concept   | Description                        | Ownership Rule                     |
-|-----------|------------------------------------|------------------------------------|
-| Project   | Coordinated work unit              | Owned by creating domain           |
-| Context   | Circumstantial grouping            | Defined per domain                 |
-| Knowledge | Information produced/consumed      | Shared, but contextualized         |
-| Policy    | Rules governing behavior           | Each domain defines its own        |
-| Workflow  | Sequence of tasks/actions          | Defined and owned per domain       |
+DDD bounded contexts are internal implementation concerns that define boundaries for business logic and models. These will be specified in detail alongside the System Architecture (RFC-030) and are not exposed as user-facing concepts.
 
-## 11. Aggregate Boundaries
+**Spaces are not bounded contexts.** They are abstractions designed for user experience and do not own business logic or enforce invariants.
 
-Aggregate roots are the entry points for business operations within a bounded context. They are defined per domain and will be refined in future RFCs. Candidate aggregate roots:
+## 9. Ownership Model
 
-- **Personal:** Project, Task
-- **Work:** Project, Meeting
-- **Freelance:** Client, Proposal, Project
-- **Products:** Product, Backlog
-- **Content:** Content Piece, Research
+The ownership and representation of business entities in Praxis is structured as follows:
 
-## 12. Domain Invariants
+- **Canonical Object:** The authoritative, single source of truth for a Domain Object’s state and behavior.
 
-- Domains cannot redefine or override universal capabilities.
-- Domains own all business rules for their objects.
-- Domains communicate only via Events.
-- Knowledge is shared, but business logic is not.
-- Every object belongs to exactly one owning domain.
+- **Projections:** Contextualized representations of Canonical Objects tailored for specific Spaces or use cases.
 
-## 13. Future Evolution
+- **Views:** Read-only representations optimized for display or querying.
 
-New domains can be added at any time without requiring changes to existing domains, provided they adhere to the shared capability pipeline and event-driven communication model.
+- **Read Models:** Specialized data models designed to support efficient read operations, often denormalized.
 
-## 14. Dependencies
+- **Knowledge Graph:** A connected representation of Domain Objects and their relationships, supporting rich queries and reasoning across Spaces.
+
+This model enables flexibility in how data is presented while maintaining consistent core business logic.
+
+## 10. Architectural Invariants
+
+- Spaces never own business logic; they are purely organizational and presentational.
+
+- Capabilities remain independent of Spaces and provide universal functions.
+
+- Domain Objects are reusable and maintain canonical identities.
+
+- Workflows orchestrate capabilities and user interactions within Spaces.
+
+- Reviews and Decisions operate on Domain Objects to enforce business rules.
+
+- Knowledge spans all Spaces, enabling shared understanding without coupling.
+
+## 11. Future Evolution
+
+- Users will be empowered to create custom Spaces for personalized organization.
+
+- Bounded contexts and domain-specific logic will be formalized in future RFCs, aligned with system architecture.
+
+- The Knowledge Graph will evolve to provide enhanced insights across Spaces and Domain Objects.
+
+## 12. Dependencies
 
 This RFC depends on:
+
 - RFC-000 through RFC-010
 
 It is required before:
-- RFC-012 Artifact Model
-- RFC-013 Event Model
-- RFC-030 System Architecture
 
-## 15. Acceptance Criteria
+- RFC-012 Artifact Model  
+- RFC-013 Event Model  
+- RFC-030 System Architecture  
+- RFC-043 Memory & Knowledge Graph
 
-- Domain boundaries and responsibilities are clearly defined.
-- Provisional domain object model is documented.
-- Event-driven domain communication is specified.
-- Aggregate root candidates are listed per domain.
-- Domain invariants and cross-domain relationship rules are explicit.
+## 13. Acceptance Criteria
 
-## 16. Decision Log
+- Clear distinction between Spaces and bounded contexts.
 
-- 2026-06-28: Draft created and submitted for review.
+- Introduction of the layered conceptual model.
+
+- Definition of Domain Objects as reusable business concepts.
+
+- Updated ownership and architectural invariants.
+
+- Lifecycle flow reflecting Space and Workflow integration.
 
 ---
 
-> "Capabilities are universal. Domains give them meaning."
+> "Spaces organize work. Domain Objects represent work. Capabilities transform work."
