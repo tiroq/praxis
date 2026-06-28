@@ -1,107 +1,5 @@
 # RFC Index
 
-RFCs are the architectural source of truth for Praxis. They define the standards, designs, and decisions that guide the implementation of the system. Implementation follows accepted RFCs to ensure consistency and alignment across the project.
-
-## Purpose
-
-RFCs exist to document architectural decisions, provide a clear rationale for design choices, and facilitate communication among stakeholders. They help ensure that the system evolves in a coherent and maintainable way.
-
-## RFC Lifecycle
-
-- **Draft**: Initial proposal, open for discussion and refinement.
-- **Review**: Under active consideration by the community or architecture team.
-- **Accepted**: Approved as the official architectural guidance.
-- **Implemented**: The design has been realized in code or infrastructure.
-- **Deprecated**: Marked as outdated and should no longer be used for new work.
-- **Superseded**: Replaced by a newer RFC that updates or corrects the original.
-
-## RFC Template
-
-Every RFC must contain the following sections:
-
-- **Summary**: A brief overview of the proposal.
-- **Motivation**: The reasons driving the need for this RFC.
-- **Goals**: What the RFC aims to achieve.
-- **Non-Goals**: What is explicitly out of scope.
-- **Definitions**: Key terms and concepts used.
-- **Design**: The proposed architecture or solution.
-- **Diagrams**: Visual aids illustrating the design.
-- **Examples**: Use cases or scenarios demonstrating the design.
-- **Alternatives Considered**: Other options explored and reasons for rejection.
-- **Open Questions**: Unresolved issues or areas needing further discussion.
-- **Future Work**: Potential extensions or follow-ups.
-- **Decision Log**: Record of decisions and revisions.
-
-## Governance Rules
-
-- Architecture before implementation.
-- No major feature without an RFC.
-- One source of truth.
-- Human-reviewed decisions.
-- Backward-compatible evolution where practical.
-- Update RFC before changing behavior.
-
-## RFC Numbering
-
-**Foundation:**  
-- RFC-000 Vision  
-- RFC-001 Principles  
-- RFC-002 Terminology  
-
-**Core Architecture:**  
-- RFC-010 Capability Map  
-- RFC-011 Domain Model  
-- RFC-012 Artifact Model  
-- RFC-013 Event Model  
-
-**Decision Engine:**  
-- RFC-020 Review System  
-- RFC-021 Decision Model  
-- RFC-022 State Machine  
-
-**Platform:**  
-- RFC-030 System Architecture  
-- RFC-031 Service Catalog  
-- RFC-032 Data Flow  
-- RFC-033 Storage Model  
-
-**Intelligence:**  
-- RFC-040 Agent Architecture  
-- RFC-041 LLM Routing  
-- RFC-042 Prompt Versioning  
-- RFC-043 Memory & Knowledge Graph  
-
-**Domains:**  
-- RFC-050 Freelance Domain  
-- RFC-051 Freelance CRM  
-- RFC-052 Proposal Workflow  
-- RFC-053 Personal Domain  
-- RFC-054 Work Domain  
-- RFC-055 Product Domain  
-
-**Quality:**  
-- RFC-060 Testing Strategy  
-- RFC-061 Verification Scripts  
-- RFC-062 Benchmarking  
-
-## Recommended Reading Order
-
-Newcomers should start with the Foundation RFCs, then proceed through Core Architecture, Decision Engine, Platform, Intelligence, Domains, and finally Quality to gain a comprehensive understanding of Praxis.
-
-## Contribution Workflow
-
-The process for contributing RFCs is: discuss → draft RFC → review → accepted → implementation → verification → documentation update.
-
-## Relationship Between RFCs and Code
-
-Every major implementation references one or more accepted RFCs. Code should not diverge from the architecture defined in these RFCs to maintain consistency and integrity across the system.
-
-## Philosophy
-
-RFCs document reasoning, not just decisions. They preserve long-term architectural consistency for Praxis by capturing the context, motivation, and trade-offs behind each choice.
-
-# RFC Index
-
 RFCs are the architectural constitution of Praxis. They are the single source of truth for all architectural decisions, principles, and standards. Implementation always follows architecture—not the other way around. This repository of RFCs ensures that the evolution of Praxis is deliberate, consistent, and well-reasoned, not accidental or ad hoc.
 
 ## Documentation Hierarchy
@@ -205,24 +103,26 @@ The architectural reasoning flows from vision all the way to implementation. Eac
 Vision
   └─> Principles
         └─> Terminology
-              └─> Capability Map
-                    └─> Domain Model
-                          └─> Artifact/Event Model
-                                └─> Review/Decision Model
-                                      └─> System Architecture
-                                            └─> Agent Architecture
-                                                  └─> Domains
-                                                        └─> Implementation
+              └─> Concept Model
+                    └─> Capability Map
+                          └─> Domain Model
+                                └─> Artifact/Event Model
+                                      └─> Review/Decision Model
+                                            └─> System Architecture
+                                                  └─> Agent Architecture
+                                                        └─> Domains
+                                                              └─> Implementation
 ```
 
 ## RFC Numbering
 
 | RFC  | Title               | Status    | Purpose                                                    |
 |------|---------------------|-----------|------------------------------------------------------------|
-| 000  | Vision              | Planned   | High-level vision, purpose, and long-term direction        |
-| 001  | Principles          | Planned   | Foundational architectural principles and values           |
-| 002  | Terminology         | Planned   | Definitions of key terms and concepts                      |
-| 010  | Capability Map      | Planned   | Top-level system capabilities and boundaries               |
+| 000  | Vision              | Draft     | High-level vision, purpose, and long-term direction        |
+| 001  | Principles          | Draft     | Foundational architectural principles and values           |
+| 002  | Terminology         | Draft     | Definitions of key terms and concepts                      |
+| 003  | Concept Model       | Draft     | Defines the conceptual building blocks and taxonomy of Praxis. |
+| 010  | Capability Map      | Draft     | Top-level system capabilities and boundaries               |
 | 011  | Domain Model        | Planned   | Core business/domain entities and relationships            |
 | 012  | Artifact Model      | Planned   | Structure and lifecycle of system artifacts                |
 | 013  | Event Model         | Planned   | Events and their role in system state transitions          |
@@ -254,14 +154,15 @@ For new contributors, the recommended path is:
 1. **RFC-000 Vision**: Understand the high-level purpose and direction.
 2. **RFC-001 Principles**: Learn the core architectural values and constraints.
 3. **RFC-002 Terminology**: Get familiar with the project's vocabulary.
-4. **RFC-010 Capability Map**: See what the system is fundamentally designed to do.
-5. **RFC-011 Domain Model**: Understand the main entities and their relationships.
-6. **RFC-012 Artifact Model** and **RFC-013 Event Model**: Learn about artifacts and events.
-7. **RFC-020+**: Explore review, decision, and state models.
-8. **RFC-030+**: Study system, service, and data architecture.
-9. **RFC-040+**: Delve into intelligence, agent, and LLM architecture.
-10. **RFC-050+**: Review domain-specific RFCs.
-11. **RFC-060+**: Finish with quality and verification strategies.
+4. **RFC-003 Concept Model**: Learn the conceptual building blocks and taxonomy.
+5. **RFC-010 Capability Map**: See what the system is fundamentally designed to do.
+6. **RFC-011 Domain Model**: Understand the main entities and their relationships.
+7. **RFC-012 Artifact Model** and **RFC-013 Event Model**: Learn about artifacts and events.
+8. **RFC-020+**: Explore review, decision, and state models.
+9. **RFC-030+**: Study system, service, and data architecture.
+10. **RFC-040+**: Delve into intelligence, agent, and LLM architecture.
+11. **RFC-050+**: Review domain-specific RFCs.
+12. **RFC-060+**: Finish with quality and verification strategies.
 
 ## Contribution Workflow
 
@@ -290,6 +191,18 @@ The following rules are mandatory for all contributors and maintainers:
 
 Traceability from RFCs to code is required. Every significant module, component, or pull request must reference the relevant RFC(s). This ensures that all implementation aligns with accepted architecture, and anyone can trace the "why" behind any major feature or decision.
 
+## Architecture Governance
+
+- Foundation RFCs require exceptional justification to change.
+- Later RFCs cannot contradict Foundation RFCs.
+- Every implementation must trace back to one or more accepted or draft RFCs.
+- Architectural debt must be documented as RFC amendments rather than hidden in code.
+- Documentation is considered part of the product.
+
+## Foundation RFCs
+
+RFC-000 through RFC-010 collectively form the architectural foundation of Praxis and should remain highly stable over time. Later RFCs extend this foundation rather than redefine it.
+
 ## Long-Term Philosophy
 
 RFCs are not just about recording what was decided—they are about preserving the reasoning and context behind every architectural choice. An RFC should remain understandable and relevant years later, even for someone new to the project. This is how Praxis maintains architectural integrity across time, contributors, and changing requirements.
@@ -298,8 +211,9 @@ RFCs are not just about recording what was decided—they are about preserving t
 
 The immediate next RFCs to be drafted and accepted are:
 
-- [ ] RFC-000 Vision
-- [ ] RFC-001 Principles
-- [ ] RFC-002 Terminology
-- [ ] RFC-010 Capability Map
+- [x] RFC-000 Vision
+- [x] RFC-001 Principles
+- [x] RFC-002 Terminology
+- [x] RFC-003 Concept Model
+- [x] RFC-010 Capability Map
 - [ ] RFC-011 Domain Model
