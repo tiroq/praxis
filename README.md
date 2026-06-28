@@ -1,51 +1,395 @@
+
 # Praxis
 
-Praxis is a self-hosted personal AI operating platform for turning intent into action.
+> **Turn intent into action.**
 
-Chiefly is the primary assistant and chief-of-staff experience inside Praxis. Praxis captures work items, events, decisions, reviews, artifacts, and relationship context, then routes that information through agents, review flows, and external integrations without giving up ownership of the source of truth.
+> **Status:** Foundation (Architecture Phase)
 
-## Why Praxis exists
+## Overview
 
-Personal operating systems usually fragment across notes, inboxes, task apps, CRMs, chat threads, and freelance tools. Praxis exists to unify that context in one local-first platform that can coordinate action across life domains while remaining self-hosted and extensible.
+Praxis is an AI Work Operating System.
 
-## High-level architecture
+Unlike traditional productivity tools that focus on storing tasks, Praxis focuses on transforming intent into action through structured reasoning, AI collaboration, human review and execution.
 
-- **Praxis** is the platform and system of record.
-- **Chiefly** is the main assistant interface inside Praxis.
-- **LLM routing** is centralized through an OpenAI-compatible gateway such as OmniRoute.
-- **External systems** like Google Tasks, Telegram, Upwork, GitHub, CRM, and calendars are projections or integrations, not the source of truth.
-- **Core entities** include Work Items, Events, Decisions, Agent Reviews, Artifacts, Relations, Review Cycles, and Sync Links.
-- **Runtime target** is a home PC or mini PC using Docker Compose.
+The platform acts as an AI Chief of Staff.
 
-## Repository layout
+---
 
-- `apps/` user-facing and channel-specific entrypoints
-- `services/` runtime services such as API, worker, scheduler, and LLM router
-- `packages/` shared domain models, agents, connectors, and workflows
-- `domains/` domain-specific prompts, schemas, and workflow notes
-- `agents/` prompt and policy scaffolds for future agents
-- `configs/` life areas, projects, goals, review cycles, integrations, and routing config
-- `infra/` local infrastructure bootstrapping files
-- `scripts/verify/` executable scaffold verification placeholders
-- `docs/` architectural and planning documents
+# The Problem
 
-## Local development
+Knowledge is fragmented across dozens of disconnected systems:
 
-```bash
-cp .env.example .env
-make verify
-docker compose up --build
+- Telegram
+- Email
+- Calendar
+- GitHub
+- Google Tasks
+- Upwork
+- Documents
+- Notes
+- CRM
+
+Existing software organizes information.
+
+Praxis orchestrates decisions.
+
+---
+
+# Vision
+
+Every incoming event should become:
+
+```text
+Event
+ ↓
+Understanding
+ ↓
+Knowledge
+ ↓
+AI Reviews
+ ↓
+Human Decision
+ ↓
+Execution
+ ↓
+Learning
 ```
 
-Useful commands:
+---
 
-```bash
-make run-api
-make run-worker
-make run-chiefly
-make run-telegram
+# Mission
+
+Help people spend less time organizing work and more time doing meaningful work.
+
+---
+
+# Design Principles
+
+- Human remains in control.
+- AI proposes. Humans decide.
+- Everything starts as an Event.
+- Everything becomes an Artifact.
+- Every important action is explainable.
+- Local-first whenever practical.
+- Provider agnostic.
+- Event-driven.
+- Composable.
+- Observable.
+- Versioned.
+
+---
+
+# Core Concepts
+
+## Event
+
+Any incoming information.
+
+Examples:
+
+- Telegram message
+- Voice note
+- Upwork job
+- GitHub issue
+- Email
+- Calendar event
+
+## Artifact
+
+Normalized object inside Praxis.
+
+Artifact types:
+
+- Task
+- Lead
+- Proposal
+- Client
+- Project
+- Meeting
+- Research
+- Decision
+- Document
+- Contract
+- Reminder
+
+## Review
+
+Opinion generated independently by:
+
+- Planner
+- Critic
+- Architect
+- Risk
+- Portfolio
+- Human
+
+## Decision
+
+Possible outcomes:
+
+- Approve
+- Reject
+- Edit
+- Split
+- Merge
+- Archive
+- Escalate
+
+---
+
+# Capability Map
+
+```text
+Capture
+  ↓
+Understand
+  ↓
+Enrich
+  ↓
+Think
+  ↓
+Review
+  ↓
+Decide
+  ↓
+Execute
+  ↓
+Learn
 ```
 
-## Current status
+---
 
-This repository is **scaffold only**. It includes a monorepo structure, placeholder services, basic models, configuration files, and verification scripts, but it does not yet implement full business logic or production workflows.
+# User Journey
+
+Telegram
+
+↓
+
+Raw Event
+
+↓
+
+Normalization
+
+↓
+
+Classification
+
+↓
+
+Project Routing
+
+↓
+
+Priority Estimation
+
+↓
+
+Planner Review
+
+↓
+
+Critic Review
+
+↓
+
+Human Approval
+
+↓
+
+Execution
+
+↓
+
+History & Learning
+
+---
+
+# Domains
+
+- Personal
+- Work
+- Freelance
+- Products
+- Content
+
+Future:
+
+- Finance
+- Health
+- Knowledge
+- Travel
+
+---
+
+# Freelance Domain
+
+Pipeline:
+
+```text
+New Lead
+ ↓
+Scoring
+ ↓
+Risk Review
+ ↓
+Proposal Draft
+ ↓
+Human Review
+ ↓
+Applied
+ ↓
+Interview
+ ↓
+Won
+ ↓
+Project
+```
+
+---
+
+# Agent Model
+
+Planner
+: Suggests execution strategy.
+
+Critic
+: Challenges assumptions.
+
+Architect
+: Reviews technical approach.
+
+Risk
+: Evaluates uncertainty.
+
+Portfolio
+: Suggests relevant experience.
+
+Consensus
+: Aggregates reviews.
+
+Human
+: Makes final decision.
+
+---
+
+# High-Level Architecture
+
+```text
+Sources
+   ↓
+Praxis Core
+   ↓
+Workflow Engine
+   ↓
+Agent Runtime
+   ↓
+Reviews
+   ↓
+Decision
+   ↓
+Execution
+   ↓
+External Systems
+```
+
+---
+
+# Planned Integrations
+
+- Telegram
+- Google Tasks
+- Google Calendar
+- Gmail
+- GitHub
+- Upwork
+- OmniRoute
+- Ollama
+- OpenRouter
+
+---
+
+# Technology
+
+- Go
+- Python
+- React
+- PostgreSQL
+- pgvector
+- NATS JetStream
+- Docker
+- OmniRoute
+
+---
+
+# Repository
+
+```text
+praxis/
+├── README.md
+├── MANIFESTO.md
+├── ROADMAP.md
+├── rfcs/
+├── apps/
+├── services/
+├── packages/
+├── domains/
+├── agents/
+├── workflows/
+├── integrations/
+├── infrastructure/
+├── configs/
+└── scripts/
+```
+
+---
+
+# Why Praxis?
+
+| Existing Tool | Primary Goal | Praxis Adds |
+|---------------|--------------|-------------|
+| Notion | Documentation | AI reasoning |
+| Linear | Project tracking | Multi-domain orchestration |
+| GitHub Projects | Engineering | Personal + Freelance + Work |
+| Google Tasks | Todos | Decision lifecycle |
+| ChatGPT | Conversation | Persistent workflows |
+| n8n | Automation | AI-native orchestration |
+
+---
+
+# Roadmap
+
+1. Foundation
+2. Core Runtime
+3. Agent Workflows
+4. Knowledge Graph
+5. Automation
+6. Multi-user
+
+---
+
+# Current Status
+
+Architecture and RFC phase.
+
+Implementation intentionally starts only after architectural foundation is accepted.
+
+---
+
+# Contributing
+
+Architecture-first.
+
+Every major feature begins with an RFC before implementation.
+
+---
+
+# License
+
+TBD
+
+---
+
+> **Praxis doesn't manage tasks. Praxis manages decisions.**
+
+> **Turn intent into action.**
