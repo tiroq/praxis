@@ -74,15 +74,19 @@ Events can originate from many sources:
 
 ```mermaid
 flowchart LR
-    S[Source]
-    --> C[Capture]
-    --> V[Validate]
-    --> P[Persist]
-    --> U[Understand]
-    --> A[Artifact(s)]
+    SRC[Source]
+    --> CAP[Capture]
+    --> VAL[Validate]
+    --> ENV[Event Envelope]
+    --> EVT[Immutable Event]
+    --> UND[Understand]
+    --> ART[Artifact(s)]
 ```
 
-This RFC intentionally ends at Artifact creation; Review, Decision, Action and Learning belong to later RFCs.
+- Capture and Validate belong to the ingestion pipeline.
+- Event Envelope is the canonical contract independent of transport.
+- Immutable Event is the canonical persisted fact.
+- This RFC intentionally ends at Artifact creation. Review, Decision, Action and Learning are specified by later RFCs.
 
 ---
 
@@ -107,6 +111,38 @@ Every Event must include the following mandatory fields:
 - **Content Type**: MIME type or format of the Payload.
 - **Observed At**: Timestamp when the event was observed or received by Praxis.
 
+### Event Envelope
+
+```mermaid
+flowchart TD
+    ENV[Event Envelope]
+    ENV --> ID[Identity]
+    ENV --> PROV[Provenance]
+    ENV --> CONT[Content]
+    ENV --> QUAL[Quality]
+
+    ID --> EID[Event ID]
+    ID --> CID[Correlation ID]
+    ID --> CAU[Causation ID]
+    ID --> TID[Trace ID]
+
+    PROV --> SRC[Source]
+    PROV --> ACT[Actor]
+    PROV --> TS[Timestamp]
+    PROV --> OBS[Observed At]
+
+    CONT --> TYPE[Type]
+    CONT --> CT[Content Type]
+    CONT --> PAY[Payload]
+    CONT --> META[Metadata]
+
+    QUAL --> CONF[Confidence]
+    QUAL --> TRUST[Trust Level]
+    QUAL --> VALSTAT[Validation Status]
+    QUAL --> SCHEMA[Schema Version]
+```
+
+Every integration must produce this canonical envelope regardless of protocol.
 ---
 
 ## 9. Event Classification
@@ -152,6 +188,8 @@ Events may produce derived events and artifacts, which in turn may produce revie
 ---
 
 ## 11. Event Immutability
+
+An Event becomes immutable once it has been accepted as an Immutable Event by the canonical Event Envelope.
 
 Events are **append-only**. After being persisted, they can never be modified or deleted. If a correction is needed, a new event is appended that references the original, describing the correction or retraction.
 
@@ -202,7 +240,7 @@ These attributes help determine how events are handled but never change the immu
 
 ## 15. Event Replay
 
-Replay enables rebuilding projections, read models, and the knowledge graph by reprocessing the event log from a known state. This supports system recovery, migration, and auditing.
+Replay enables rebuilding Projections, Read Models, Knowledge Graph relationships, and other derived representations by reprocessing the event log from a known state, without modifying original Events. This supports system recovery, migration, and auditing.
 
 ---
 
@@ -233,6 +271,12 @@ Events are retained for the maximum feasible period, outliving any projections o
 ## 19. Event Contract
 
 Every integration—Telegram, Gmail, GitHub, Upwork, Calendar, API, Webhooks, and future connectors—must emit the canonical Event Envelope regardless of transport protocol. This ensures consistency and interoperability across the Praxis ecosystem.
+
+Transport protocols (HTTP, Telegram, Email, Webhooks, Kafka, NATS, etc.) are adapter concerns and are intentionally excluded from the canonical Event definition.
+
+## Event Processing Boundary
+
+This RFC defines the event lifecycle up to (and including) Immutable Event creation and Understanding. Review, Decision, Action, Learning, routing, and orchestration are defined in later RFCs. The processing boundary for this RFC stops at Artifact creation; subsequent RFCs specify how events are evaluated, acted upon, and incorporated into system learning and workflows.
 
 ---
 
