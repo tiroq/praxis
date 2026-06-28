@@ -1,5 +1,3 @@
-
-
 # RFC-061 Verification Scripts
 
 ---
@@ -16,13 +14,13 @@
 
 ## 2. Summary
 
-Verification Scripts are **executable architecture assertions** which implement the Verification Invariants defined in [RFC-060 Verification Invariants](060-verification-invariants.md). Each script asserts, checks, or measures a specific property of the architecture, codebase, or system, and collectively they form the backbone of automated architecture verification. Unlike traditional unit tests, Verification Scripts encode design invariants, architectural contracts, and system-wide properties, ensuring architectural integrity as the system evolves.
+Verification Scripts are **executable architecture assertions** which implement the Verification Strategy defined in [RFC-060 Testing Strategy](060-testing-strategy.md). Each script asserts, checks, or measures a specific property of the architecture, codebase, or system, and collectively they form the backbone of automated architecture verification. Unlike traditional unit tests, Verification Scripts encode design invariants, architectural contracts, and system-wide properties, ensuring architectural integrity as the system evolves. They are the executable implementation of RFC-060.
 
 ---
 
 ## 3. Relationship to Previous RFCs
 
-- **Depends on:** RFC-000 through RFC-060 (especially RFC-060 Verification Invariants)
+- **Depends on:** RFC-000 through RFC-060 (especially RFC-060 Testing Strategy)
 - **Required before:** RFC-062 (Benchmarking Framework)
 
 ---
@@ -73,6 +71,21 @@ Verification is organized into the following layers (each with a dedicated scrip
 
 ---
 
+## Verification Profiles
+
+Verification Scripts support four execution profiles, each specifying which verification layers are executed:
+
+| Profile  | Layers Executed                                                                                      |
+|----------|---------------------------------------------------------------------------------------------------|
+| fast     | Static, Schema, Contract                                                                           |
+| standard | Static, Schema, Contract, Invariant, Security                                                     |
+| full     | All layers except Benchmark and Integration                                                       |
+| release  | All layers including Benchmark and Integration                                                    |
+
+These profiles enable flexible verification runs depending on context, balancing speed and coverage.
+
+---
+
 ## 8. Script Organization
 
 All verification scripts reside under `/verify/`, with subdirectories per layer:
@@ -94,6 +107,16 @@ All verification scripts reside under `/verify/`, with subdirectories per layer:
 ```
 
 Each script is a standalone executable (Python, Bash, etc.) with a manifest entry.
+
+---
+
+## Verification Dependency Graph
+
+Verification execution follows a dependency graph reflecting architectural dependencies:
+
+Static → Schema → Contract → Invariant → Integration → Workflow → Replay → Benchmark
+
+Later stages depend on successful completion of earlier stages to ensure correctness and consistency. For example, Contract verification depends on successful Schema verification.
 
 ---
 
@@ -124,9 +147,24 @@ scripts:
 
 ---
 
+## Script Metadata
+
+Each verification script includes metadata fields for enhanced management and reporting:
+
+- `id`: Unique identifier for the script
+- `owner`: Responsible team or individual
+- `rfc`: RFC document reference (e.g., RFC-061)
+- `invariant`: Associated invariant(s) from RFC-060
+- `profile`: Execution profile(s) applicable (fast, standard, full, release)
+- `timeout`: Maximum allowed execution time
+- `tags`: Keywords for categorization or filtering
+- `description`: Brief summary of script purpose
+
+---
+
 ## 11. RFC Mapping
 
-Every invariant in RFC-060 must be mapped to at least one verification script. The mapping is maintained in `/verify/manifest.yaml` and cross-referenced in RFC-060.
+Every invariant in RFC-060 must be covered by at least one verification script. Coverage should be measurable, with reports indicating which invariants are tested and which are missing coverage. This ensures completeness and traceability of verification efforts.
 
 ---
 
@@ -166,6 +204,12 @@ Scripts in `/verify/replay/` replay captured events or request traces to verify 
 
 ---
 
+## Incremental Verification
+
+To improve efficiency, incremental verification analyzes changed files to identify affected RFCs, then maps these to affected invariants and subsequently to affected verification scripts. Only impacted scripts are executed, reducing verification time while maintaining coverage.
+
+---
+
 ## 18. Agent Verification
 
 Scripts in `/verify/agent/` check agent behaviors, policies, and interactions. Example: `verify_agent_role_assignment.py`.
@@ -196,6 +240,12 @@ Scripts in `/verify/security/` check security invariants, access policies, and p
 
 ---
 
+## Plugin Architecture
+
+Verification is extensible via a plugin architecture. Custom verification modules reside in `/verify/plugins/` and can be dynamically discovered and executed. This supports third-party or domain-specific verification extensions without modifying core scripts.
+
+---
+
 ## 23. Integration Verification
 
 Scripts in `/verify/integration/` (if present) check integration points and system-wide interactions. Example: `verify_integration_external_service.py`.
@@ -220,6 +270,7 @@ Verification scripts output:
 
 - **JSON**: machine-readable detail per script.
 - **Markdown summary**: human-readable summary for CI.
+- **SARIF**: Standardized static analysis results format for integration with security and code analysis tools.
 
 Example JSON output:
 ```json
@@ -247,6 +298,7 @@ Example Markdown summary:
 - All scripts are invoked in CI as a dedicated verification stage.
 - CI fails if any script returns a nonzero exit code.
 - Reports are archived as artifacts and posted to PRs.
+- Execution is staged by verification profile: Fast → Standard → Release → Nightly Full, enabling progressive verification thoroughness.
 
 ---
 
@@ -264,17 +316,34 @@ Example Markdown summary:
 
 ## 29. Failure Classification Table
 
-| Level   | Description                                      | CI Action   |
-|---------|--------------------------------------------------|-------------|
-| ERROR   | Invariant violated; must be fixed                | Fail build  |
-| WARNING | Non-fatal issue; should be addressed             | Warn only   |
-| INFO    | Informational; no action required                | Log only    |
+| Level       | Description                                      | CI Action   |
+|-------------|------------------------------------------------|-------------|
+| ERROR       | Invariant violated; must be fixed               | Fail build  |
+| WARNING     | Non-fatal issue; should be addressed            | Warn only   |
+| INFO        | Informational; no action required                 | Log only    |
+| FLAKY       | Intermittent failure; requires investigation    | Flaky alert |
+| UNSUPPORTED | Script or invariant not supported in current context | Skip with notice |
 
 ---
 
 ## 30. Verification Invariants
 
 All scripts must encode one or more invariants from RFC-060, and must be traceable to their source invariant via manifest.
+
+---
+
+## Verification Coverage
+
+Verification coverage is measured across multiple dimensions:
+
+- **RFC Coverage**: Percentage of RFCs with at least one verification script.
+- **Invariant Coverage**: Percentage of RFC-060 invariants covered by scripts.
+- **Space Coverage**: Coverage of module/namespace boundary invariants.
+- **Agent Coverage**: Coverage of agent behavior and policy invariants.
+- **Prompt Coverage**: Coverage of prompt template and constraint invariants.
+- **Integration Coverage**: Coverage of system integration points.
+
+Coverage metrics are reported regularly to ensure completeness and guide verification improvements.
 
 ---
 
@@ -287,10 +356,16 @@ All scripts must encode one or more invariants from RFC-060, and must be traceab
 
 ---
 
+## Self Verification
+
+Verification scripts, manifests, and metadata themselves must be validated through self-verification. This includes verifying manifest correctness, metadata completeness, and script integrity, ensuring the verification framework is trustworthy and maintainable.
+
+---
+
 ## 32. Dependencies
 
 - Scripting language interpreters (Python 3.10+, Bash)
-- RFC-060 Verification Invariants
+- RFC-060 Testing Strategy
 - CI system (GitHub Actions, etc.)
 
 ---
@@ -299,9 +374,13 @@ All scripts must encode one or more invariants from RFC-060, and must be traceab
 
 - All RFC-060 invariants are mapped to at least one verification script.
 - Scripts are organized as described, with manifest and reporting.
-- CI integration as specified.
+- CI integration as specified with staged execution.
 - Scripts are deterministic and side-effect-free (except workflow/replay).
-- Reporting model produces both JSON and Markdown.
+- Reporting model produces JSON, Markdown, and SARIF outputs.
+- Verification profiles are supported and documented.
+- Verification coverage is measurable and reported.
+- Incremental verification is implemented.
+- Self-verification of scripts, manifests, and metadata is enforced.
 
 ---
 
