@@ -1,0 +1,25 @@
+llm_routing:
+  json_controller:
+    provider: ollama
+    model: qwen2.5:3b
+  fast_classifier:
+    provider: ollama
+    model: gemma4:e2b
+  rewriter:
+    provider: ollama
+    model: gemma4:e2b
+  summarizer:
+    provider: ollama
+    model: gemma4:e2b
+  long_reasoner:
+    provider: external
+    model: Qwen3.6-35B-A3B
+    note: placeholder for higher-context local or hosted reasoning
+  critic:
+    provider: external
+    model: Qwen3.6-35B-A3B
+    note: placeholder pending router evaluation
+  proposal_writer:
+    provider: external
+    model: Qwen3.6-35B-A3B
+    note: placeholder pending router evaluation

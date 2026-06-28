@@ -1,0 +1,13 @@
+integrations:
+  telegram:
+    mode: planned
+  google_tasks:
+    mode: planned
+  upwork:
+    mode: planned
+  crm:
+    mode: planned
+  github:
+    mode: planned
+  calendar:
+    mode: planned

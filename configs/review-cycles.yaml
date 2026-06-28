@@ -1,0 +1,9 @@
+review_cycles:
+  inbox_triage:
+    cadence: daily
+  weekly_review:
+    cadence: weekly
+  freelance_pipeline_review:
+    cadence: daily
+  finance_review:
+    cadence: monthly

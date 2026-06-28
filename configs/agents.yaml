@@ -1,0 +1,19 @@
+agents:
+  life_planner:
+    enabled: false
+    review_required: true
+  critic:
+    enabled: false
+    review_required: true
+  progress_watcher:
+    enabled: false
+    review_required: true
+  opportunity_scout:
+    enabled: false
+    review_required: true
+  finance_reviewer:
+    enabled: false
+    review_required: true
+  proposal_writer:
+    enabled: false
+    review_required: true

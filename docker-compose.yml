@@ -1,0 +1,132 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  nats:
+    image: nats:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  llm-router:
+    image: python:3.12-slim
+    restart: unless-stopped
+    working_dir: /workspace
+    command: >-
+      sh -c "python services/llm-router/main.py"
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /workspace
+    volumes:
+      - ./:/workspace
+    ports:
+      - "8081:8081"
+    depends_on:
+      - ollama
+
+  praxis-api:
+    image: python:3.12-slim
+    restart: unless-stopped
+    working_dir: /workspace
+    command: >-
+      sh -c "pip install --no-cache-dir fastapi uvicorn &&
+      uvicorn services.api.main:app --host 0.0.0.0 --port 8080"
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /workspace
+    volumes:
+      - ./:/workspace
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - nats
+      - ollama
+      - llm-router
+
+  praxis-worker:
+    image: python:3.12-slim
+    restart: unless-stopped
+    working_dir: /workspace
+    command: >-
+      sh -c "python services/worker/main.py"
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /workspace
+    volumes:
+      - ./:/workspace
+    depends_on:
+      - postgres
+      - nats
+
+  praxis-telegram:
+    image: python:3.12-slim
+    restart: unless-stopped
+    working_dir: /workspace
+    command: >-
+      sh -c "python apps/telegram/main.py"
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /workspace
+    volumes:
+      - ./:/workspace
+    depends_on:
+      - praxis-api
+
+  praxis-admin:
+    image: node:20-alpine
+    restart: unless-stopped
+    working_dir: /workspace/apps/admin
+    command: >-
+      sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    environment:
+      ADMIN_BASE_URL: ${ADMIN_BASE_URL}
+    volumes:
+      - ./:/workspace
+    ports:
+      - "5173:5173"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - praxis-api
+      - praxis-admin
+
+volumes:
+  postgres_data:
+  ollama_data:
+  caddy_data:
+  caddy_config:

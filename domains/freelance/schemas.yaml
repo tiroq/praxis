@@ -1,0 +1,11 @@
+opportunity:
+  required:
+    - title
+    - source
+    - budget
+    - url
+  optional:
+    - client_name
+    - skills
+    - risk_flags
+    - proposal_notes
