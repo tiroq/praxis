@@ -3,7 +3,7 @@
 # RFC-010 Capability Map
 
 **Status:** Draft  
-**Authors:** Tiroq + ChatGPT  
+**Authors:** Tiroq + ChatGPT
 **Last Updated:** 2026-06-28
 
 ---
