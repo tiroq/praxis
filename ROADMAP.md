@@ -17,7 +17,7 @@ Praxis aims to be the definitive operating system for decisions, seamlessly conn
 
 ### Phase 0 — Architecture Foundation
 
-**Focus**: Vision, Principles, Terminology, Concept Model, Capability Map, Domain Model, Identity & Representation Model.
+**Focus**: Vision, Principles, Terminology, Concept Model, Capability Map, Domain Model, Identity & Representation Model, Object Lifecycle Model.
 
 **Exit Criteria**: All foundation RFCs accepted.
 
@@ -69,8 +69,9 @@ Praxis aims to be the definitive operating system for decisions, seamlessly conn
 
 - Repository Structure
 - Architecture Documentation
-- Foundation RFCs (000–014)
+- Foundation RFCs (000–015)
 - Identity & Representation RFC
+- Object Lifecycle RFC
 - Architecture Review
 
 ### Platform Milestones
@@ -124,7 +125,7 @@ Praxis aims to be the definitive operating system for decisions, seamlessly conn
 
 Implementation has intentionally not started. The immediate priority is completing Foundation RFCs in the following order:
 
-README → MANIFESTO → ROADMAP → RFC-000 → RFC-001 → RFC-002 → RFC-003 → RFC-010 → RFC-011 → RFC-014 (Identity & Representation Model) → RFC-012 → RFC-013 → RFC-030
+README → MANIFESTO → ROADMAP → RFC-000 → RFC-001 → RFC-002 → RFC-003 → RFC-010 → RFC-011 → RFC-014 (Identity & Representation Model) → RFC-015 (Object Lifecycle Model) → RFC-012 → RFC-013 → RFC-030
 
 ---
 
