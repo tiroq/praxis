@@ -1,5 +1,3 @@
-
-
 # RFC-020 Review System
 
 **Status:** Draft  
@@ -153,15 +151,15 @@ These outcomes are **recommendations only**; they do not mandate actions.
 ## 11. Review Evidence
 
 Every review must cite evidence supporting its recommendation. Evidence may include:
-- Policies or rules
-- Retrieved knowledge or data
-- Calculations or analyses
-- Previous decisions or reviews
-- Previous Reviews
+- Policies
+- Rules
 - Retrieved Knowledge
+- Previous Decisions
+- Previous Reviews
 - Similar Canonical Objects
 - Similar Artifacts
-- External references or standards
+- Calculations
+- External References
 - Confidence Metrics
 
 ---
@@ -177,34 +175,32 @@ Reviews are append-only and never modified or deleted. Corrections or updates ar
 Multiple reviewers operate independently and in parallel. Their results are aggregated for Decision-making.
 
 ```mermaid
-flowchart TD
-    ReviewRequest -->|fan-out| Reviewer1
-    ReviewRequest --> Reviewer2
-    ReviewRequest --> Reviewer3
-    Reviewer1 -->|fan-in| ReviewResults
-    Reviewer2 --> ReviewResults
-    Reviewer3 --> ReviewResults
-```
-
----
-
-## Review Set
-
-Decisions consume Review Sets rather than individual Reviews.
-A Review Set is an immutable collection of Reviews targeting the same Canonical Object or Artifact.
-
-```mermaid
 flowchart LR
 Object --> Planner
 Object --> Critic
 Object --> Risk
 Object --> Architect
-Planner --> ReviewSet
-Critic --> ReviewSet
-Risk --> ReviewSet
-Architect --> ReviewSet
-ReviewSet --> Decision
+Planner --> ReviewPackage
+Critic --> ReviewPackage
+Risk --> ReviewPackage
+Architect --> ReviewPackage
+ReviewPackage --> Decision
 ```
+
+---
+
+## 13.1 Review Package
+
+A Review Package is an immutable collection of Reviews targeting the same Canonical Object or Artifact. It aggregates multiple reviews along with:
+
+- Review Strategy  
+- Review Policy  
+- Aggregated assessments  
+- Completion status  
+- Evidence summary  
+
+Decisions consume Review Packages instead of individual Reviews.
+
 ---
 
 ## 14. Human-in-the-Loop
@@ -213,7 +209,7 @@ Approval policies are configurable to require human review, escalation, or overr
 
 ---
 
-## Review Policy
+## 14.1 Review Policy
 
 Review Policies determine which Reviews are required before Decision evaluation.
 Examples:
@@ -236,13 +232,19 @@ Policies do not produce Decisions; they only specify review requirements.
 - Reviews never own business state.
 - Reviews never modify identity.
 - Deterministic reviewers should produce reproducible Reviews.
-- Every Review belongs to exactly one Review Set.
+- Every Review belongs to exactly one Review Package.
 
 ---
 
 ## 16. Review Lifecycle
 
-`Requested → In Progress → Completed → Archived`
+```mermaid
+stateDiagram-v2
+    [*] --> Requested
+    Requested --> InProgress
+    InProgress --> Completed
+    Completed --> Archived
+```
 
 Lifecycle states apply to the Review itself, not the reviewed object.
 
@@ -250,19 +252,23 @@ Lifecycle states apply to the Review itself, not the reviewed object.
 
 ## 17. Dependencies
 
-- Depends on: RFC-000 through RFC-015 (Canonical Objects, Artifacts, Understanding, etc.)
-- Required before: RFC-021 (Decision Model), RFC-030 (System Architecture)
+- Depends on RFC-000 through RFC-015.
+- Required before RFC-021 Decision Model and RFC-030 System Architecture.
 
 ---
 
-## Architectural Summary
+## 18.1 Architectural Summary
 
-- Reviews evaluate.
-- Review Sets aggregate.
-- Decisions commit.
-- Actions execute.
-- Reviews are evidence.
-- Decisions consume Review Sets rather than individual Reviews.
+- Reviews evaluate.  
+- Review Packages aggregate.  
+- Decisions commit.  
+- Actions execute.  
+- Reviews are evidence.  
+- Decisions consume Review Packages rather than individual Reviews.  
+- Review Strategies define collection.  
+- Review Policies define completion.  
+
+---
 
 ## 18. Acceptance Criteria
 
