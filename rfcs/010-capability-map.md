@@ -35,11 +35,12 @@ Capabilities in Praxis are *reusable behaviors* that can be invoked across domai
 
 ## 5. Capability Hierarchy
 
-Praxis capabilities are organized in a hierarchy, with eight Level 1 (top-level) capabilities. Each Level 1 capability is further decomposed into representative Level 2 capabilities.
+Praxis capabilities are organized in a hierarchy, with nine Level 1 (top-level) capabilities. Each Level 1 capability is further decomposed into representative Level 2 capabilities.
 
 ### Level 1 Capabilities
 
 - **Capture:** Receive and parse new information or events.
+- **Validate:** Ensure incoming information is syntactically, structurally and policy valid before semantic processing.
 - **Understand:** Interpret, classify, and extract meaning from inputs.
 - **Enrich:** Augment information with additional context or knowledge.
 - **Think:** Plan, reason, and decompose problems.
@@ -55,6 +56,13 @@ Praxis capabilities are organized in a hierarchy, with eight Level 1 (top-level)
 - **Import:** Bring in data from external systems.
 - **Observe:** Monitor for changes or triggers.
 - **Parse:** Convert raw inputs into structured representations.
+
+#### Validate
+- **Validate Schema:** Ensure data conforms to expected structural schema.
+- **Validate Format:** Check data for correct formatting and types.
+- **Validate Policy:** Enforce compliance with organizational or workflow policies.
+- **Validate Security:** Assess data for security threats or unauthorized content.
+- **Validate Integrity:** Confirm completeness, consistency, and authenticity of data.
 
 #### Understand
 - **Normalize:** Standardize data formats and structures.
@@ -93,12 +101,12 @@ Praxis capabilities are organized in a hierarchy, with eight Level 1 (top-level)
 - **Schedule:** Assign timing or deadlines.
 
 #### Execute
-- **Create Task:** Add new actionable items.
-- **Update Project:** Modify project structures or status.
-- **Send Message:** Communicate with users or systems.
-- **Generate Proposal:** Produce recommendations or plans.
-- **Trigger Workflow:** Start automated or manual processes.
 - **Synchronize:** Ensure consistency across systems or states.
+- **Persist:** Store or update information in durable storage or systems.
+- **Notify:** Communicate events or updates to users or external systems.
+- **Invoke:** Call external services, APIs, or functions.
+- **Publish:** Make information or events available to subscribers or channels.
+- **Schedule Execution:** Arrange for actions to be performed at a specified time or interval.
 
 #### Learn
 - **Capture Feedback:** Gather explicit or implicit feedback.
@@ -107,11 +115,16 @@ Praxis capabilities are organized in a hierarchy, with eight Level 1 (top-level)
 - **Improve Knowledge:** Update or expand Praxis’s knowledge base.
 - **Improve Policy:** Refine system rules or constraints.
 
+- **Observe Outcome:** Monitor and record the results of executed actions.
+- **Evaluate Quality:** Assess the effectiveness or quality of outcomes.
+- **Record Experience:** Store learnings or experiences for future adaptation.
+
 ## 6. Capability Tree (Mermaid)
 
 ```mermaid
 graph TD
   A[Capability] --> B[Capture]
+  A --> V[Validate]
   A --> C[Understand]
   A --> D[Enrich]
   A --> E[Think]
@@ -123,6 +136,11 @@ graph TD
   B --> B2[Import]
   B --> B3[Observe]
   B --> B4[Parse]
+  V --> V1[Validate Schema]
+  V --> V2[Validate Format]
+  V --> V3[Validate Policy]
+  V --> V4[Validate Security]
+  V --> V5[Validate Integrity]
   C --> C1[Normalize]
   C --> C2[Translate]
   C --> C3[Classify]
@@ -149,26 +167,31 @@ graph TD
   G --> G4[Split]
   G --> G5[Escalate]
   G --> G6[Schedule]
-  H --> H1[Create Task]
-  H --> H2[Update Project]
-  H --> H3[Send Message]
-  H --> H4[Generate Proposal]
-  H --> H5[Trigger Workflow]
   H --> H6[Synchronize]
+  H --> H7[Persist]
+  H --> H8[Notify]
+  H --> H9[Invoke]
+  H --> H10[Publish]
+  H --> H11[Schedule Execution]
   I --> I1[Capture Feedback]
   I --> I2[Improve Prompt]
   I --> I3[Improve Routing]
   I --> I4[Improve Knowledge]
   I --> I5[Improve Policy]
+  I --> I6[Observe Outcome]
+  I --> I7[Evaluate Quality]
+  I --> I8[Record Experience]
 ```
 
 ## 7. Capability Pipeline
 
 Every workflow in Praxis is a specialization of the following canonical pipeline:
 
-**Event → Capture → Understand → Enrich → Think → Review → Decide → Execute → Learn**
+**Event → Capture → Validate → Understand → Enrich → Think → Review → Decide → Execute → Learn**
 
-Each step invokes one or more capabilities. For example, a new message (event) is captured, understood (intent detected), enriched (context retrieved), thought over (plan generated), reviewed (risk checked), decided (approved), executed (task created), and then Praxis learns from the outcome.
+Each step invokes one or more capabilities. For example, a new message (event) is captured, validated (checked for format, policy, and security), understood (intent detected), enriched (context retrieved), thought over (plan generated), reviewed (risk checked), decided (approved), executed (actions performed), and then Praxis learns from the outcome.
+
+Validation is intentionally separated from understanding to ensure that all incoming information is correct, safe, and policy-compliant before any semantic or business logic is applied. This separation allows for early rejection or correction of invalid input, improving system robustness and simplifying downstream processing.
 
 ## 8. Domain Independence
 
@@ -191,23 +214,25 @@ Workflows are defined as compositions of capabilities, not as hardcoded business
 
 **Example 1: Telegram Task Processing**
 1. **Capture:** Receive Telegram message.
-2. **Understand:** Detect intent and extract entities.
-3. **Enrich:** Retrieve user context.
-4. **Think:** Plan task creation.
-5. **Review:** Critic review of plan.
-6. **Decide:** Approve or escalate.
-7. **Execute:** Create task and send confirmation.
-8. **Learn:** Capture feedback from user.
+2. **Validate:** Check message format and policy compliance.
+3. **Understand:** Detect intent and extract entities.
+4. **Enrich:** Retrieve user context.
+5. **Think:** Plan task creation.
+6. **Review:** Critic review of plan.
+7. **Decide:** Approve or escalate.
+8. **Execute:** Persist new task and notify user.
+9. **Learn:** Capture feedback from user.
 
 **Example 2: Upwork Opportunity Processing**
 1. **Capture:** Import new job posting.
-2. **Understand:** Classify opportunity and extract requirements.
-3. **Enrich:** Lookup freelancer skills and history.
-4. **Think:** Plan proposal draft.
-5. **Review:** Risk review and human review.
-6. **Decide:** Approve or schedule proposal submission.
-7. **Execute:** Generate and send proposal.
-8. **Learn:** Capture feedback on outcome.
+2. **Validate:** Validate schema, policy, and security of posting.
+3. **Understand:** Classify opportunity and extract requirements.
+4. **Enrich:** Lookup freelancer skills and history.
+5. **Think:** Plan proposal draft.
+6. **Review:** Risk review and human review.
+7. **Decide:** Approve or schedule proposal submission.
+8. **Execute:** Persist proposal, publish to Upwork, and notify relevant stakeholders.
+9. **Learn:** Capture feedback on outcome.
 
 ## 10. Architectural Constraints
 
@@ -217,9 +242,21 @@ Workflows are defined as compositions of capabilities, not as hardcoded business
 - New workflows must reuse existing capabilities wherever possible.
 - Capabilities remain implementation and technology independent.
 
+## 10.1 Capability Classification
+
+| Category     | Capabilities                              |
+|--------------|-------------------------------------------|
+| Ingestion    | Capture, Validate                         |
+| Cognition    | Understand, Enrich, Think                 |
+| Governance   | Review, Decide                            |
+| Execution    | Execute                                   |
+| Adaptation   | Learn                                     |
+
 ## 11. Future Evolution
 
 Future RFCs may define new implementations, providers, or workflows, but not new fundamental capabilities unless justified by a major shift in scope. The Capability Map should remain stable.
+
+> **Note:** Domain-specific actions (such as "create task", "generate proposal", or "send invoice") belong to workflows and domains. The Capability Map itself remains domain-agnostic and only defines generic, reusable capabilities.
 
 ## 12. Dependencies
 
