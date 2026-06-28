@@ -1,7 +1,7 @@
 # RFC-000 Vision
 
 **Status:** Draft  
-**Authors:** Tiroq + ChatGPT  
+**Authors:** Ivan + ChatGPT  
 **Last Updated:** 2026-06-28
 
 ---
@@ -248,3 +248,30 @@ flowchart LR
 ---
 
 **Praxis doesn't manage tasks. Praxis manages decisions.**
+
+---
+
+## Next Evolution
+
+This RFC intentionally focuses on the long-term vision of Praxis rather than implementation details.
+
+The following RFCs progressively refine this vision into an implementable architecture:
+
+1. RFC-001 Principles — Immutable architectural principles.
+2. RFC-002 Terminology — Common language used across the project.
+3. RFC-010 Capability Map — What the platform must be capable of.
+4. RFC-011 Domain Model — Business domains and bounded contexts.
+5. RFC-012 Artifact Model — The canonical representation of work.
+6. RFC-013 Event Model — How information enters and flows through the system.
+
+Together these documents define the conceptual foundation upon which every implementation decision in Praxis must be based.
+
+### Acceptance Criteria
+
+This RFC can be considered Accepted when:
+
+- The long-term vision of Praxis is stable.
+- The problem statement is agreed upon.
+- The mission and philosophy no longer require structural changes.
+- Subsequent RFCs do not contradict this document.
+- All future architectural decisions remain consistent with this vision.
