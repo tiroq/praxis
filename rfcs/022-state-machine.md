@@ -1,4 +1,137 @@
+## 5. State Machine Philosophy
 
+## 5.1 State Machine Model
+
+| Component       | Description                                                                                   |
+|-----------------|-----------------------------------------------------------------------------------------------|
+| State Machine   | An abstract machine that manages a set of states and transitions between them.                |
+| State           | A distinct condition or situation in the lifecycle of an object or process.                   |
+| Transition      | A change from one state to another triggered by an event or condition.                        |
+| Trigger         | An event or action that initiates a transition.                                              |
+| Guard / Preconditions | Conditions that must be true for a transition to occur.                                  |
+| Postconditions  | Conditions that must be true after a transition completes.                                   |
+| Emitted Events  | Events generated as a result of a transition, used for notification or triggering further actions. |
+| Owner           | The entity responsible for managing the state machine and ensuring its correctness.           |
+| Observer        | Entities that monitor state changes and may react without directly causing mutations.        |
+
+## 5.2 Transition Contract
+
+Every transition must have the following components:
+
+- Source State  
+- Target State  
+- Trigger  
+- Preconditions  
+- Postconditions  
+- Emitted Events  
+- Actor  
+- Timestamp  
+- Correlation ID  
+
+Transition contracts define a clear and consistent interface for state changes, enabling implementation, testing, auditing, and replay mechanisms to operate on the same precise model.
+
+## 6. Runtime Objects
+
+| Object           | Owns State | May Observe | May Trigger | Produces |
+|------------------|------------|-------------|-------------|----------|
+| Event Record     | Yes        | Yes         | Yes         | Yes      |
+| Review Request   | Yes        | Yes         | Yes         | Yes      |
+| Review           | Yes        | Yes         | Yes         | Yes      |
+| Review Package   | Yes        | Yes         | Yes         | Yes      |
+| Decision Request | Yes        | Yes         | Yes         | Yes      |
+| Decision         | Yes        | Yes         | Yes         | Yes      |
+| Action Request   | Yes        | Yes         | Yes         | Yes      |
+| Action           | Yes        | Yes         | Yes         | Yes      |
+| Execution Result | Yes        | Yes         | Yes         | Yes      |
+| Canonical Object | Yes        | Yes         | Yes         | Yes      |
+
+## 7. State Categories
+
+## 7.1 State Category Boundaries
+
+One state machine must not mix processing state, business state, lifecycle state, and execution state. Mixing these categories leads to unclear semantics and brittle implementations.
+
+Examples of bad mixing include:
+
+- A Decision state machine containing Review states.  
+- An Action state machine containing Decision outcomes.  
+- Event processing state containing business approval.  
+
+Each state machine should focus on a single category to maintain clarity and correctness.
+
+## 9. Individual State Machines
+
+These are canonical baseline state machines that define fundamental lifecycle and processing semantics. Specialized RFCs may extend these state machines but must not contradict the invariants and core principles established here.
+
+## 10. Transition Rules
+
+## 10.1 Transition Events
+
+Every transition emits a transition event to signal the change of state. These events enable observability, auditing, and triggering downstream logic.
+
+Examples include:
+
+- review.request.submitted  
+- review.completed  
+- review_package.ready  
+- decision.committed  
+- action.started  
+- action.succeeded  
+
+## 10.2 Illegal Transitions
+
+Illegal transitions must be rejected, recorded, and observable to maintain system integrity.
+
+Examples:
+
+- Archived -> Active is illegal unless explicitly restored through a new object or revision.  
+- Completed -> Running is illegal for Actions.  
+- Decision Committed -> Evaluating is illegal.  
+
+## 11. Ownership Rules
+
+## 11.1 State Ownership Matrix
+
+| Object           | May mutate own state | May mutate others | May observe others |
+|------------------|---------------------|-------------------|--------------------|
+| Event Record     | Yes                 | No                | Yes                |
+| Review Request   | Yes                 | No                | Yes                |
+| Review           | Yes                 | No                | Yes                |
+| Review Package   | Yes                 | No                | Yes                |
+| Decision Request | Yes                 | No                | Yes                |
+| Decision         | Yes                 | No                | Yes                |
+| Action Request   | Yes                 | No                | Yes                |
+| Action           | Yes                 | No                | Yes                |
+| Execution Result | Yes                 | No                | Yes                |
+| Canonical Object | Yes                 | No                | Yes                |
+
+Observation may trigger a command but never a direct mutation of another object's state.
+
+## 12. Replay Rules
+
+## 12.1 Replay Boundaries
+
+Replay mechanisms can rebuild derived state, projections, read models, and indexes. However, they must never rewrite or alter historical transition events to preserve integrity and auditability.
+
+## 14. Invariants
+
+## 14.1 Base Runtime State Machine
+
+A reusable base lifecycle is defined as:
+
+Created -> Active -> Completed -> Archived
+
+With Failed and Cancelled as terminal or recoverable variants depending on the object type.
+
+Specialized state machines inherit these semantics conceptually but define their own states explicitly.
+
+## 17. Acceptance Criteria
+
+- Transition contracts are defined.  
+- Illegal transitions are specified.  
+- State ownership is unambiguous.  
+- Transition events are emitted for every state change.  
+- Replay boundaries are explicit.
 
 # RFC-022 State Machine
 
