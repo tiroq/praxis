@@ -96,21 +96,43 @@ DDD bounded contexts are internal implementation concerns that define boundaries
 
 **Spaces are not bounded contexts.** They are abstractions designed for user experience and do not own business logic or enforce invariants.
 
-## 9. Ownership Model
+## 9. Representation Model
 
-The ownership and representation of business entities in Praxis is structured as follows:
+The same business concept may have multiple representations across different contexts, user interfaces, or workflows, while preserving a single canonical identity. This approach allows for flexibility in presentation and adaptation, without duplicating business logic or ownership.
 
-- **Canonical Object:** The authoritative, single source of truth for a Domain Object’s state and behavior.
+```mermaid
+flowchart TD
+    CO[Canonical Object]
+    --> P1[Projection]
+    --> V1[View]
 
-- **Projections:** Contextualized representations of Canonical Objects tailored for specific Spaces or use cases.
+    CO
+    --> P2[Projection]
+    --> V2[View]
 
-- **Views:** Read-only representations optimized for display or querying.
+    CO --> KG[Knowledge Graph]
+    CO --> RM[Read Model]
+```
 
-- **Read Models:** Specialized data models designed to support efficient read operations, often denormalized.
+### Canonical Object
+The single authoritative business object containing identity, lifecycle, and business invariants. All representations ultimately refer back to this canonical instance.
 
-- **Knowledge Graph:** A connected representation of Domain Objects and their relationships, supporting rich queries and reasoning across Spaces.
+### Domain Object
+A Domain Object is the conceptual business entity (such as Project, Task, Client, Meeting, Proposal, etc.), while the Canonical Object is its runtime authoritative instance in the system.
 
-This model enables flexibility in how data is presented while maintaining consistent core business logic.
+### Projection
+Projections adapt Canonical Objects for a particular Space or workflow, providing contextualized representations without duplicating business ownership or logic.
+
+### View
+Views are presentation-specific, read-only models optimized for UI or API consumption. They tailor data for display and interaction.
+
+### Read Model
+Read models are optimized query representations of business data, often denormalized for performance. They can be rebuilt at any time from canonical sources and events.
+
+### Knowledge Graph
+The Knowledge Graph connects Canonical Objects across Spaces and Domains through semantic relationships, enabling cross-context insights and reasoning without implying ownership.
+
+> **Representation is contextual. Identity is canonical.**
 
 ## 10. Architectural Invariants
 
