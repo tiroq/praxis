@@ -54,19 +54,23 @@ Reviews are opinions, not facts. Each review expresses a judgment, supported by 
 | Weighted    | Review influence depends on reviewer weight       | Multi-model AI evaluation     |
 
 Review Strategies determine how Reviews are collected, not how Decisions are made.
+
+A Review Request selects a Review Strategy. The Review Strategy determines how Reviews are collected into a Review Package. The Decision System consumes completed Review Packages rather than coordinating individual reviewers.
 ---
 
 ## 6. Review Pipeline
 
 ```mermaid
 flowchart LR
-    CanonicalObject["Canonical Object"]
-    ReviewRequest["Review Request"]
-    Reviewers["Reviewer(s)"]
-    ReviewResults["Review Results"]
-    Decision["Decision"]
-    CanonicalObject --> ReviewRequest --> Reviewers --> ReviewResults --> Decision
+    CO[Canonical Object]
+    --> RR[Review Request]
+    --> RS[Review Strategy]
+    --> REV[Individual Reviews]
+    --> RP[Review Package]
+    --> DEC[Decision]
 ```
+
+Review Requests initiate the evaluation process. Review Strategies coordinate how Reviews are collected and aggregated. Review Packages become the sole input to the Decision System; individual Reviews are never consumed directly by Decisions.
 
 ---
 
@@ -193,11 +197,16 @@ ReviewPackage --> Decision
 
 A Review Package is an immutable collection of Reviews targeting the same Canonical Object or Artifact. It aggregates multiple reviews along with:
 
-- Review Strategy  
-- Review Policy  
-- Aggregated assessments  
-- Completion status  
-- Evidence summary  
+| Component           | Purpose                          |
+|---------------------|----------------------------------|
+| Reviews             | Individual reviewer outputs      |
+| Review Strategy     | How reviews were collected       |
+| Review Policy       | Completion requirements          |
+| Aggregated Assessment| Combined findings               |
+| Evidence Summary    | Consolidated evidence            |
+| Completion Status   | Whether the package satisfies policy |
+
+A Review Package is immutable once completed. Additional Reviews require creation of a new Review Package.
 
 Decisions consume Review Packages instead of individual Reviews.
 
@@ -220,6 +229,8 @@ Examples:
 - Skip review for low-risk reminders.
 
 Policies do not produce Decisions; they only specify review requirements.
+
+Review Policies determine completeness, not correctness. They specify when sufficient evidence exists for Decision evaluation but never prescribe the Decision outcome.
 ---
 
 ## 15. Review Invariants
@@ -233,6 +244,10 @@ Policies do not produce Decisions; they only specify review requirements.
 - Reviews never modify identity.
 - Deterministic reviewers should produce reproducible Reviews.
 - Every Review belongs to exactly one Review Package.
+- Review Packages are immutable after completion.
+- Review Strategies never evaluate objects.
+- Review Policies never produce recommendations.
+- Decisions never consume individual Reviews directly.
 
 ---
 
@@ -257,7 +272,7 @@ Lifecycle states apply to the Review itself, not the reviewed object.
 
 ---
 
-## 18.1 Architectural Summary
+## 18. Architectural Summary
 
 - Reviews evaluate.  
 - Review Packages aggregate.  
@@ -270,7 +285,7 @@ Lifecycle states apply to the Review itself, not the reviewed object.
 
 ---
 
-## 18. Acceptance Criteria
+## 19. Acceptance Criteria
 
 - Reviews must be immutable and append-only.
 - Every review must include all mandatory fields.
@@ -282,7 +297,7 @@ Lifecycle states apply to the Review itself, not the reviewed object.
 
 ---
 
-## 19. Decision Log
+## 20. Decision Log
 
 | Date       | Decision           | Rationale        | Status |
 |------------|--------------------|------------------|--------|
