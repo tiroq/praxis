@@ -41,46 +41,41 @@ This separation ensures clarity in responsibilities and enables flexible system 
 ## 6. Canonical Lifecycle
 
 ```mermaid
-graph LR
-    Event --> Understanding
-    Understanding --> Canonical_Object
-    Canonical_Object --> Revision
-    Revision --> Projection
-    Projection --> Read_Model
-    Read_Model --> View
-    View --> Archive
+flowchart LR
+    UND[Understanding]
+    --> CO[Canonical Object]
+    --> REV[Revision]
+    --> PROJ[Projection]
+    --> RM[Read Model]
+    --> VIEW[View]
+
+    CO --> ARCH[Archived]
 ```
 
-The lifecycle begins with an Event, which is processed into an Understanding. This understanding produces or modifies a Canonical Object, which is versioned through Revisions. Revisions are projected into Projections, which feed Read Models. Views are rendered from Read Models and eventually objects or views may be Archived.
+This RFC intentionally begins after Understanding has produced or updated a Canonical Object. Events and Event processing are defined by RFC-013. This RFC defines how Canonical Objects evolve throughout their business lifetime and how their derived representations are managed.
 
 ## 7. Lifecycle Stages
 
-Canonical Objects progress through the following business lifecycle stages:
+| Lifecycle Stage | Description |
+|-----------------|-------------|
+| Created | Object has been materialized. |
+| Active | Object participates in business processes. |
+| Suspended | Object is temporarily inactive without losing identity. |
+| Archived | Object is no longer active but remains historically accessible. |
 
-- **Created:** The object is instantiated.
-- **Active:** The object is in normal operational state.
-- **Under Review:** The object is being audited or verified.
-- **Approved:** The object has passed review and is authorized.
-- **Scheduled:** The object is planned for future action.
-- **Executing:** The object is currently undergoing its intended process.
-- **Completed:** The object's process is finished.
-- **Archived:** The object is no longer active and is retained for historical or compliance reasons.
-
-Not every object must traverse every stage; paths may vary by object type and business rules.
+Individual Artifact types may define additional business-specific states such as Approved, Scheduled, Executing or Completed without redefining the canonical lifecycle.
 
 ## 8. Processing vs Business Lifecycle
 
-| Event Processing States | Object Business States   |
-|------------------------|-------------------------|
-| Received               | Created                 |
-| Validated              | Active                  |
-| Processed              | Under Review            |
-| Failed                 | Approved                |
-| Retried                | Scheduled               |
-| Completed              | Executing               |
-| Archived               | Completed / Archived    |
+| Event Processing | Object Lifecycle | Business State |
+|------------------|------------------|----------------|
+| Captured | Created | Draft |
+| Validated | Active | Planned |
+| Accepted | Active | Approved |
+| Understood | Active | Executing |
+| Archived | Archived | Completed |
 
-This table illustrates the distinction between the transient states of event processing and the persistent states of object business lifecycle.
+This table distinguishes the transient event processing states, the persistent object lifecycle states, and the business-specific states which describe domain semantics. Processing states reflect how events move through the system, lifecycle states define object existence and activity, and business states capture domain-specific meaning.
 
 ## 9. Revision Model
 
@@ -143,6 +138,14 @@ Views do not own state and are ephemeral by nature.
 - Views are ephemeral and stateless.
 - Object identity persists across lifecycle transitions.
 
+## 13.1 Lifecycle Ownership
+
+- Only Canonical Objects own business lifecycle.
+- Revisions inherit lifecycle context but never define lifecycle.
+- Projections reflect lifecycle but never control it.
+- Read Models expose lifecycle information but may be rebuilt.
+- Views render lifecycle state but never persist it.
+
 ## 14. Lifecycle Relationships
 
 ```mermaid
@@ -157,12 +160,42 @@ This diagram shows one Canonical Object producing multiple revisions, which feed
 
 ## 15. Replay & Recovery
 
-Replay mechanisms reconstruct lifecycle-derived representations (revisions, projections, read models) by reprocessing events and decisions without altering the canonical state of objects. This ensures consistency and supports recovery from failures or migrations.
+Replay reconstructs derived representations from immutable Event Records and Canonical Objects without modifying identity.
+
+Rebuild targets include:
+
+- Projections
+- Read Models
+- Search Indexes
+- Knowledge Graph relationships
+- Analytics Views
+- Cached representations
+
+Replay must never mutate:
+
+- Canonical Identity
+- Revision History
+- Historical Decisions
 
 ## 16. Dependencies
 
-- Depends on RFC-000 through RFC-014.
-- Required before RFC-020 (Advanced Event Modeling), RFC-021 (Workflow Engine), RFC-030 (Storage Abstractions), RFC-032 (UI Rendering), and RFC-043 (Archival Strategies).
+Depends on RFC-000 through RFC-014.  
+Required before:  
+- RFC-020 Review System  
+- RFC-021 Decision Model  
+- RFC-030 System Architecture  
+- RFC-032 Data Flow  
+- RFC-043 Memory & Knowledge Graph
+
+## Architectural Summary
+
+- Event processing and object lifecycle are separate concerns.  
+- Canonical Objects own lifecycle.  
+- Identity survives every lifecycle transition.  
+- Revisions preserve history.  
+- Projections are replaceable.  
+- Read Models are rebuildable.  
+- Views are ephemeral.
 
 ## 17. Acceptance Criteria
 
