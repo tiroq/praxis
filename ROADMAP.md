@@ -69,7 +69,7 @@ Praxis aims to be the definitive operating system for decisions, seamlessly conn
 
 - Repository Structure
 - Architecture Documentation
-- Foundation RFCs (000–011)
+- Foundation RFCs (000–014)
 - Identity & Representation RFC
 - Architecture Review
 
