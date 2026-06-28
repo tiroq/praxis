@@ -1,7 +1,7 @@
 # RFC-002 Terminology
 
 **Status:** Draft  
-**Authors:** Ivan + ChatGPT  
+**Authors:** Tiroq + ChatGPT  
 **Last Updated:** 2026-06-28
 
 ---
@@ -183,7 +183,7 @@ Each term is defined above. "Learning" refers to system or Agent improvement bas
 
 ## 12. Decision Log
 
-- **2026-06-28:** Initial draft (Ivan + ChatGPT)
+- **2026-06-28:** Initial draft (Tiroq + ChatGPT)
 
 ---
 

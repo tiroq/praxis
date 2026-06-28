@@ -1,7 +1,7 @@
 # RFC-001 Principles
 
 **Status:** Draft  
-**Authors:** Ivan + ChatGPT  
+**Authors:** Tiroq + ChatGPT  
 **Last Updated:** 2026-06-28
 
 ---

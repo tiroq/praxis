@@ -1,7 +1,7 @@
 # RFC-000 Vision
 
 **Status:** Draft  
-**Authors:** Ivan + ChatGPT  
+**Authors:** Tiroq + ChatGPT  
 **Last Updated:** 2026-06-28
 
 ---
@@ -191,7 +191,7 @@ Praxis fills the architectural gap by combining event-driven design, AI augmenta
 
 | Date       | Change                                   | Author  |
 |------------|------------------------------------------|---------|
-| 2026-06-28 | Initial draft created                     | Ivan + ChatGPT |
+| 2026-06-28 | Initial draft created                     | Tiroq + ChatGPT |
 
 ---
 
