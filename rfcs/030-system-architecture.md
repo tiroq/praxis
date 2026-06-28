@@ -40,6 +40,72 @@ RFC-000 through RFC-023 define the conceptual architecture of Praxis. This RFC b
 - **Immutable Events:** Events are immutable facts of the system.  
 - **Observable Everything:** Full observability is built-in for monitoring and debugging.
 
+## 5.1 Runtime Layers
+
+```mermaid
+flowchart TB
+    subgraph Experience
+        UI[Web UI]
+        TG[Telegram]
+        CLI[CLI]
+        API[Public API]
+    end
+
+    subgraph Gateway
+        GW[Gateway]
+    end
+
+    subgraph Application
+        ING[Ingestion]
+        UND[Understanding]
+        REV[Review]
+        DEC[Decision]
+        ACT[Action]
+        LRN[Learning]
+    end
+
+    subgraph Domain
+        DOM[Canonical Domain]
+    end
+
+    subgraph Infrastructure
+        BUS[Event Bus]
+        DB[Storage]
+        SEARCH[Search]
+        OBS[Observability]
+        LLM[LLM Routing]
+    end
+
+    Experience --> Gateway --> Application --> Domain
+    Application --> Infrastructure
+```
+
+The runtime architecture is organized into five distinct layers, each with clear responsibilities and dependencies that always point downward:
+
+- **Experience:** The user interaction layer, including web UI, CLI, Telegram, and public APIs. It handles user-facing interfaces and input/output.
+
+- **Gateway:** Acts as the protocol translation layer, managing authentication, authorization, and routing between external clients and internal services.
+
+- **Application:** Contains use cases and orchestration logic, coordinating workflows such as ingestion, understanding, review, decision, action, and learning.
+
+- **Domain:** Encapsulates business rules and maintains Canonical Objects as the single source of truth for core business logic.
+
+- **Infrastructure:** Provides technical capabilities such as event bus, storage, search, observability, and LLM routing. It supports the runtime but does not contain business logic.
+
+Dependencies flow strictly from higher layers to lower layers, ensuring clear separation of concerns and preventing circular dependencies.
+
+## 5.2 Layer Ownership
+
+| Layer          | Owns                           |
+|----------------|-------------------------------|
+| Experience     | User interaction              |
+| Gateway        | Protocol translation          |
+| Application    | Use cases and orchestration   |
+| Domain         | Business rules and Canonical Objects |
+| Infrastructure | Technical capabilities        |
+
+Business rules must never migrate into the Infrastructure layer. This separation preserves the integrity of domain logic and avoids coupling business concerns with technical implementation details.
+
 ## 6. High-Level Architecture
 
 ```mermaid
@@ -58,24 +124,36 @@ Every stage communicates exclusively through immutable events, ensuring clear bo
 
 ## 7. Core Runtime Services
 
-| Service               | Responsibility                                   | Owns                      |
-|-----------------------|-------------------------------------------------|---------------------------|
-| Gateway               | Edge API access and authentication               | API endpoints              |
-| Ingestion Service     | Intake of external and internal data sources     | Raw input events           |
-| Understanding Service | Processing and interpreting ingested data        | Parsed knowledge           |
-| Canonical Domain Service | Maintaining core business objects and logic     | Canonical Objects          |
-| Review Service        | Validation and human-in-the-loop review           | Review workflows           |
-| Decision Service      | Automated decision-making                          | Decision rules             |
-| Action Service        | Executing commands and side effects               | Action workflows           |
-| Learning Service      | Continuous learning and model updates             | Learning data              |
-| Projection Service    | Building read models and materialized views       | Projections                |
-| Search Service        | Indexing and query capabilities                    | Search indexes             |
-| Notification Service  | Sending notifications and alerts                   | Notification templates     |
-| Scheduler             | Scheduling tasks and delayed actions               | Scheduled tasks            |
-| Integration Service   | Adapters to external systems                        | Integration adapters       |
-| Observability Service | Metrics, logs, tracing, and monitoring              | Observability data         |
-| Policy Service        | Authorization and policy enforcement                | Policy definitions         |
-| LLM Routing Service   | Routing requests to appropriate language models    | Model routing logic        |
+| Service               | Consumes                                         | Produces                                | Owns                      |
+|-----------------------|-------------------------------------------------|----------------------------------------|---------------------------|
+| Gateway               | External user requests (HTTP, Telegram, CLI)    | Commands and queries to Application    | API endpoints, authentication |
+| Ingestion Service     | External and internal raw data events            | Parsed knowledge events                 | Raw input events           |
+| Understanding Service | Raw input events from Ingestion                   | Interpreted domain events               | Parsed knowledge           |
+| Canonical Domain Service | Domain events from Understanding and Application | Updated Canonical Objects events        | Canonical Objects          |
+| Review Service        | Canonical domain events requiring validation      | Review outcome events                   | Review workflows           |
+| Decision Service      | Approved review events                             | Decision commands and events            | Decision rules             |
+| Action Service        | Decision commands                                 | External commands and side-effect events| Action workflows           |
+| Learning Service      | Feedback and data from Integrations and Actions  | Learning data events                    | Learning data              |
+| Projection Service    | Domain and application events                      | Read model projections                  | Projections                |
+| Search Service        | Domain and application events                      | Search indexes updates                  | Search indexes             |
+| Notification Service  | Action events and triggers                         | Notifications and alerts                | Notification templates     |
+| Scheduler             | Scheduled commands and delayed actions             | Scheduled task events                   | Scheduled tasks            |
+| Integration Service   | External system events and commands                | External system commands and responses | Integration adapters       |
+| Observability Service | Metrics, logs, traces from all layers              | Observability data                      | Observability data         |
+| Policy Service        | Authorization requests                              | Authorization decisions                 | Policy definitions         |
+| LLM Routing Service   | Language model requests                             | Routed responses                        | Model routing logic        |
+
+## 7.1 Service Contracts
+
+Every service exposes exactly three types of contracts to other services and clients:
+
+- **Commands:** Directed requests to perform specific actions, always targeting a single service owner.
+
+- **Events:** Immutable notifications signaling state changes or occurrences, broadcast to all interested parties without expecting responses.
+
+- **Queries:** Requests for data or projections that do not change system state.
+
+Services never communicate through shared persistence. Instead, all interactions occur via these well-defined contracts, ensuring loose coupling and clear ownership.
 
 ## 8. Communication Model
 
@@ -84,6 +162,14 @@ Praxis uses synchronous APIs only at system edges for user and external system i
 - **Commands:** Directed requests to perform actions.  
 - **Events:** Immutable notifications of state changes.  
 - **Queries:** Requests for data or projections.
+
+## 8.1 Communication Rules
+
+- Commands are point-to-point, targeting a single service owner.  
+- Events are broadcast to all interested subscribers.  
+- Queries never change state and are used solely to retrieve data.  
+- Events never expect responses or acknowledgments.  
+- Commands always target one owner and are not broadcast.
 
 ## 9. Data Ownership
 
@@ -112,6 +198,18 @@ sequenceDiagram
     Action->>Integrations: Execute external commands
     Integrations->>Learning: Provide feedback and data
 ```
+
+## 10.1 Runtime Dependencies
+
+```mermaid
+flowchart LR
+    Gateway --> Ingestion --> Understanding --> CanonicalDomain --> Review --> Decision --> Action --> Learning
+    Search --> Gateway
+    Observability --> Gateway
+    Notification --> Action
+```
+
+Search, Observability, and Notification are supporting services that never participate in business decisions. They provide auxiliary capabilities such as indexing, monitoring, and alerting, supporting the runtime without influencing core business logic.
 
 ## 11. Deployment Model
 
@@ -151,6 +249,13 @@ Adapters normalize external system protocols and data formats into Praxis events
 - Secrets management  
 - Prompt Registry
 
+## 13.1 Runtime Boundaries
+
+- Domain never depends on Infrastructure.  
+- Infrastructure never owns business rules.  
+- Application coordinates but does not own domain invariants.  
+- Experience never bypasses Gateway.
+
 ## 14. Architectural Invariants
 
 - Services own their behavior exclusively.  
@@ -158,16 +263,21 @@ Adapters normalize external system protocols and data formats into Praxis events
 - Services communicate only through defined contracts.  
 - No shared mutable state between services.  
 - Canonical Objects remain provider-independent abstractions.  
-- The runtime can be rebuilt from event streams.
+- The runtime can be rebuilt from event streams.  
+- Runtime layers have one-way dependencies.  
+- Every service owns its persistence.  
+- Services expose contracts instead of implementation.  
+- Canonical Domain is the single business source of truth.  
+- Runtime remains reconstructable from immutable Events.
 
 ## 15. Dependencies
 
 This RFC depends on RFC-000 through RFC-023 and is required before specifications for:
 
-- Service Catalog  
-- Data Flow  
-- Storage Model  
-- Agent Architecture
+- RFC-031 Service Contracts  
+- RFC-032 Data Flow  
+- RFC-033 Storage Model  
+- RFC-040 Agent Architecture
 
 ## 16. Acceptance Criteria
 
@@ -175,7 +285,12 @@ This RFC depends on RFC-000 through RFC-023 and is required before specification
 - Defined communication patterns and event-driven model.  
 - Documented deployment options.  
 - Cross-cutting concerns addressed.  
-- Architectural invariants enforced.
+- Architectural invariants enforced.  
+- Runtime layers are explicitly defined.  
+- Layer ownership is unambiguous.  
+- Service contracts are specified.  
+- Runtime dependencies are acyclic.  
+- Business rules remain isolated from infrastructure.
 
 ## 17. Decision Log
 
