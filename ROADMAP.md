@@ -17,7 +17,7 @@ Praxis aims to be the definitive operating system for decisions, seamlessly conn
 
 ### Phase 0 — Architecture Foundation
 
-**Focus**: Vision, Principles, Terminology, Concept Model, Capability Map, Domain Model.
+**Focus**: Vision, Principles, Terminology, Concept Model, Capability Map, Domain Model, Identity & Representation Model.
 
 **Exit Criteria**: All foundation RFCs accepted.
 
@@ -41,9 +41,9 @@ Praxis aims to be the definitive operating system for decisions, seamlessly conn
 
 ### Phase 3 — Domains
 
-**Focus**: Freelance, Personal, Work, Products, Content.
+**Focus**: Core Domain Objects, Spaces, Freelance workflows, Knowledge Graph integration, Cross-space projections.
 
-**Exit Criteria**: Each domain has its own bounded context and workflows.
+**Exit Criteria**: Reusable Domain Objects, Space projections, and workflow orchestration are implemented without coupling business logic to Spaces.
 
 ---
 
@@ -67,25 +67,32 @@ Praxis aims to be the definitive operating system for decisions, seamlessly conn
 
 ### Foundation Milestones
 
-- Repository
-- Documentation
-- RFCs
+- Repository Structure
+- Architecture Documentation
+- Foundation RFCs (000–011)
+- Identity & Representation RFC
+- Architecture Review
 
 ### Platform Milestones
 
 - Core Runtime
 - Event Pipeline
 - Storage
+- Decision Engine
+- Capability Runtime
+- Projection Engine
 - API
 - Workers
 
 ### Product Milestones
 
-- Upwork
-- CRM
+- Upwork Automation
+- Personal Productivity
 - Knowledge Graph
-- Automation
-- Multi-user
+- CRM
+- Automation Engine
+- Multi-space Experience
+- Team Collaboration
 
 ---
 
@@ -117,18 +124,27 @@ Praxis aims to be the definitive operating system for decisions, seamlessly conn
 
 Implementation has intentionally not started. The immediate priority is completing Foundation RFCs in the following order:
 
-README → MANIFESTO → ROADMAP → RFC-000 → RFC-001 → RFC-002 → RFC-003 → RFC-010 → RFC-011.
+README → MANIFESTO → ROADMAP → RFC-000 → RFC-001 → RFC-002 → RFC-003 → RFC-010 → RFC-011 → RFC-014 (Identity & Representation Model) → RFC-012 → RFC-013 → RFC-030
 
 ---
 
 ## Success Metrics
 
 - New provider integrated without Core changes.
-- New domain added without modifying existing domains.
+- New Space added without changing Core architecture.
 - New workflow introduced without changing runtime.
 - New model supported through OmniRoute only.
 - All important decisions are traceable.
 - 100% RFC coverage for major features.
+- New projection without modifying Canonical Objects.
+- Canonical identity preserved across all Spaces.
+- Domain Objects reusable across multiple Spaces.
+
+---
+
+## Architecture Evolution
+
+Praxis evolves through four architectural layers: Foundation RFCs, Platform RFCs, Domain RFCs, and Product RFCs. Each higher layer extends the capabilities of the lower layers but never redefines them, ensuring a stable and consistent architecture that supports growth and adaptability.
 
 ---
 
