@@ -1,5 +1,3 @@
-
-
 # RFC-002 Terminology
 
 **Status:** Draft  
@@ -32,12 +30,24 @@ This RFC establishes the canonical language of Praxis. All Praxis documents, API
 
 ---
 
+## 3.1 Terminology Stability Levels
+
+Terminology in Praxis is divided into two stability levels to balance consistency with future evolution:
+
+| Stability Level    | Purpose                                                                                   |
+|--------------------|-------------------------------------------------------------------------------------------|
+| Stable Concepts    | Expected to remain unchanged for the lifetime of Praxis.                                 |
+| Provisional Concepts | May evolve after RFC-010 Capability Map and RFC-011 Domain Model are accepted.           |
+
+---
+
 ## 4. Canonical Terms
+
+### Stable Concepts
 
 | Term        | Definition | Examples | Notes |
 |------------ |----------- |----------|-------|
 | **Event**   | A discrete occurrence representing a change, signal, or observation in the system. | "ArtifactCreated", "ReviewSubmitted" | Immutable; always in past tense. |
-| **Artifact** | A durable, versioned object produced, modified, or reviewed within Praxis. | Proposal, Document, Model, Report | The primary unit of work and review. |
 | **Review**  | A formal evaluation or feedback process applied to an Artifact. | Peer review, Automated review | Can be human or automated. |
 | **Decision** | A recorded choice or resolution made after reviewing Artifacts. | Approve, Reject, Request changes | Must be explicit and recorded. |
 | **Action**  | An operation carried out in response to a Decision. | Merge, Deploy, Notify | Actions are idempotent and auditable. |
@@ -45,10 +55,6 @@ This RFC establishes the canonical language of Praxis. All Praxis documents, API
 | **Agent**   | An autonomous or semi-autonomous actor (human, AI, or service) that performs Actions. | User, Bot, Service | Not called "Bot" or "Worker". |
 | **Domain**  | A bounded area of knowledge, responsibility, or expertise. | HR, Finance, ML | Used for context boundaries. |
 | **Capability** | A discrete skill or function that an Agent or system can perform. | Summarization, Translation | Used for access and routing. |
-| **Project** | A collection of related Artifacts, Workflows, and Agents pursuing a shared goal. | Research project, Client implementation | |
-| **Lead**    | The primary Agent responsible for a Project or Artifact. | Project Lead, Review Lead | |
-| **Proposal** | An initial Artifact suggesting a change, addition, or new work. | RFC draft, Feature request | Must be reviewed. |
-| **Client**  | An external system or user consuming Praxis services or APIs. | Web app, External integration | |
 | **Integration** | A connection to an external system or service. | Slack integration, GitHub integration | Not called "Plugin". |
 | **Provider** | An external or internal system supplying data or services to Praxis. | LLM provider, Identity provider | |
 | **Policy**  | A formal rule or constraint governing behavior in Praxis. | Access policy, Review policy | |
@@ -63,29 +69,31 @@ This RFC establishes the canonical language of Praxis. All Praxis documents, API
 | **State**   | The current, authoritative representation of an Artifact, Agent, or Domain. | Artifact state, Agent state | |
 | **Revision** | A specific, versioned snapshot of an Artifact or state. | Document revision, Model revision | |
 
+### Provisional Concepts
+
+These concepts are intentionally provisional until RFC-011 Domain Model is accepted.
+
+| Term        | Definition | Examples | Notes |
+|------------ |----------- |----------|-------|
+| **Artifact** | A durable, versioned object produced, modified, or reviewed within Praxis. | Proposal, Document, Model, Report | The primary unit of work and review. |
+| **Project** | A collection of related Artifacts, Workflows, and Agents pursuing a shared goal. | Research project, Client implementation | |
+| **Lead**    | The primary Agent responsible for a Project or Artifact. | Project Lead, Review Lead | |
+| **Proposal** | An initial Artifact suggesting a change, addition, or new work. | RFC draft, Feature request | Must be reviewed. |
+| **Client**  | An external system or user consuming Praxis services or APIs. | Web app, External integration | |
+
 ---
 
-## 5. Forbidden Synonyms
+## 5. Preferred Vocabulary
 
-| Forbidden Term | Canonical Replacement | Notes |
-|---------------|----------------------|-------|
-| Task          | Artifact             | |
-| Job           | Workflow             | |
-| Ticket        | Artifact             | |
-| Bot           | Agent                | |
-| Worker        | Agent                | |
-| Memory Cache  | Memory               | |
-| Plugin        | Integration          | |
-| Extension     | Integration          | |
-| Hook          | Integration          | |
-| User Story    | Proposal             | |
-| Issue         | Artifact             | |
-| Snapshot      | Revision             | |
-| View Model    | Projection           | |
-| Fact Table    | Projection           | |
-| Human-in-the-loop | Human Review      | |
-| Workspace     | Project              | |
-| Organization  | Domain               | |
+Praxis avoids unnecessary synonyms to maintain clarity. However, the following mappings serve as guidance rather than immutable rules until the domain model is finalized:
+
+| Preferred Term | Canonical Term  | Notes                     |
+|----------------|-----------------|---------------------------|
+| Bot            | Agent           |                           |
+| Plugin         | Integration     |                           |
+| Extension      | Integration     |                           |
+| Memory Cache   | Memory          |                           |
+| Snapshot       | Revision        |                           |
 
 ---
 
@@ -124,6 +132,27 @@ Each term is defined above. "Learning" refers to system or Agent improvement bas
 
 ---
 
+## 8.1 Concept Classification
+
+| Concept   | Category              |
+|-----------|-----------------------|
+| Event     | Event                 |
+| Review    | Process               |
+| Decision  | Process               |
+| Action    | Process               |
+| Workflow  | Process               |
+| Agent     | Actor                 |
+| Capability| Behavior              |
+| Policy    | Rule                  |
+| Projection| Read Model            |
+| State     | State                 |
+| Revision  | Version               |
+| Artifact  | Domain Concept (Provisional) |
+| Project   | Domain Concept (Provisional) |
+| Proposal  | Domain Concept (Provisional) |
+
+---
+
 ## 9. Future Terminology Evolution
 
 - **New terms** may only be introduced via new RFCs.
@@ -144,14 +173,23 @@ Each term is defined above. "Learning" refers to system or Agent improvement bas
 
 ## 11. Dependencies
 
-- [RFC-000 Why Praxis Exists](./000-why-praxis-exists.md)
+- [RFC-000 Vision](./000-why-praxis-exists.md)
 - [RFC-001 Principles](./001-principles.md)
+- [RFC-003 Concept Model (Planned)](./003-concept-model.md)
+- [RFC-010 Capability Map (Planned)](./010-capability-map.md)
+- [RFC-011 Domain Model (Planned)](./011-domain-model.md)
 
 ---
 
 ## 12. Decision Log
 
 - **2026-06-28:** Initial draft (Ivan + ChatGPT)
+
+---
+
+## Future Evolution
+
+This RFC intentionally defines only the ubiquitous language of Praxis, focusing on foundational, cross-cutting terminology. Detailed business terminology and domain-specific concepts will be refined and expanded in future RFCs, notably RFC-003 Concept Model and RFC-011 Domain Model.
 
 ---
 
