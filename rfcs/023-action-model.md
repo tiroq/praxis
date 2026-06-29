@@ -4,8 +4,8 @@
 
 ---
 **Status:** Draft  
-**Authors:** Praxis Core Team  
-**Last Updated:** 2024-06-11
+**Authors:** Tiroq + ChatGPT  
+**Last Updated:** 2026-06-28
 ---
 
 ## Summary
