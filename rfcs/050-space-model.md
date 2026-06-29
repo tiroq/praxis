@@ -18,7 +18,9 @@ A Space answers the question:
 
 > Where does this object, memory, decision, agent, policy, or workflow belong?
 
-Every runtime object has exactly one primary Space unless a later RFC explicitly defines shared or replicated ownership rules.
+Every Space-scoped runtime record has exactly one primary Space unless a later RFC explicitly defines shared, replicated, or globally-scoped ownership rules.
+
+Global infrastructure records such as model providers, storage engines, provider credentials, global registries, and platform-level telemetry are not owned by a Space unless explicitly scoped by policy.
 
 ---
 
@@ -62,6 +64,8 @@ This RFC is required before:
 
 RFC-003 defines the conceptual model. This RFC defines where concepts are scoped.
 
+RFC-011 defines the Domain Model and establishes Space as the primary bounded context for Canonical Objects and governance boundaries. This RFC expands that model into runtime identity, ownership, policies, inheritance, security, cross-space communication, and storage mapping.
+
 RFC-014 defines identity. This RFC defines Space identity and Space ownership boundaries.
 
 RFC-030 defines runtime architecture. This RFC defines domain-level runtime boundaries.
@@ -77,6 +81,7 @@ RFC-043 defines Memory and Knowledge. This RFC defines how Memory and Knowledge 
 The goals of this RFC are to:
 
 - Define Space as the primary bounded context in Praxis.
+- Distinguish architectural Spaces from user-interface workspaces.
 - Provide a common model for all domain-specific spaces.
 - Avoid duplicated domain architectures.
 - Scope Canonical Objects, Agents, Prompts, Memory, Knowledge, Reviews, Decisions, and Policies.
@@ -113,6 +118,8 @@ Praxis is an operating system for intentional activity.
 Intentional activity always happens inside a context.
 
 That context is a Space.
+
+A Space is an architectural context, not merely a screen, folder, label, or UI grouping.
 
 A Space provides:
 
@@ -153,14 +160,17 @@ With Space, Praxis uses one universal model:
 
 ```text
 Space
-    contains Objects
+    owns governance boundary
+    owns primary Canonical Objects
     scopes Agents
     scopes Memory
     scopes Prompts
     scopes Policies
     scopes Reviews
     scopes Decisions
+    emits Events
     exposes Projections
+    communicates explicitly with other Spaces
 ```
 
 Domain-specific behavior becomes configuration and specialization rather than a separate architecture.
@@ -201,7 +211,28 @@ A Space is an architectural boundary.
 | Agent | An Agent acts inside a Space. |
 | Memory | Memory is scoped by Space. |
 | View | A View projects Space state. |
-| Workspace | A workspace may be a UI representation of one or more Spaces. |
+| Workspace | A workspace is a user-interface aggregation of one or more Spaces. It is not itself an architectural ownership boundary unless explicitly modeled as a Space. |
+---
+
+## 8.1 Space vs Workspace
+
+Praxis distinguishes **Space** from **Workspace**.
+
+A **Space** is an architectural bounded context.
+
+A **Workspace** is a user-interface or product experience construct.
+
+A Workspace may display:
+
+- one Space;
+- multiple Spaces;
+- filtered projections from several Spaces;
+- cross-space dashboards;
+- temporary working sets.
+
+A Workspace does not own Canonical Objects, Events, Reviews, Decisions, Memory, Prompts, Agents, or Policies unless that Workspace is explicitly modeled as a Space.
+
+This distinction prevents UI organization from corrupting architectural ownership.
 
 ---
 
@@ -281,8 +312,13 @@ A Space owns:
 - Space projections;
 - Space default review rules;
 - Space default decision rules.
+- primary ownership of Canonical Objects created inside the Space;
+- Space-local object lifecycle policies;
+- Space-local cross-space sharing rules.
 
 A Space does not own:
+
+- user-interface workspaces that merely aggregate Space projections;
 
 - model providers;
 - database engines;
@@ -425,9 +461,15 @@ Policies are inherited from defaults and may be overridden by Space configuratio
 
 ## 18. Space-Scoped Canonical Objects
 
-Canonical Objects belong to one primary Space.
+Canonical Objects belong to exactly one primary Space.
+
+The primary Space owns the Canonical Object's governance boundary, lifecycle policy, default review policy, default decision policy, and primary memory context.
 
 A Canonical Object may be referenced from another Space, but primary ownership remains with its owning Space.
+
+Other Spaces may interact with a Canonical Object through Cross-Space References, Cross-Space Events, shared Projections, delegated Action Requests, or Knowledge Graph relationships.
+
+Those mechanisms do not transfer ownership.
 
 Examples:
 
@@ -611,6 +653,10 @@ Examples:
 
 Projections are derived and rebuildable.
 
+Projections never own Canonical Object identity.
+
+A projection may combine data from multiple Spaces only when cross-space policy allows it.
+
 ---
 
 ## 28. Cross-Space References
@@ -632,6 +678,10 @@ Reference fields:
 
 Cross-Space References must be auditable.
 
+A Cross-Space Reference does not create shared ownership.
+
+If the target object is archived, deleted according to retention policy, or superseded, the reference must become stale, broken, redirected, or archived according to explicit policy.
+
 ---
 
 ## 29. Cross-Space Communication
@@ -649,6 +699,8 @@ Allowed mechanisms:
 - explicit Integration mapping.
 
 Implicit memory or object sharing is forbidden.
+
+Cross-space communication must preserve source Space, target Space, actor, policy decision, correlation ID, and causation ID where applicable.
 
 ---
 
@@ -692,6 +744,8 @@ Security dimensions:
 A user may have different permissions in different Spaces.
 
 Agents never inherit global access automatically.
+
+A UI Workspace that displays multiple Spaces must evaluate access separately for each underlying Space and projection.
 
 ---
 
@@ -799,7 +853,7 @@ Failures must be observable and recoverable where possible.
 
 The following invariants must hold:
 
-- Every Canonical Object belongs to one primary Space.
+- Every Space-scoped Canonical Object belongs to exactly one primary Space.
 - Every Event associated with a Space carries Space identity.
 - Every Agent invocation has Space context.
 - Every Prompt resolution occurs under Space context.
@@ -810,6 +864,8 @@ The following invariants must hold:
 - Actions are Space-scoped.
 - Cross-Space communication is explicit.
 - Cross-Space references do not transfer ownership.
+- UI Workspaces do not own Canonical Objects unless explicitly modeled as Spaces.
+- Projections never own Canonical Object identity.
 - Space hierarchy does not imply automatic access.
 - Space boundaries are auditable.
 - Archived Spaces do not accept normal active workflows.
@@ -828,6 +884,7 @@ The Space model enables:
 - scoped policies;
 - scoped projections;
 - explicit cross-domain collaboration;
+- clean separation between architectural ownership and UI aggregation;
 - future team and organization support;
 - easier testing and verification.
 
@@ -860,6 +917,7 @@ Required before:
 This RFC can be accepted when:
 
 - Space is defined as the primary bounded context.
+- Space is clearly distinguished from UI Workspace.
 - Space identity is defined.
 - Space lifecycle is defined.
 - Space ownership is defined.
@@ -870,6 +928,8 @@ This RFC can be accepted when:
 - Space-scoped policies are defined.
 - Cross-Space References are defined.
 - Cross-Space Events are defined.
+- Cross-Space References are explicitly non-owning.
+- Projections are explicitly non-owning.
 - Space hierarchy rules are defined.
 - Space security boundaries are defined.
 - Space storage mapping is defined.
@@ -882,6 +942,7 @@ This RFC can be accepted when:
 | Date | Decision | Author |
 |------|----------|--------|
 | 2026-06-28 | Introduced Space as the primary bounded context for Praxis. | Tiroq + ChatGPT |
+| 2026-06-28 | Clarified Space versus UI Workspace and tightened primary ownership, projection, and cross-space reference semantics. | Tiroq + ChatGPT |
 | 2026-06-28 | Defined domain RFCs 051 through 056 as Space specializations instead of unrelated domain models. | Tiroq + ChatGPT |
 
 ---
