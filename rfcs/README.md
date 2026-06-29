@@ -131,7 +131,7 @@ Vision
 | 020  | Review System       | Draft     | Architecture of review/decision workflows                  |
 | 021  | Decision Model      | Draft     | How decisions are represented, tracked, and enforced       |
 | 022  | State Machine       | Draft     | State transitions and logic for major entities             |
-| 023  | Policy Model        | Draft     | Policy definition and enforcement mechanisms                |
+| 023 | Action Model | Draft | Defines Action Requests, Action Plans, Actions, Execution, and Execution Results |
 | 030  | System Architecture | Draft     | High-level technical architecture and components           |
 | 031  | Service Contracts   | Draft     | List and responsibilities of all major services            |
 | 032  | Data Flow           | Draft     | Data movement, pipelines, and integration points           |
