@@ -21,7 +21,7 @@ Verification Scripts are **executable architecture assertions** which implement 
 ## 3. Relationship to Previous RFCs
 
 - **Depends on:** RFC-000 through RFC-060 (especially RFC-060 Testing Strategy)
-- **Required before:** RFC-062 (Benchmarking Framework)
+- **Required before:** RFC-062 (Benchmarking)
 
 ---
 
