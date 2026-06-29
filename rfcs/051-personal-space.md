@@ -3,7 +3,7 @@
 # RFC-051 Personal Space
 
 **Status:** Draft  
-**Authors:** Praxis Core Team  
+**Authors:** Tiroq + ChatGPT  
 **Last Updated:** 2026-06-28
 
 ---
