@@ -5,7 +5,7 @@
 ## Status, Authors, Last Updated
 
 **Status:** Draft  
-**Authors:** Praxis Product Architecture Team  
+**Authors:** Tiroq + ChatGPT  
 **Last Updated:** 2026-06-28
 
 ---
@@ -18,7 +18,7 @@ The Product Space is an architectural framework designed to manage the complete 
 
 ## Relationship to Previous RFCs
 
-This RFC builds upon foundational concepts and models introduced in RFC-000 through RFC-052. It is a prerequisite for subsequent RFCs including RFC-054 (Product Metrics), RFC-060 (AI-Driven Product Insights), RFC-061 (Product Automation), and RFC-062 (Product Security Enhancements). The Product Space integrates learnings from prior RFCs on data modeling, workflow orchestration, and governance to form a cohesive product management architecture.
+This RFC builds upon foundational concepts and models introduced in RFC-000 through RFC-052. It is related to subsequent RFCs including RFC-054 (Freelance Space), RFC-060 (Testing Strategy), RFC-061 (Verification Scripts), and RFC-062 (Benchmarking). The Product Space integrates learnings from prior RFCs on data modeling, workflow orchestration, and governance to form a cohesive product management architecture.
 
 ---
 
