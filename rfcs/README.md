@@ -162,7 +162,7 @@ For new contributors, the recommended path is:
 5. **RFC-010 Capability Map**: See what the system is fundamentally designed to do.
 6. **RFC-011 Domain Model**: Understand the main entities and their relationships.
 7. **RFC-012 Artifact Model**, **RFC-013 Event Model**, **RFC-014 Identity & Representation Model**, and **RFC-015 Object Lifecycle Model**: Learn about artifacts, events, identity, and lifecycle.
-8. **RFC-020 through RFC-023**: Explore review, decision, state, and policy models.
+8. **RFC-020 through RFC-023**: Explore Review, Decision, State Machine, and Action models.
 9. **RFC-030 through RFC-033**: Study system, service contracts, data flow, and storage architecture.
 10. **RFC-040 through RFC-043**: Delve into intelligence, agent, and LLM architecture.
 11. **RFC-050 through RFC-056**: Review space-specific RFCs.
