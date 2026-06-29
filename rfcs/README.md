@@ -139,7 +139,7 @@ Vision
 | 040  | Agent Architecture  | Draft     | Design of intelligent agents and their interactions        |
 | 041  | LLM Routing         | Draft     | How large language models are routed and orchestrated      |
 | 042  | Prompt Versioning   | Draft     | Versioning and management of prompts for LLMs              |
-| 043  | Memory & Knowledge  | Draft     | Memory, context, and knowledge graph architecture          |
+| 043  | Memory & Knowledge Graph  | Draft     | Memory, context, and knowledge graph architecture          |
 | 050  | Space Model         | Draft     | Definitions and structure of spaces                         |
 | 051  | Personal Space      | Draft     | Management of personal space and related data              |
 | 052  | Work Space          | Draft     | Work item, project, and task management                     |
