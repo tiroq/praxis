@@ -1,0 +1,1185 @@
+{
+  "name": "rfc_graph",
+  "format": "simple-json-v1",
+  "note": "Phase 0 dependency graph parsed from 'Depends on' / 'Required before' cues. No external graph backend; this is intentionally a flat nodes/edges document.",
+  "summary": {
+    "nodes": 32,
+    "edges": 196
+  },
+  "nodes": [
+    {
+      "id": "RFC-000",
+      "number": "000",
+      "title": "Vision",
+      "file": "000-vision.md"
+    },
+    {
+      "id": "RFC-001",
+      "number": "001",
+      "title": "Principles",
+      "file": "001-principles.md"
+    },
+    {
+      "id": "RFC-002",
+      "number": "002",
+      "title": "Terminology",
+      "file": "002-terminology.md"
+    },
+    {
+      "id": "RFC-003",
+      "number": "003",
+      "title": "Concept Model",
+      "file": "003-concept-model.md"
+    },
+    {
+      "id": "RFC-010",
+      "number": "010",
+      "title": "Capability Map",
+      "file": "010-capability-map.md"
+    },
+    {
+      "id": "RFC-011",
+      "number": "011",
+      "title": "Domain Model",
+      "file": "011-domain-model.md"
+    },
+    {
+      "id": "RFC-012",
+      "number": "012",
+      "title": "Artifact Model",
+      "file": "012-artifact-model.md"
+    },
+    {
+      "id": "RFC-013",
+      "number": "013",
+      "title": "Event Model",
+      "file": "013-event-model.md"
+    },
+    {
+      "id": "RFC-014",
+      "number": "014",
+      "title": "Identity & Representation Model",
+      "file": "014-identity-representation-model.md"
+    },
+    {
+      "id": "RFC-015",
+      "number": "015",
+      "title": "Object Lifecycle Model",
+      "file": "015-object-lifecycle-model.md"
+    },
+    {
+      "id": "RFC-020",
+      "number": "020",
+      "title": "Review System",
+      "file": "020-review-system.md"
+    },
+    {
+      "id": "RFC-021",
+      "number": "021",
+      "title": "Decision Model",
+      "file": "021-decision-model.md"
+    },
+    {
+      "id": "RFC-022",
+      "number": "022",
+      "title": "State Machine",
+      "file": "022-state-machine.md"
+    },
+    {
+      "id": "RFC-023",
+      "number": "023",
+      "title": "Action Model",
+      "file": "023-action-model.md"
+    },
+    {
+      "id": "RFC-030",
+      "number": "030",
+      "title": "System Architecture",
+      "file": "030-system-architecture.md"
+    },
+    {
+      "id": "RFC-031",
+      "number": "031",
+      "title": "Service Contracts",
+      "file": "031-service-contracts.md"
+    },
+    {
+      "id": "RFC-032",
+      "number": "032",
+      "title": "Data Flow",
+      "file": "032-data-flow.md"
+    },
+    {
+      "id": "RFC-033",
+      "number": "033",
+      "title": "Storage Model",
+      "file": "033-storage-model.md"
+    },
+    {
+      "id": "RFC-040",
+      "number": "040",
+      "title": "Agent Architecture",
+      "file": "040-agent-architecture.md"
+    },
+    {
+      "id": "RFC-041",
+      "number": "041",
+      "title": "LLM Routing",
+      "file": "041-llm-routing.md"
+    },
+    {
+      "id": "RFC-042",
+      "number": "042",
+      "title": "Prompt Versioning",
+      "file": "042-prompt-versioning.md"
+    },
+    {
+      "id": "RFC-043",
+      "number": "043",
+      "title": "Memory & Knowledge Graph",
+      "file": "043-memory-knowledge.md"
+    },
+    {
+      "id": "RFC-050",
+      "number": "050",
+      "title": "Space Model",
+      "file": "050-space-model.md"
+    },
+    {
+      "id": "RFC-051",
+      "number": "051",
+      "title": "Personal Space",
+      "file": "051-personal-space.md"
+    },
+    {
+      "id": "RFC-052",
+      "number": "052",
+      "title": "Work Space",
+      "file": "052-work-space.md"
+    },
+    {
+      "id": "RFC-053",
+      "number": "053",
+      "title": "Product Space",
+      "file": "053-product-space.md"
+    },
+    {
+      "id": "RFC-054",
+      "number": "054",
+      "title": "Freelance Space",
+      "file": "054-freelance-space.md"
+    },
+    {
+      "id": "RFC-055",
+      "number": "055",
+      "title": "Education Space",
+      "file": "055-education-space.md"
+    },
+    {
+      "id": "RFC-056",
+      "number": "056",
+      "title": "Finance Space",
+      "file": "056-finance-space.md"
+    },
+    {
+      "id": "RFC-060",
+      "number": "060",
+      "title": "Testing Strategy",
+      "file": "060-testing-strategy.md"
+    },
+    {
+      "id": "RFC-061",
+      "number": "061",
+      "title": "Verification Scripts",
+      "file": "061-verification-scripts.md"
+    },
+    {
+      "id": "RFC-062",
+      "number": "062",
+      "title": "Benchmarking",
+      "file": "062-benchmarking.md"
+    }
+  ],
+  "edges": [
+    {
+      "source": "RFC-010",
+      "target": "RFC-000",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-010",
+      "target": "RFC-001",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-010",
+      "target": "RFC-002",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-010",
+      "target": "RFC-003",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-010",
+      "target": "RFC-011",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-010",
+      "target": "RFC-030",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-013",
+      "target": "RFC-000",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-013",
+      "target": "RFC-001",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-013",
+      "target": "RFC-002",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-013",
+      "target": "RFC-003",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-013",
+      "target": "RFC-010",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-013",
+      "target": "RFC-011",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-013",
+      "target": "RFC-012",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-013",
+      "target": "RFC-020",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-013",
+      "target": "RFC-030",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-013",
+      "target": "RFC-032",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-013",
+      "target": "RFC-043",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-014",
+      "target": "RFC-000",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-014",
+      "target": "RFC-001",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-014",
+      "target": "RFC-002",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-014",
+      "target": "RFC-003",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-014",
+      "target": "RFC-010",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-014",
+      "target": "RFC-011",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-014",
+      "target": "RFC-012",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-014",
+      "target": "RFC-013",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-014",
+      "target": "RFC-020",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-014",
+      "target": "RFC-021",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-014",
+      "target": "RFC-030",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-014",
+      "target": "RFC-032",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-014",
+      "target": "RFC-043",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-015",
+      "target": "RFC-000",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-015",
+      "target": "RFC-001",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-015",
+      "target": "RFC-002",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-015",
+      "target": "RFC-003",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-015",
+      "target": "RFC-010",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-015",
+      "target": "RFC-011",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-015",
+      "target": "RFC-012",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-015",
+      "target": "RFC-013",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-015",
+      "target": "RFC-014",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-015",
+      "target": "RFC-020",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-015",
+      "target": "RFC-021",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-015",
+      "target": "RFC-030",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-015",
+      "target": "RFC-032",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-015",
+      "target": "RFC-043",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-020",
+      "target": "RFC-000",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-020",
+      "target": "RFC-001",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-020",
+      "target": "RFC-002",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-020",
+      "target": "RFC-003",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-020",
+      "target": "RFC-010",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-020",
+      "target": "RFC-011",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-020",
+      "target": "RFC-012",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-020",
+      "target": "RFC-013",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-020",
+      "target": "RFC-014",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-020",
+      "target": "RFC-015",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-020",
+      "target": "RFC-021",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-020",
+      "target": "RFC-030",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-021",
+      "target": "RFC-000",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-021",
+      "target": "RFC-001",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-021",
+      "target": "RFC-002",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-021",
+      "target": "RFC-003",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-021",
+      "target": "RFC-010",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-021",
+      "target": "RFC-011",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-021",
+      "target": "RFC-012",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-021",
+      "target": "RFC-013",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-021",
+      "target": "RFC-014",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-021",
+      "target": "RFC-015",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-021",
+      "target": "RFC-020",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-021",
+      "target": "RFC-022",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-021",
+      "target": "RFC-030",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-021",
+      "target": "RFC-040",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-022",
+      "target": "RFC-000",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-022",
+      "target": "RFC-001",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-022",
+      "target": "RFC-002",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-022",
+      "target": "RFC-003",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-022",
+      "target": "RFC-010",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-022",
+      "target": "RFC-011",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-022",
+      "target": "RFC-012",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-022",
+      "target": "RFC-013",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-022",
+      "target": "RFC-014",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-022",
+      "target": "RFC-015",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-022",
+      "target": "RFC-020",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-022",
+      "target": "RFC-021",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-022",
+      "target": "RFC-023",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-022",
+      "target": "RFC-030",
+      "relation": "required_before"
+    },
+    {
+      "source": "RFC-030",
+      "target": "RFC-000",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-030",
+      "target": "RFC-001",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-030",
+      "target": "RFC-002",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-030",
+      "target": "RFC-003",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-030",
+      "target": "RFC-010",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-030",
+      "target": "RFC-011",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-030",
+      "target": "RFC-012",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-030",
+      "target": "RFC-013",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-030",
+      "target": "RFC-014",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-030",
+      "target": "RFC-015",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-030",
+      "target": "RFC-020",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-030",
+      "target": "RFC-021",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-030",
+      "target": "RFC-022",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-030",
+      "target": "RFC-023",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-000",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-001",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-002",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-003",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-010",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-011",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-012",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-013",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-014",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-015",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-020",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-021",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-022",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-023",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-030",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-031",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-033",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-032",
+      "target": "RFC-040",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-000",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-001",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-002",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-003",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-010",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-011",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-012",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-013",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-014",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-015",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-020",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-021",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-022",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-023",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-030",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-031",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-032",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-033",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-040",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-041",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-042",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-043",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-051",
+      "target": "RFC-050",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-000",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-001",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-002",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-003",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-010",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-011",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-012",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-013",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-014",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-015",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-020",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-021",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-022",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-023",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-030",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-031",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-032",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-033",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-040",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-041",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-042",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-043",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-050",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-051",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-052",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-054",
+      "target": "RFC-053",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-000",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-001",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-002",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-003",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-010",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-011",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-012",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-013",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-014",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-015",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-020",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-021",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-022",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-023",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-030",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-031",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-032",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-033",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-040",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-041",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-042",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-043",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-050",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-051",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-052",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-053",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-054",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-055",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-056",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-060",
+      "relation": "depends_on"
+    },
+    {
+      "source": "RFC-061",
+      "target": "RFC-062",
+      "relation": "required_before"
+    }
+  ]
+}
