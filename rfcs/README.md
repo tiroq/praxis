@@ -106,11 +106,11 @@ Vision
               └─> Concept Model
                     └─> Capability Map
                           └─> Domain Model
-                                └─> Artifact/Event Model
+                                └─> Artifact / Event / Identity Models
                                       └─> Review/Decision Model
                                             └─> System Architecture
                                                   └─> Agent Architecture
-                                                        └─> Domains
+                                                        └─> Spaces
                                                               └─> Implementation
 ```
 
@@ -123,29 +123,33 @@ Vision
 | 002  | Terminology         | Draft     | Definitions of key terms and concepts                      |
 | 003  | Concept Model       | Draft     | Defines the conceptual building blocks and taxonomy of Praxis. |
 | 010  | Capability Map      | Draft     | Top-level system capabilities and boundaries               |
-| 011  | Domain Model        | Planned   | Core business/domain entities and relationships            |
-| 012  | Artifact Model      | Planned   | Structure and lifecycle of system artifacts                |
-| 013  | Event Model         | Planned   | Events and their role in system state transitions          |
-| 020  | Review System       | Planned   | Architecture of review/decision workflows                  |
-| 021  | Decision Model      | Planned   | How decisions are represented, tracked, and enforced       |
-| 022  | State Machine       | Planned   | State transitions and logic for major entities             |
-| 030  | System Architecture | Planned   | High-level technical architecture and components           |
-| 031  | Service Catalog     | Planned   | List and responsibilities of all major services            |
-| 032  | Data Flow           | Planned   | Data movement, pipelines, and integration points           |
-| 033  | Storage Model       | Planned   | Storage technologies, schemas, and access patterns         |
-| 040  | Agent Architecture  | Planned   | Design of intelligent agents and their interactions        |
-| 041  | LLM Routing         | Planned   | How large language models are routed and orchestrated      |
-| 042  | Prompt Versioning   | Planned   | Versioning and management of prompts for LLMs              |
-| 043  | Memory & Knowledge  | Planned   | Memory, context, and knowledge graph architecture          |
-| 050  | Freelance Domain    | Planned   | Domain-specific logic for freelancing                      |
-| 051  | Freelance CRM       | Planned   | Customer relationship management for freelance workflows   |
-| 052  | Proposal Workflow   | Planned   | Handling proposals and their lifecycle                     |
-| 053  | Personal Domain     | Planned   | Personal information management                            |
-| 054  | Work Domain         | Planned   | Work item, project, and task management                    |
-| 055  | Product Domain      | Planned   | Product and offering management                            |
-| 060  | Testing Strategy    | Planned   | Testing and quality assurance approaches                   |
-| 061  | Verification Scripts| Planned   | Scripts and tools for automated verification               |
-| 062  | Benchmarking        | Planned   | Benchmarking, performance, and reliability                 |
+| 011  | Domain Model        | Draft     | Core business/domain entities and relationships            |
+| 012  | Artifact Model      | Draft     | Structure and lifecycle of system artifacts                |
+| 013  | Event Model         | Draft     | Events and their role in system state transitions          |
+| 014  | Identity & Representation Model | Draft | Identity and representation of entities and concepts       |
+| 015  | Object Lifecycle Model | Draft   | Lifecycle states and transitions for objects               |
+| 020  | Review System       | Draft     | Architecture of review/decision workflows                  |
+| 021  | Decision Model      | Draft     | How decisions are represented, tracked, and enforced       |
+| 022  | State Machine       | Draft     | State transitions and logic for major entities             |
+| 023  | Policy Model        | Draft     | Policy definition and enforcement mechanisms                |
+| 030  | System Architecture | Draft     | High-level technical architecture and components           |
+| 031  | Service Contracts   | Draft     | List and responsibilities of all major services            |
+| 032  | Data Flow           | Draft     | Data movement, pipelines, and integration points           |
+| 033  | Storage Model       | Draft     | Storage technologies, schemas, and access patterns         |
+| 040  | Agent Architecture  | Draft     | Design of intelligent agents and their interactions        |
+| 041  | LLM Routing         | Draft     | How large language models are routed and orchestrated      |
+| 042  | Prompt Versioning   | Draft     | Versioning and management of prompts for LLMs              |
+| 043  | Memory & Knowledge  | Draft     | Memory, context, and knowledge graph architecture          |
+| 050  | Space Model         | Draft     | Definitions and structure of spaces                         |
+| 051  | Personal Space      | Draft     | Management of personal space and related data              |
+| 052  | Work Space          | Draft     | Work item, project, and task management                     |
+| 053  | Product Space       | Draft     | Product and offering management                             |
+| 054  | Freelance Space     | Draft     | Domain-specific logic for freelancing                       |
+| 055  | Education Space     | Draft     | Educational domain and learning management                  |
+| 056  | Finance Space       | Draft     | Financial planning, accounting, budgeting, investments, taxes, and financial governance. |
+| 060  | Testing Strategy    | Draft     | Testing and quality assurance approaches                   |
+| 061  | Verification Scripts| Draft     | Scripts and tools for automated verification               |
+| 062  | Benchmarking        | Draft     | Benchmarking, performance, and reliability                 |
 
 ## Recommended Reading Order
 
@@ -157,12 +161,12 @@ For new contributors, the recommended path is:
 4. **RFC-003 Concept Model**: Learn the conceptual building blocks and taxonomy.
 5. **RFC-010 Capability Map**: See what the system is fundamentally designed to do.
 6. **RFC-011 Domain Model**: Understand the main entities and their relationships.
-7. **RFC-012 Artifact Model** and **RFC-013 Event Model**: Learn about artifacts and events.
-8. **RFC-020+**: Explore review, decision, and state models.
-9. **RFC-030+**: Study system, service, and data architecture.
-10. **RFC-040+**: Delve into intelligence, agent, and LLM architecture.
-11. **RFC-050+**: Review domain-specific RFCs.
-12. **RFC-060+**: Finish with quality and verification strategies.
+7. **RFC-012 Artifact Model**, **RFC-013 Event Model**, **RFC-014 Identity & Representation Model**, and **RFC-015 Object Lifecycle Model**: Learn about artifacts, events, identity, and lifecycle.
+8. **RFC-020 through RFC-023**: Explore review, decision, state, and policy models.
+9. **RFC-030 through RFC-033**: Study system, service contracts, data flow, and storage architecture.
+10. **RFC-040 through RFC-043**: Delve into intelligence, agent, and LLM architecture.
+11. **RFC-050 through RFC-056**: Review space-specific RFCs.
+12. **RFC-060 through RFC-062**: Finish with quality and verification strategies.
 
 ## Contribution Workflow
 
@@ -201,19 +205,13 @@ Traceability from RFCs to code is required. Every significant module, component,
 
 ## Foundation RFCs
 
-RFC-000 through RFC-010 collectively form the architectural foundation of Praxis and should remain highly stable over time. Later RFCs extend this foundation rather than redefine it.
+RFC-000 through RFC-015 collectively form the architectural foundation of Praxis and should remain highly stable over time. Later RFCs extend this foundation rather than redefine it.
 
-## Long-Term Philosophy
+## RFC Status Summary
 
-RFCs are not just about recording what was decided—they are about preserving the reasoning and context behind every architectural choice. An RFC should remain understandable and relevant years later, even for someone new to the project. This is how Praxis maintains architectural integrity across time, contributors, and changing requirements.
-
-## Next RFCs
-
-The immediate next RFCs to be drafted and accepted are:
-
-- [x] RFC-000 Vision
-- [x] RFC-001 Principles
-- [x] RFC-002 Terminology
-- [x] RFC-003 Concept Model
-- [x] RFC-010 Capability Map
-- [ ] RFC-011 Domain Model
+- Foundation (000–015): Draft
+- Governance (020–023): Draft
+- Architecture (030–033): Draft
+- Intelligence (040–043): Draft
+- Spaces (050–056): Draft
+- Quality (060–062): Draft
