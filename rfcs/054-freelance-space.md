@@ -7,21 +7,21 @@
 ## Status
 
 **Status:** Draft  
-**Authors:** Praxis Core Team  
+**Authors:** Tiroq + ChatGPT  
 **Last Updated:** 2026-06-28
 
 ---
 
 ## Summary
 
-Freelance Space is a specialization of RFC-050 (Business Space) focused on supporting independent consulting, contracting, and client delivery workflows. It provides a canonical, repeatable business architecture for freelancers to manage the entire client lifecycle—from lead generation through delivery, invoicing, and reputation management—enabling freelancers to operate as sustainable, knowledge-driven businesses rather than as ad hoc gig workers.
+Freelance Space is a specialization of RFC-050 (Space Model) focused on supporting independent consulting, contracting, and client delivery workflows. It provides a canonical, repeatable business architecture for freelancers to manage the entire client lifecycle—from lead generation through delivery, invoicing, and reputation management—enabling freelancers to operate as sustainable, knowledge-driven businesses rather than as ad hoc gig workers.
 
 ---
 
 ## Relationship to Previous RFCs
 
 - **Depends on:** RFC-000 through RFC-053 (Core, Data, Product, Work, Business, etc.)
-- **Specializes:** RFC-050 (Business Space)
+- **Specializes:** RFC-050 (Space Model)
 - **Required before:** Finance RFCs, Benchmark RFCs, and any domain-specific freelance automation.
 
 ---
