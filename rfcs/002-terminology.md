@@ -53,7 +53,7 @@ Terminology in Praxis is divided into two stability levels to balance consistenc
 | **Action**  | An operation carried out in response to a Decision. | Merge, Deploy, Notify | Actions are idempotent and auditable. |
 | **Workflow** | A defined sequence of Events, Actions, and Decisions to achieve an outcome. | Artifact approval workflow | Automates multi-step processes. |
 | **Agent**   | An autonomous or semi-autonomous actor (human, AI, or service) that performs Actions. | User, Bot, Service | Not called "Bot" or "Worker". |
-| **Domain**  | A bounded area of knowledge, responsibility, or expertise. | HR, Finance, ML | Used for context boundaries. |
+| **Domain**  | A conceptual business area or body of knowledge. Unlike a Space, a Domain is conceptual rather than a runtime ownership boundary. | HR, Finance, ML | Used for context boundaries. |
 | **Capability** | A discrete skill or function that an Agent or system can perform. | Summarization, Translation | Used for access and routing. |
 | **Integration** | A connection to an external system or service. | Slack integration, GitHub integration | Not called "Plugin". |
 | **Provider** | An external or internal system supplying data or services to Praxis. | LLM provider, Identity provider | |
@@ -69,13 +69,29 @@ Terminology in Praxis is divided into two stability levels to balance consistenc
 | **State**   | The current, authoritative representation of an Artifact, Agent, or Domain. | Artifact state, Agent state | |
 | **Revision** | A specific, versioned snapshot of an Artifact or state. | Document revision, Model revision | |
 
+### Stable Concepts (continued)
+
+| Term                  | Definition | Examples | Notes |
+|-----------------------|-----------|----------|-------|
+| **Canonical Object**  | The authoritative business object with globally unique identity. May appear in multiple projections but belongs to exactly one primary Space. | Artifact, Agent | See Space. |
+| **Space**             | The primary bounded context that owns governance boundaries, Canonical Objects, Reviews, Decisions, Memory, Prompts, Policies, Agents, and Workflows. | "HR Space", "Finance Space" | Defines runtime ownership. |
+| **Workspace**         | A user-interface aggregation of one or more Spaces. It is not an ownership boundary. | User dashboard, Multi-space UI | UI-only concept. |
+| **Knowledge Graph**   | A derived graph of relationships and evidence. Never owns canonical identity. | Relationship graph, Evidence graph | Read-optimized. |
+| **Cross-Space Reference** | A non-owning reference from one Space to a Canonical Object owned by another Space. | Link to external Artifact | References only. |
+| **Review Package**    | An immutable package of Reviews and supporting evidence used as input to a Decision. | Review bundle for approval | Input to Decision. |
+| **Action Request**    | An immutable request authorized by a Decision. | "Merge this PR", "Deploy model" | Output of Decision. |
+| **Action Plan**       | A versioned execution plan derived from an Action Request. | Rollout plan, Migration plan | May be revised. |
+| **Execution Result**  | Immutable evidence produced by Action execution. | Log, Report, Output file | Used for Learning. |
+| **Verification Script** | An executable architecture assertion implementing RFC-060 Testing Strategy. | Test script, Invariant check | Automated verification. |
+| **Benchmark**         | A repeatable evaluation suite measuring quality, latency, cost, reliability, and usefulness. | Model benchmark, System benchmark | Used for continuous evaluation. |
+
 ### Provisional Concepts
 
 These concepts are intentionally provisional until RFC-011 Domain Model is accepted.
 
 | Term        | Definition | Examples | Notes |
 |------------ |----------- |----------|-------|
-| **Artifact** | A durable, versioned object produced, modified, or reviewed within Praxis. | Proposal, Document, Model, Report | The primary unit of work and review. |
+| **Artifact** | A durable representation or document that may represent, derive from, or reference a Canonical Object. Artifacts do not own canonical identity. | Proposal, Document, Model, Report | The primary unit of work and review. |
 | **Project** | A collection of related Artifacts, Workflows, and Agents pursuing a shared goal. | Research project, Client implementation | |
 | **Lead**    | The primary Agent responsible for a Project or Artifact. | Project Lead, Review Lead | |
 | **Proposal** | An initial Artifact suggesting a change, addition, or new work. | RFC draft, Feature request | Must be reviewed. |
@@ -87,13 +103,14 @@ These concepts are intentionally provisional until RFC-011 Domain Model is accep
 
 Praxis avoids unnecessary synonyms to maintain clarity. However, the following mappings serve as guidance rather than immutable rules until the domain model is finalized:
 
-| Preferred Term | Canonical Term  | Notes                     |
-|----------------|-----------------|---------------------------|
-| Bot            | Agent           |                           |
-| Plugin         | Integration     |                           |
-| Extension      | Integration     |                           |
-| Memory Cache   | Memory          |                           |
-| Snapshot       | Revision        |                           |
+| Preferred Term       | Canonical Term  | Notes                     |
+|----------------------|-----------------|---------------------------|
+| Bot                  | Agent           |                           |
+| Plugin               | Integration     |                           |
+| Extension            | Integration     |                           |
+| Memory Cache         | Memory          |                           |
+| Snapshot             | Revision        |                           |
+| Workspace (architectural) | Space      | "Workspace" should only refer to UI aggregations, not architectural or ownership boundaries. |
 
 ---
 
@@ -114,7 +131,7 @@ Praxis avoids unnecessary synonyms to maintain clarity. However, the following m
 
 The standard Praxis pipeline uses these terms, in order:
 
-**Event → Understanding → Artifact → Reviews → Decision → Action → Learning**
+**Event → Understanding → Canonical Object → Review → Review Package → Decision → Action Request → Action Plan → Action → Execution Result → Learning**
 
 Each term is defined above. "Learning" refers to system or Agent improvement based on outcomes.
 
@@ -129,27 +146,42 @@ Each term is defined above. "Learning" refers to system or Agent improvement bas
 - **Idempotency:** Property that an Action or Event can be applied multiple times without changing the result beyond the initial application.
 - **Consensus:** Process by which multiple Agents or systems agree on a Decision or state.
 - **Human Review:** Explicit, human-in-the-loop evaluation step required for certain Decisions or Actions.
+- **Canonical Object:** The authoritative business object with a globally unique identity, owned by exactly one Space, and may appear in multiple projections.
+- **Space:** The primary runtime bounded context that owns Canonical Objects, governance boundaries, Reviews, Decisions, Memory, Prompts, Policies, Agents, and Workflows.
+- **Workspace:** A user-interface aggregation of one or more Spaces; not an ownership or governance boundary.
+- **Governance Boundary:** The explicit scope of authority, policy, and ownership for Canonical Objects and Actions, typically defined by a Space.
+- **Provenance:** The traceable, immutable record of origin, lineage, and transformation of data, Artifacts, or Canonical Objects.
 
 ---
 
 ## 8.1 Concept Classification
 
-| Concept   | Category              |
-|-----------|-----------------------|
-| Event     | Event                 |
-| Review    | Process               |
-| Decision  | Process               |
-| Action    | Process               |
-| Workflow  | Process               |
-| Agent     | Actor                 |
-| Capability| Behavior              |
-| Policy    | Rule                  |
-| Projection| Read Model            |
-| State     | State                 |
-| Revision  | Version               |
-| Artifact  | Domain Concept (Provisional) |
-| Project   | Domain Concept (Provisional) |
-| Proposal  | Domain Concept (Provisional) |
+| Concept              | Category              |
+|----------------------|-----------------------|
+| Event                | Event                 |
+| Review               | Process               |
+| Decision             | Process               |
+| Action               | Process               |
+| Workflow             | Process               |
+| Agent                | Actor                 |
+| Capability           | Behavior              |
+| Policy               | Rule                  |
+| Projection           | Read Model            |
+| State                | State                 |
+| Revision             | Version               |
+| Artifact             | Domain Concept (Provisional) |
+| Project              | Domain Concept (Provisional) |
+| Proposal             | Domain Concept (Provisional) |
+| Canonical Object     | Data/Ownership        |
+| Space                | Bounded Context       |
+| Workspace            | UI Aggregation        |
+| Knowledge Graph      | Derived Data          |
+| Review Package       | Evidence Bundle       |
+| Action Request       | Request/Intent        |
+| Action Plan          | Plan/Versioned Intent |
+| Execution Result     | Evidence/Outcome      |
+| Verification Script  | Test/Assertion        |
+| Benchmark            | Evaluation Suite      |
 
 ---
 
@@ -173,16 +205,16 @@ Each term is defined above. "Learning" refers to system or Agent improvement bas
 
 ## 11. Dependencies
 
-- [RFC-000 Vision](./000-why-praxis-exists.md)
+- [RFC-000 Vision](./000-vision.md)
 - [RFC-001 Principles](./001-principles.md)
-- [RFC-003 Concept Model (Planned)](./003-concept-model.md)
-- [RFC-010 Capability Map (Planned)](./010-capability-map.md)
-- [RFC-011 Domain Model (Planned)](./011-domain-model.md)
+- [RFC-003 Concept Model](./003-concept-model.md)
+- [RFC-010 Capability Map](./010-capability-map.md)
+- [RFC-011 Domain Model](./011-domain-model.md)
 
 ---
-
 ## 12. Decision Log
 
+- **2026-06-28:** Expanded canonical terminology to align with RFC-011 Domain Model, RFC-023 Action Model, RFC-043 Memory & Knowledge Graph, RFC-050 Space Model, RFC-060 Testing Strategy, RFC-061 Verification Scripts, and RFC-062 Benchmarking.
 - **2026-06-28:** Initial draft (Tiroq + ChatGPT)
 
 ---
