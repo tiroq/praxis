@@ -59,7 +59,7 @@ func (m InputMessage) toKernelEvent() kernel.Event {
 		Text:             m.Text,
 		OccurredAt:       ts,
 		ObservedAt:       time.Now().UTC(),
-		Type:             "nats.input",
+		Type:             "external.text",
 		ContentType:      "text/plain",
 		Payload:          map[string]any{},
 		Metadata:         meta,
