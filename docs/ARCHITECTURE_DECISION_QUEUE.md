@@ -1,20 +1,54 @@
 # Architecture Decision Queue (ADQ)
 
 > Source of truth: the **Corrected Praxis RFC Audit**.
+> The ADQ is the **authoritative list of unresolved architecture questions**. As long as an
+> item lives here in any non-`CLOSED` state, the question it names is considered **open** — no
+> ADR, preference, or implementation detail overrides that until the item is closed by the
+> lifecycle below.
 > This file **documents** open architecture decisions. It does **not** resolve them.
 > No item here is decided. "Recommended option" is a *preference with reasoning*, not a ruling.
 > An item is only "decided" when an RFC is updated to state the decision explicitly.
 
-Status values: `OPEN` (no RFC states the decision) · `DECIDED` (an RFC explicitly records it).
+## Lifecycle
 
-| ID | Decision | Recommended (preference, not decided) | Status | Blocks | Owner |
-|----|----------|----------------------------------------|--------|--------|-------|
-| ADQ-001 | Canonical Object vs Artifact model | B (representation w/ own id) + D (interim ReviewTarget); A is the simplest alt | OPEN | Domain model, storage ownership, review/decision typing, space persistence | Architecture |
-| ADQ-002 | Memory / Knowledge ownership | A or D (standalone / platform services via RFC-031) | OPEN | Memory subsystem, service roster | Architecture |
-| ADQ-003 | Workflow model | D for Phases 1–2, then B (orchestration pattern) via a new RFC | OPEN | Orchestration layer (Phase 3+) | Architecture |
-| ADQ-004 | Action state machine reconciliation | A (RFC-022 authoritative) | OPEN | Action Service implementation | Architecture |
-| ADQ-005 | Invariant ID registry | A or B (registry in RFC-060, or per-RFC IDs aggregated) | OPEN | Verification script manifest mapping (RFC-061) | Documentation / Verification |
-| ADQ-006 | Space storage mapping consistency | A (rewrite 051/052/053/054 to RFC-033 categories) | OPEN | Space-specific persistence design | Documentation |
+Every ADQ moves through the following states:
+
+```
+OPEN
+  → PROPOSED ADR
+    → ACCEPTED ADR
+      → RFC UPDATE REQUIRED
+        → CLOSED
+```
+
+- **OPEN** — the question is recorded; no ADR proposes an answer yet.
+- **PROPOSED ADR** — one or more ADRs propose an answer but are not accepted.
+- **ACCEPTED ADR** — an ADR resolving this ADQ has been accepted.
+- **RFC UPDATE REQUIRED** — the ADR is accepted; the listed RFC updates are pending.
+- **CLOSED** — the required RFC updates have landed and the question is settled.
+
+### Rules
+
+- A **PROPOSED ADR does not close an ADQ.** The ADQ stays open (state `PROPOSED ADR`).
+- An **ACCEPTED ADR may close an ADQ only after the required RFC updates are listed** on this
+  ADQ. Acceptance advances the item to `ACCEPTED ADR` → `RFC UPDATE REQUIRED`; `CLOSED` is
+  reached only once those RFC updates land.
+- **Every ADQ must link to its related ADR(s).** An ADQ with no ADR yet stays `OPEN`.
+- **Every ADR must link back to the ADQ(s) it addresses** (via its `Related:` line).
+- ADQ items are **not deleted**. Resolved items remain in the table marked `CLOSED`.
+
+Status / lifecycle values: `OPEN` · `PROPOSED ADR` · `ACCEPTED ADR` · `RFC UPDATE REQUIRED` ·
+`CLOSED`. An item is only truly "decided" once it is `CLOSED` and an RFC explicitly records it.
+
+| ID | Decision | Recommended (preference, not decided) | Related ADRs | Lifecycle state | Blocks | Owner |
+|----|----------|----------------------------------------|--------------|-----------------|--------|-------|
+| ADQ-001 | Canonical Object vs Artifact model | B (representation w/ own id) + D (interim ReviewTarget); A is the simplest alt | ADR-001, ADR-007 | PROPOSED ADR | Domain model, storage ownership, review/decision typing, space persistence | Architecture |
+| ADQ-002 | Memory / Knowledge ownership | A or D (standalone / platform services via RFC-031) | ADR-004, ADR-005, ADR-007 | PROPOSED ADR | Memory subsystem, service roster | Architecture |
+| ADQ-003 | Workflow model | D for Phases 1–2, then B (orchestration pattern) via a new RFC | ADR-002, ADR-003 | PROPOSED ADR | Orchestration layer (Phase 3+) | Architecture |
+| ADQ-004 | Action state machine reconciliation | A (RFC-022 authoritative) | — (no ADR yet) | OPEN | Action Service implementation | Architecture |
+| ADQ-005 | Invariant ID registry | A or B (registry in RFC-060, or per-RFC IDs aggregated) | — (no ADR yet) | OPEN | Verification script manifest mapping (RFC-061) | Documentation / Verification |
+| ADQ-006 | Space storage mapping consistency | A (rewrite 051/052/053/054 to RFC-033 categories) | ADR-007 | PROPOSED ADR | Space-specific persistence design | Documentation |
+| ADQ-007 | External Workflow Orchestrator (operational pipelines) | Integrate Kestra as infrastructure (not a Praxis component) | ADR-002 | PROPOSED ADR | Operational scheduling/retry/observability for maintenance pipelines | Architecture |
 
 ---
 
