@@ -51,6 +51,8 @@ tasks:
 
   run:worker:
     desc: Run the NATS worker service (requires NATS server)
+    deps:
+      - build:worker
     cmds:
       - go run ./services/worker
 
