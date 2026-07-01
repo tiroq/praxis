@@ -12,3 +12,4 @@ build/
 graphify-out/
 *.out
 *.test
+verify/rfc/out/*
