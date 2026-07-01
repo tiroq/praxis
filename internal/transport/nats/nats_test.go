@@ -549,7 +549,7 @@ type fakeStreamManager struct {
 	added         []*natspkg.StreamConfig
 }
 
-func (f *fakeStreamManager) StreamInfo(_ string) (*natspkg.StreamInfo, error) {
+func (f *fakeStreamManager) StreamInfo(_ string, _ ...natspkg.JSOpt) (*natspkg.StreamInfo, error) {
 	if f.streamExists {
 		return &natspkg.StreamInfo{}, nil
 	}

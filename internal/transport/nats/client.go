@@ -9,7 +9,7 @@ import (
 // streamManager is the minimal JetStream interface needed by ensureStream.
 // Defined as a narrow interface to allow fakes in unit tests.
 type streamManager interface {
-	StreamInfo(name string) (*nats.StreamInfo, error)
+	StreamInfo(name string, opts ...nats.JSOpt) (*nats.StreamInfo, error)
 	AddStream(cfg *nats.StreamConfig, opts ...nats.JSOpt) (*nats.StreamInfo, error)
 }
 
