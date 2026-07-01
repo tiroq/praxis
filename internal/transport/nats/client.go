@@ -6,6 +6,13 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
+// streamManager is the minimal JetStream interface needed by ensureStream.
+// Defined as a narrow interface to allow fakes in unit tests.
+type streamManager interface {
+	StreamInfo(name string) (*nats.StreamInfo, error)
+	AddStream(cfg *nats.StreamConfig, opts ...nats.JSOpt) (*nats.StreamInfo, error)
+}
+
 // Client holds a live NATS connection and a JetStream context.
 // It is the single point of contact with the NATS server for the adapter.
 type Client struct {
@@ -48,7 +55,7 @@ func (c *Client) Close() {
 
 // ensureStream creates the stream if it does not already exist.
 // If the stream exists, the configuration is left untouched.
-func ensureStream(js nats.JetStreamContext, cfg Config) error {
+func ensureStream(js streamManager, cfg Config) error {
 	_, err := js.StreamInfo(cfg.StreamName)
 	if err == nil {
 		// Stream already exists.
