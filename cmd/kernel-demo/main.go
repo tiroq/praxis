@@ -1,4 +1,3 @@
-package main
 // kernel-demo is a minimal CLI that exercises the Core Kernel pipeline
 // end-to-end without any external dependencies.
 //
