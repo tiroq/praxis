@@ -622,3 +622,20 @@ func TestNewPublisher_PublicConstructor_ReturnsNonNil(t *testing.T) {
 		t.Fatal("expected non-nil Publisher")
 	}
 }
+
+// ---------------------------------------------------------------------------
+// Client method tests (same package, no real NATS needed)
+// ---------------------------------------------------------------------------
+
+func TestClient_JetStream_ReturnsStoredField(t *testing.T) {
+	c := &Client{js: nil}
+	if c.JetStream() != nil {
+		t.Error("expected nil JetStream when field is nil")
+	}
+}
+
+func TestClient_Close_NilConn_DoesNotPanic(t *testing.T) {
+	// Close with a nil conn must not panic; it checks before draining.
+	c := &Client{conn: nil}
+	c.Close() // must not panic
+}
