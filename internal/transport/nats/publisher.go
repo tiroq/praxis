@@ -24,11 +24,6 @@ func NewPublisher(js nats.JetStreamContext, subject string) *Publisher {
 	return &Publisher{js: js, subject: subject}
 }
 
-// newPublisherFromInterface is used by tests to inject a fake jsPublish.
-func newPublisherFromInterface(js jsPublish, subject string) *Publisher {
-	return &Publisher{js: js, subject: subject}
-}
-
 // Publish serialises msg to JSON and publishes it to the output subject.
 // Returns ErrPublishFailed (wrapping the underlying cause) on any error.
 func (p *Publisher) Publish(msg OutputMessage) error {
