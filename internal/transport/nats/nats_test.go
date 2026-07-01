@@ -155,6 +155,7 @@ func TestConfigFromEnv_Overrides(t *testing.T) {
 func TestInputMessage_Decode_Valid(t *testing.T) {
 	raw := `{
 		"id": "evt_abc",
+		"correlation_id": "corr_abc",
 		"source": "manual",
 		"text": "нужно купить билеты в Шанхай",
 		"timestamp": "2026-07-01T00:00:00Z",
@@ -166,6 +167,9 @@ func TestInputMessage_Decode_Valid(t *testing.T) {
 	}
 	if msg.ID != "evt_abc" {
 		t.Errorf("ID: got %q", msg.ID)
+	}
+	if msg.CorrelationID != "corr_abc" {
+		t.Errorf("CorrelationID: got %q", msg.CorrelationID)
 	}
 	if msg.Text != "нужно купить билеты в Шанхай" {
 		t.Errorf("Text: got %q", msg.Text)
@@ -208,11 +212,12 @@ func TestInputMessage_Validate_Valid(t *testing.T) {
 func TestInputMessage_toKernelEvent(t *testing.T) {
 	ts := time.Date(2026, 7, 1, 0, 0, 0, 0, time.UTC)
 	msg := InputMessage{
-		ID:        "evt_123",
-		Source:    "manual",
-		Text:      "buy tickets",
-		Timestamp: ts,
-		Metadata:  map[string]string{"key": "val"},
+		ID:            "evt_123",
+		CorrelationID: "corr_123",
+		Source:        "manual",
+		Text:          "buy tickets",
+		Timestamp:     ts,
+		Metadata:      map[string]string{"key": "val"},
 	}
 	event := msg.toKernelEvent()
 
@@ -221,6 +226,9 @@ func TestInputMessage_toKernelEvent(t *testing.T) {
 	}
 	if event.Text != "buy tickets" {
 		t.Errorf("Text: got %q", event.Text)
+	}
+	if event.CorrelationID != "corr_123" {
+		t.Errorf("CorrelationID: got %q", event.CorrelationID)
 	}
 	if event.Source != "manual" {
 		t.Errorf("Source: got %q", event.Source)
