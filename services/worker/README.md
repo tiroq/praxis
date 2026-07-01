@@ -9,7 +9,7 @@ The kernel itself remains transport-agnostic — all NATS concerns live in
 
 ## Architecture
 
-```
+```text
 NATS JetStream (input subject)
   ↓
 transport adapter (internal/transport/nats)
@@ -73,6 +73,9 @@ NATS JetStream (output subject)
 task build:worker    # compile to build/worker
 task run:worker      # go run ./services/worker
 
+# Real end-to-end smoke verification over local JetStream:
+task smoke:nats
+
 # With a real NATS server:
 NATS_URL=nats://localhost:4222 go run ./services/worker
 ```
@@ -85,3 +88,7 @@ fakes in `internal/transport/nats/nats_test.go`.
 ```sh
 go test ./internal/transport/nats/...
 ```
+
+`task test` does not require a live NATS server. Real NATS is exercised only by
+`task smoke:nats`, which boots local JetStream, starts the worker, publishes a
+real input event, and validates the real output message.
