@@ -441,8 +441,14 @@ Every major feature begins with an RFC before implementation.
 
 ```sh
 task test             # run all Go tests
+task test:coverage    # run tests and write coverage to build/coverage.out
 task build            # build all binaries into build/
+task build:worker     # build services/worker into build/worker
 task run:kernel-demo  # build and run kernel demo
+task run:api-kernel   # run the HTTP kernel API service
+task run:worker       # run the NATS worker (requires NATS server)
+task dev              # full verification: test + coverage + build + RFC hygiene
+task report           # run tests, write coverage + human-readable summary to build/report.md
 task verify:rfc       # verify RFC consistency
 task graph:rebuild    # rebuild knowledge graph
 task clean            # remove build/
