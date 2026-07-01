@@ -136,3 +136,15 @@ End every implementation with:
 
 Prefer reading the RFC over guessing. If an RFC is ambiguous or missing, surface the gap
 rather than filling it with assumed behavior.
+
+## Build and Verification Operations
+
+Rules:
+- Prefer Taskfile commands over raw go/python commands.
+- Use `task test` for normal validation.
+- Use `task build` before claiming binaries compile.
+- Use `task verify:rfc` after changing RFCs or docs under rfcs/.
+- Use `task graph:rebuild` after changing graph-relevant docs or code.
+- Never commit build/ or graphify-out/.
+- Do not create ad-hoc build scripts unless Taskfile cannot express the operation.
+- No command is canonical unless it is in Taskfile.yml.
