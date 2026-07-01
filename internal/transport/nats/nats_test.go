@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"log/slog"
-	"os"
 	"testing"
 	"time"
 
@@ -116,22 +115,13 @@ func TestConfigFromEnv_Defaults(t *testing.T) {
 }
 
 func TestConfigFromEnv_Overrides(t *testing.T) {
-	os.Setenv("NATS_URL", "nats://remote:4222")
-	os.Setenv("NATS_STREAM", "MYSTREAM")
-	os.Setenv("NATS_INPUT_SUBJECT", "my.input")
-	os.Setenv("NATS_OUTPUT_SUBJECT", "my.output")
-	os.Setenv("NATS_DURABLE", "my-consumer")
-	os.Setenv("NATS_ACK_WAIT_SECONDS", "60")
-	os.Setenv("NATS_MAX_DELIVER", "5")
-	t.Cleanup(func() {
-		for _, k := range []string{
-			"NATS_URL", "NATS_STREAM", "NATS_INPUT_SUBJECT",
-			"NATS_OUTPUT_SUBJECT", "NATS_DURABLE",
-			"NATS_ACK_WAIT_SECONDS", "NATS_MAX_DELIVER",
-		} {
-			os.Unsetenv(k)
-		}
-	})
+	t.Setenv("NATS_URL", "nats://remote:4222")
+	t.Setenv("NATS_STREAM", "MYSTREAM")
+	t.Setenv("NATS_INPUT_SUBJECT", "my.input")
+	t.Setenv("NATS_OUTPUT_SUBJECT", "my.output")
+	t.Setenv("NATS_DURABLE", "my-consumer")
+	t.Setenv("NATS_ACK_WAIT_SECONDS", "60")
+	t.Setenv("NATS_MAX_DELIVER", "5")
 
 	cfg := ConfigFromEnv()
 
@@ -455,6 +445,12 @@ func (f *fakeJSPublish) Publish(subj string, data []byte, _ ...natspkg.PubOpt) (
 		data []byte
 	}{subj, data})
 	return &natspkg.PubAck{}, nil
+}
+
+// newPublisherFromInterface injects a fake jsPublish into a Publisher.
+// Kept here (not in production code) because it is only needed by tests.
+func newPublisherFromInterface(js jsPublish, subject string) *Publisher {
+	return &Publisher{js: js, subject: subject}
 }
 
 func TestNewPublisher_ReturnsNonNil(t *testing.T) {
