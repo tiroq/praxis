@@ -639,3 +639,126 @@ func TestClient_Close_NilConn_DoesNotPanic(t *testing.T) {
 	c := &Client{conn: nil}
 	c.Close() // must not panic
 }
+
+// ---------------------------------------------------------------------------
+// runLoop tests (using fake pullSubscription — no real NATS required)
+// ---------------------------------------------------------------------------
+
+// fakePullSub implements pullSubscription for testing runLoop.
+type fakePullSub struct {
+	calls    []fetchCall
+	callIdx  int
+	unsubbed bool
+}
+
+type fetchCall struct {
+	msgs []*natspkg.Msg
+	err  error
+}
+
+func (f *fakePullSub) Fetch(_ int, _ ...natspkg.PullOpt) ([]*natspkg.Msg, error) {
+	if f.callIdx >= len(f.calls) {
+		// No more prepared responses — block by returning timeout
+		return nil, natspkg.ErrTimeout
+	}
+	c := f.calls[f.callIdx]
+	f.callIdx++
+	return c.msgs, c.err
+}
+
+func (f *fakePullSub) Unsubscribe() error { f.unsubbed = true; return nil }
+
+func TestRunLoop_ContextCancel_ExitsCleanly(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // already cancelled
+
+	s := handlerHarness(&fakeKernel{}, &fakePublisher{})
+	fake := &fakePullSub{}
+	err := s.runLoop(ctx, fake)
+	if err != nil {
+		t.Errorf("expected nil error on ctx cancel, got %v", err)
+	}
+}
+
+func TestRunLoop_TimeoutContinues(t *testing.T) {
+	s := handlerHarness(&fakeKernel{}, &fakePublisher{})
+	fake := &fakePullSub{
+		calls: []fetchCall{
+			{err: natspkg.ErrTimeout},
+		},
+	}
+	// Let one iteration happen (timeout) then cancel via context.
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		time.Sleep(600 * time.Millisecond)
+		cancel()
+	}()
+	err := s.runLoop(ctx, fake)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestRunLoop_ConnectionClosed_ExitsCleanly(t *testing.T) {
+	ctx := context.Background()
+	s := handlerHarness(&fakeKernel{}, &fakePublisher{})
+	fake := &fakePullSub{
+		calls: []fetchCall{
+			{err: natspkg.ErrConnectionClosed},
+		},
+	}
+	err := s.runLoop(ctx, fake)
+	if err != nil {
+		t.Errorf("expected nil on connection closed, got %v", err)
+	}
+}
+
+func TestRunLoop_FetchError_Warns_ThenContinues(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	s := handlerHarness(&fakeKernel{}, &fakePublisher{})
+	fake := &fakePullSub{
+		calls: []fetchCall{
+			{err: errors.New("transient error")},
+		},
+	}
+	// Cancel context after the loop handles the error and loops back.
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		cancel()
+	}()
+	err := s.runLoop(ctx, fake)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestRunLoop_ProcessesMessage_AcksAfterPublish(t *testing.T) {
+	pub := &fakePublisher{}
+	k := &fakeKernel{result: kernel.PipelineResult{EventID: "evt_loop"}}
+	s := handlerHarness(k, pub)
+
+	input := InputMessage{ID: "evt_loop", Text: "buy tickets", Timestamp: time.Now().UTC()}
+	data, _ := json.Marshal(input)
+	natMsg := &natspkg.Msg{Data: data, Subject: "praxis.kernel.input"}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	fake := &fakePullSub{
+		calls: []fetchCall{
+			{msgs: []*natspkg.Msg{natMsg}},
+			// After the message is processed, subsequent fetches time out so
+			// the context cancel can stop the loop.
+			{err: natspkg.ErrTimeout},
+		},
+	}
+	go func() {
+		time.Sleep(600 * time.Millisecond)
+		cancel()
+	}()
+	err := s.runLoop(ctx, fake)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if len(pub.published) != 1 {
+		t.Errorf("expected 1 published message, got %d", len(pub.published))
+	}
+}
