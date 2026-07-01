@@ -78,13 +78,32 @@ tasks:
 
   run:nats:
     desc: Start local NATS JetStream
+    preconditions:
+      - sh: '[ "{{.CONTAINER_RUNTIME}}" != "__missing__" ]'
+        msg: Neither podman nor docker is installed. Install Podman (preferred) or Docker.
     cmds:
-      - docker compose up -d nats
+      - |
+        {{.CONTAINER_RUNTIME}} run -d \
+          --name praxis-nats \
+          -p 4222:4222 \
+          -p 8222:8222 \
+          nats:latest -js
 
   stop:nats:
     desc: Stop local NATS JetStream
+    preconditions:
+      - sh: '[ "{{.CONTAINER_RUNTIME}}" != "__missing__" ]'
+        msg: Neither podman nor docker is installed. Install Podman (preferred) or Docker.
     cmds:
-      - docker compose stop nats
+      - '{{.CONTAINER_RUNTIME}} rm -f praxis-nats || true'
+
+  logs:nats:
+    desc: Tail local NATS JetStream logs
+    preconditions:
+      - sh: '[ "{{.CONTAINER_RUNTIME}}" != "__missing__" ]'
+        msg: Neither podman nor docker is installed. Install Podman (preferred) or Docker.
+    cmds:
+      - '{{.CONTAINER_RUNTIME}} logs -f praxis-nats'
 
   smoke:nats:
     desc: Run the real NATS JetStream smoke test through worker -> kernel -> output
