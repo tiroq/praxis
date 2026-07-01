@@ -1,5 +1,18 @@
 version: '3'
 
+vars:
+  CONTAINER_RUNTIME:
+    sh: |
+      if command -v container >/dev/null 2>&1; then
+        echo container
+      elif command -v podman >/dev/null 2>&1; then
+        echo podman
+      elif command -v docker >/dev/null 2>&1; then
+        echo docker
+      else
+        echo "__missing__"
+      fi
+
 tasks:
   test:
     desc: Run all Go tests
