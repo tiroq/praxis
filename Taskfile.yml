@@ -16,12 +16,24 @@ tasks:
     desc: Build all binaries into build/
     deps:
       - build:kernel-demo
+      - build:api-kernel
 
   build:kernel-demo:
     desc: Build cmd/kernel-demo into build/kernel-demo
     cmds:
       - mkdir -p build
       - go build -o build/kernel-demo ./cmd/kernel-demo
+
+  build:api-kernel:
+    desc: Build services/api-kernel into build/api-kernel
+    cmds:
+      - mkdir -p build
+      - go build -o build/api-kernel ./services/api-kernel
+
+  run:api-kernel:
+    desc: Run api-kernel service
+    cmds:
+      - go run ./services/api-kernel
 
   run:kernel-demo:
     desc: 'Run kernel demo with default sample text: нужно купить билеты в Шанхай'
