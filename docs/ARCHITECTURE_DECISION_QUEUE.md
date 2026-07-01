@@ -97,6 +97,10 @@ RFC-012 "stable identity"), depending on whether "stable identity" means "canoni
 literal statements), with **D** as the interim review-typing mechanism. **A** is the simplest
 alternative if the team chooses instead to revise RFC-002's wording. This is a genuine fork.
 
+**Related ADRs:** [ADR-001 — Canonical Object vs Artifact](adr/ADR-001-canonical-object-vs-artifact.md)
+(proposes Option B + D; **PROPOSED**), [ADR-007 — Storage Architecture](adr/ADR-007-storage-architecture.md)
+(defers Artifact storage ownership to ADR-001; **PROPOSED**).
+**Lifecycle state:** PROPOSED ADR — ADR-001 is PROPOSED, so this ADQ remains open.
 **Decision status:** OPEN
 **Blocks:** domain model, storage ownership, review/decision target typing, space-scoped
 persistence, plus the doc rewrites in RFC-003 (stale pipeline) and Space object lists.
@@ -104,6 +108,9 @@ persistence, plus the doc rewrites in RFC-003 (stale pipeline) and Space object 
 **Required RFC updates once decided:** RFC-002, RFC-012, RFC-014 (and downstream RFC-003,
 RFC-011, RFC-020, RFC-021, RFC-033, RFC-050) to state the chosen model and align identity,
 storage, and review-target wording.
+
+> Closure gate: this ADQ moves to `CLOSED` only after ADR-001 is **ACCEPTED** and the required
+> RFC updates above have landed.
 
 ---
 
@@ -135,11 +142,19 @@ RFC-033/043/050 name a "Memory Service" and a "Knowledge Service" as owners, but
 **A or D** — add both as first-class (or platform-tier) services with RFC-031 contracts. The
 A-vs-D distinction (tier/label) is minor.
 
+**Related ADRs:** [ADR-004 — Agent Runtime](adr/ADR-004-agent-runtime.md) (agents do not own
+memory/knowledge; **PROPOSED**), [ADR-005 — LLM Provider Abstraction](adr/ADR-005-llm-provider-abstraction.md)
+(platform-service ownership; **PROPOSED**), [ADR-007 — Storage Architecture](adr/ADR-007-storage-architecture.md)
+(Knowledge/Memory store ownership is ADQ-002-dependent; **PROPOSED**).
+**Lifecycle state:** PROPOSED ADR — related ADRs are PROPOSED, so this ADQ remains open.
 **Decision status:** OPEN
 **Blocks:** memory subsystem implementation, service-roster completeness.
 **Owner:** Architecture (with Documentation)
 **Required RFC updates once decided:** RFC-030 §7 and RFC-031 §11 to add the services; confirm
 ownership wording in RFC-033 §30 and RFC-050 §12.
+
+> Closure gate: this ADQ moves to `CLOSED` only after the owning ADR is **ACCEPTED** and the
+> required RFC updates above have landed.
 
 ---
 
@@ -172,11 +187,19 @@ lifecycle, state machine, or contract.
 **D for Phases 1–2**, then author a Workflow RFC (leaning **B**) before orchestration-heavy work.
 A new RFC is **not** a precondition for early implementation.
 
+**Related ADRs:** [ADR-002 — External Workflow Orchestrator](adr/ADR-002-external-workflow-orchestrator.md)
+(operational-workflow boundary; **PROPOSED**), [ADR-003 — Internal Event Bus](adr/ADR-003-internal-event-bus.md)
+(domain event flow vs. orchestration; **PROPOSED**). Note the domain-level *Workflow object*
+question here is distinct from the *operational orchestrator* tracked by ADQ-007.
+**Lifecycle state:** PROPOSED ADR — related ADRs are PROPOSED, so this ADQ remains open.
 **Decision status:** OPEN (deferrable)
 **Blocks:** orchestration layer (Phase 3+).
 **Owner:** Architecture
 **Required RFC updates once decided:** new Workflow RFC (e.g., RFC-024) or an orchestration
 section in RFC-030.
+
+> Closure gate: this ADQ moves to `CLOSED` only after the owning ADR is **ACCEPTED** and the
+> required RFC updates above have landed.
 
 ---
 
@@ -201,6 +224,9 @@ RFC-022 and RFC-023 define different state machines for the same Action and Acti
 **A**, because RFC-022 is the dedicated state-machine RFC and explicitly claims precedence.
 B is acceptable if the team prefers RFC-023's granularity as canonical.
 
+**Related ADRs:** none yet. No ADR proposes a reconciliation; an ADR must be authored and
+linked here (and link back to ADQ-004) before this item can advance past `OPEN`.
+**Lifecycle state:** OPEN
 **Decision status:** OPEN
 **Blocks:** Action Service implementation (HIGH rework risk if built before reconciliation).
 **Owner:** Architecture
@@ -229,6 +255,9 @@ never defines. There is no stable invariant ID scheme.
 produces a **draft, non-authoritative** catalog to inform this decision; it does not define the
 canonical registry.
 
+**Related ADRs:** none yet. This is a mechanical registry decision; an ADR (if one is warranted)
+must be linked here and link back to ADQ-005 before this item can advance past `OPEN`.
+**Lifecycle state:** OPEN
 **Decision status:** OPEN (mechanical, low risk)
 **Blocks:** RFC-061 manifest-to-invariant mapping.
 **Owner:** Documentation / Verification
@@ -257,8 +286,58 @@ engine-agnostic, service-owned storage model of RFC-033.
 **Recommended option (preference, not decided)**
 **A** — the correct pattern already exists in RFC-055/056; this is cleanup, not a fork.
 
+**Related ADRs:** [ADR-007 — Storage Architecture](adr/ADR-007-storage-architecture.md)
+(centralizes reference engines and calls for replacing concrete-engine Space mappings with
+RFC-033 categories; **PROPOSED**).
+**Lifecycle state:** PROPOSED ADR — ADR-007 is PROPOSED, so this ADQ remains open.
 **Decision status:** OPEN (cleanup; tracked to ensure it happens)
 **Blocks:** space-specific persistence design; documentation trust.
 **Owner:** Documentation
 **Required RFC updates once decided:** RFC-051, RFC-052, RFC-053, RFC-054 storage-mapping
 sections.
+
+> Closure gate: this ADQ moves to `CLOSED` only after ADR-007 is **ACCEPTED** and the required
+> RFC updates above have landed.
+
+---
+
+## ADQ-007 — External Workflow Orchestrator (operational pipelines)
+
+**Problem**
+Praxis has operational pipelines — nightly graph rebuild, RFC verification, benchmarks,
+scheduled AI reviews, report generation, backups, cleanup, doc generation — that need
+scheduling, retry, observability, approval, and audit. These are **operational concerns**, not
+domain concerns, and the Kernel is intentionally a pure domain engine with no scheduler, cron,
+or retry logic. No RFC decides where these operational workflows run.
+
+**Evidence**
+- The Kernel deliberately omits scheduling/retry/cron (pure domain engine).
+- Operational tasks are currently run via manual `Taskfile` invocations and ad-hoc scripts:
+  no scheduling, retry, observability, approval flow, or audit trail.
+- RFC-013/030/031/032 describe the domain event flow but do not cover operational
+  orchestration of maintenance pipelines.
+
+**Options**
+- A. Integrate an external workflow orchestrator (e.g., Kestra) as **infrastructure**, kept
+  strictly outside the Praxis domain (no Praxis component depends on it).
+- B. Continue with manual `Taskfile`/ad-hoc scripts (does not scale operationally).
+- C. Build scheduling/retry into a Praxis service (rejected: mixes operational concerns into
+  the domain and duplicates orchestrator capabilities).
+
+**Recommended option (preference, not decided)**
+**A** — integrate Kestra as external infrastructure, treated as a non-Praxis component with
+hard boundaries (it never becomes a domain dependency).
+
+**Related ADRs:** [ADR-002 — External Workflow Orchestrator](adr/ADR-002-external-workflow-orchestrator.md)
+(proposes Kestra as infrastructure with non-negotiable boundary invariants; **PROPOSED**).
+**Lifecycle state:** PROPOSED ADR — ADR-002 is PROPOSED, not accepted; per the lifecycle rules a
+PROPOSED ADR does not resolve an ADQ, so this question remains **unresolved** and is tracked here.
+**Decision status:** OPEN
+**Blocks:** operational scheduling/retry/observability/audit for maintenance pipelines.
+**Owner:** Architecture
+**Required RFC updates once decided:** record the operational-orchestrator boundary in an RFC
+(e.g., an operational section in RFC-030, or a dedicated RFC) confirming the orchestrator is
+infrastructure and never a domain dependency.
+
+> Closure gate: this ADQ moves to `CLOSED` only after ADR-002 is **ACCEPTED** and the required
+> RFC updates above have landed. It is **not** closed by the PROPOSED ADR-002 alone.
