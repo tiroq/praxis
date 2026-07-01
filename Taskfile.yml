@@ -29,6 +29,7 @@ tasks:
     desc: Build all binaries into build/
     deps:
       - build:kernel-demo
+      - build:praxis
       - build:api-kernel
       - build:worker
       - build:nats-smoke
@@ -38,6 +39,12 @@ tasks:
     cmds:
       - mkdir -p build
       - go build -o build/kernel-demo ./cmd/kernel-demo
+
+  build:praxis:
+    desc: Build cmd/praxis into build/praxis
+    cmds:
+      - mkdir -p build
+      - go build -o build/praxis ./cmd/praxis
 
   build:api-kernel:
     desc: Build services/api-kernel into build/api-kernel
@@ -68,6 +75,13 @@ tasks:
       - build:kernel-demo
     cmds:
       - ./build/kernel-demo "нужно купить билеты в Шанхай"
+
+  run:praxis:
+    desc: Run praxis CLI help
+    deps:
+      - build:praxis
+    cmds:
+      - ./build/praxis --help
 
   run:worker:
     desc: Run the NATS worker service (requires NATS server)
@@ -111,6 +125,13 @@ tasks:
       - build
     cmds:
       - sh ./scripts/smoke_nats.sh
+
+  smoke:praxis:
+    desc: Run praxis CLI publish/watch smoke test over real NATS JetStream
+    deps:
+      - build
+    cmds:
+      - sh ./scripts/smoke_praxis.sh
 
   dev:
     desc: Full development verification — test, coverage, build, RFC hygiene
