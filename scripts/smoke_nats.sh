@@ -12,9 +12,22 @@ cleanup() {
 		kill "$WORKER_PID" 2>/dev/null || true
 		wait "$WORKER_PID" 2>/dev/null || true
 	fi
+	task stop:nats || true
 }
 
 trap cleanup EXIT INT TERM
+
+task build
+
+if ! [ -x ./build/nats-smoke ]; then
+	if task --list 2>/dev/null | grep -q "build:nats-smoke:"; then
+		task build:nats-smoke
+	fi
+fi
+
+if ! [ -x ./build/worker ]; then
+	task build:worker
+fi
 
 task run:nats
 
