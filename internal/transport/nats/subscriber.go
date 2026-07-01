@@ -58,6 +58,13 @@ func NewSubscriber(
 	}
 }
 
+// pullSubscription is the minimal interface for a JetStream pull subscription.
+// Defined to allow fake implementations in unit tests.
+type pullSubscription interface {
+	Fetch(n int, opts ...nats.PullOpt) ([]*nats.Msg, error)
+	Unsubscribe() error
+}
+
 // Run subscribes to the input subject and processes messages until ctx is
 // cancelled.  It blocks until the context is done.
 func (s *Subscriber) Run(ctx context.Context) error {
@@ -77,6 +84,12 @@ func (s *Subscriber) Run(ctx context.Context) error {
 		"durable", s.cfg.Durable,
 	)
 
+	return s.runLoop(ctx, sub)
+}
+
+// runLoop is the core fetch-and-process loop. It is separated from Run so
+// that it can be tested with a fake pullSubscription without a real server.
+func (s *Subscriber) runLoop(ctx context.Context, sub pullSubscription) error {
 	for {
 		select {
 		case <-ctx.Done():
