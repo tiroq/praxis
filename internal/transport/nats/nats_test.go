@@ -52,10 +52,10 @@ type fakeMsg struct {
 	subject string
 }
 
-func (m *fakeMsg) Ack() error        { m.acked = true; return nil }
-func (m *fakeMsg) Nak() error        { m.naked = true; return nil }
-func (m *fakeMsg) Term() error       { m.termed = true; return nil }
-func (m *fakeMsg) GetData() []byte   { return m.data }
+func (m *fakeMsg) Ack() error         { m.acked = true; return nil }
+func (m *fakeMsg) Nak() error         { m.naked = true; return nil }
+func (m *fakeMsg) Term() error        { m.termed = true; return nil }
+func (m *fakeMsg) GetData() []byte    { return m.data }
 func (m *fakeMsg) GetSubject() string { return m.subject }
 
 // ---------------------------------------------------------------------------
@@ -543,10 +543,10 @@ func TestNatsMsgWrapper_AckNakTermDoNotPanic(t *testing.T) {
 
 // fakeStreamManager implements streamManager for testing ensureStream.
 type fakeStreamManager struct {
-	streamExists bool
+	streamExists  bool
 	streamInfoErr error
 	addStreamErr  error
-	added        []*natspkg.StreamConfig
+	added         []*natspkg.StreamConfig
 }
 
 func (f *fakeStreamManager) StreamInfo(_ string) (*natspkg.StreamInfo, error) {
