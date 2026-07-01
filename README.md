@@ -370,9 +370,62 @@ praxis/
 
 # Current Status
 
-Architecture and RFC phase.
+Architecture and RFC phase complete. Core Kernel implemented.
 
 Implementation intentionally starts only after architectural foundation is accepted.
+
+---
+
+# Core Kernel Demo
+
+The `kernel-demo` CLI exercises the full `Event → Review → Decision → Action` pipeline
+with no external dependencies.
+
+**Requirements:** Go 1.24+, no other setup needed.
+
+```sh
+# From repo root
+go run ./cmd/kernel-demo "нужно купить билеты в Шанхай"
+go run ./cmd/kernel-demo "review this proposal urgently"
+go run ./cmd/kernel-demo "nothing relevant here"
+```
+
+**Example output:**
+
+```json
+{
+  "EventID": "demo-1782919033780095",
+  "Review": {
+    "Reviewer": "keyword-reviewer-v1",
+    "Recommendation": "approve",
+    "Explanation": "3 keyword(s) matched; review recommends approval with noted risks"
+  },
+  "Decision": {
+    "Outcome": "approve",
+    "Reasoning": "confidence 0.75 meets approval threshold 0.60",
+    "Policy": "rule-based-policy-v1"
+  },
+  "Actions": [
+    { "Type": "notify", "Priority": "medium", "Description": "notify actor of approval" }
+  ]
+}
+```
+
+Exit code is non-zero on validation errors (empty text, bad confidence) or runtime failures.
+
+**Module structure:**
+
+```
+go.work                        ← workspace linking root + kernel modules
+go.mod                         ← root module: github.com/tiroq/praxis
+cmd/kernel-demo/main.go        ← demo CLI
+internal/core/kernel/          ← standalone kernel module (go.mod)
+  kernel.go                    ← Kernel.Run: Event → Review → Decision → Action
+  default_reviewer.go          ← KeywordReviewer (deterministic, no LLM)
+  default_decision_maker.go    ← RuleBasedDecisionMaker
+  default_action_planner.go    ← SimpleActionPlanner
+  kernel_test.go               ← 29 tests, 97.9% coverage
+```
 
 ---
 
