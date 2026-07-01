@@ -320,6 +320,26 @@ External Systems
 - Docker
 - OmniRoute
 
+## Local NATS Smoke Test
+
+Praxis includes a real JetStream smoke path that verifies:
+
+input message
+-> NATS JetStream
+-> worker transport adapter
+-> core kernel
+-> output message
+
+Run it only when you want live infrastructure verification:
+
+```sh
+task smoke:nats
+```
+
+This does not change kernel behavior. The kernel remains transport-agnostic and
+the NATS-specific flow stays in `services/worker`, `internal/transport/nats`,
+and `cmd/nats-smoke`.
+
 ---
 
 # Repository

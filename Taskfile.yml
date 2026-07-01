@@ -18,6 +18,7 @@ tasks:
       - build:kernel-demo
       - build:api-kernel
       - build:worker
+      - build:nats-smoke
 
   build:kernel-demo:
     desc: Build cmd/kernel-demo into build/kernel-demo
@@ -36,6 +37,12 @@ tasks:
     cmds:
       - mkdir -p build
       - go build -o build/worker ./services/worker
+
+  build:nats-smoke:
+    desc: Build cmd/nats-smoke into build/nats-smoke
+    cmds:
+      - mkdir -p build
+      - go build -o build/nats-smoke ./cmd/nats-smoke
 
   run:api-kernel:
     desc: Run api-kernel service
@@ -56,6 +63,23 @@ tasks:
     cmds:
       - go run ./services/worker
 
+  run:nats:
+    desc: Start local NATS JetStream
+    cmds:
+      - docker compose up -d nats
+
+  stop:nats:
+    desc: Stop local NATS JetStream
+    cmds:
+      - docker compose stop nats
+
+  smoke:nats:
+    desc: Run the real NATS JetStream smoke test through worker -> kernel -> output
+    deps:
+      - build
+    cmds:
+      - sh ./scripts/smoke_nats.sh
+
   dev:
     desc: Full development verification — test, coverage, build, RFC hygiene
     cmds:
@@ -75,15 +99,29 @@ tasks:
         BINARIES=$(ls -1 build/ 2>/dev/null | grep -v '\.' | tr '\n' ' ')
         RFC_STATUS="unknown"
         if python3 verify/rfc/run.py > /dev/null 2>&1; then RFC_STATUS="pass"; else RFC_STATUS="fail"; fi
+        GRAPH_HEALTH_EXISTS="no"
+        if [ -f graphify-out/graph_health.json ]; then GRAPH_HEALTH_EXISTS="yes"; fi
         GRAPH_NOTE=""
         if [ -f graphify-out/graph_health.json ]; then
           GRAPH_NOTE=$(python3 -c "
         import json, sys
         try:
             d = json.load(open('graphify-out/graph_health.json'))
-            print('Graph nodes: ' + str(d.get('node_count', '?')) + ', edges: ' + str(d.get('edge_count', '?')))
+            print('Graph nodes: ' + str(d.get('total_nodes', d.get('node_count', '?'))) + ', edges: ' + str(d.get('total_edges', d.get('edge_count', '?'))))
         except Exception as e:
             print('graph_health.json parse error: ' + str(e))
+        ")
+        fi
+        NATS_SMOKE_NOTE="not run"
+        if [ -f build/smoke-nats.json ]; then
+          NATS_SMOKE_NOTE=$(python3 -c "
+        import json
+        try:
+            d = json.load(open('build/smoke-nats.json'))
+            ok = 'yes' if d.get('worker_flow_ok') else 'no'
+            print('run=' + ok + ', status=' + str(d.get('received', {}).get('status', 'unknown')) + ', input_event_id=' + str(d.get('received', {}).get('input_event_id', '?')))
+        except Exception as e:
+            print('parse error: ' + str(e))
         ")
         fi
         {
@@ -113,17 +151,23 @@ tasks:
           echo ""
           echo "Status: **$RFC_STATUS**"
           echo ""
+          echo "## Graph Health"
+          echo ""
+          echo "graph_health.json exists: **$GRAPH_HEALTH_EXISTS**"
+          echo ""
           if [ -n "$GRAPH_NOTE" ]; then
-            echo "## Graph Health"
-            echo ""
             echo "$GRAPH_NOTE"
             echo ""
           fi
+          echo "## NATS Smoke"
+          echo ""
+          echo "Smoke result: **$NATS_SMOKE_NOTE**"
+          echo ""
           echo "## Notes"
           echo ""
           echo "- Kernel is transport-agnostic (no NATS imports in internal/core/kernel)."
-          echo "- NATS unit tests use fakes — no real NATS server required."
-          echo "- Real NATS integration tests remain for a future task."
+          echo "- NATS unit tests use fakes — no real NATS server required for task test."
+          echo "- Real NATS smoke is only exercised by task smoke:nats."
         } > build/report.md
         echo "Report written to build/report.md"
         cat build/report.md
