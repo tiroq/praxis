@@ -437,6 +437,19 @@ Every major feature begins with an RFC before implementation.
 
 ---
 
+# Developer Commands
+
+```sh
+task test             # run all Go tests
+task build            # build all binaries into build/
+task run:kernel-demo  # build and run kernel demo
+task verify:rfc       # verify RFC consistency
+task graph:rebuild    # rebuild knowledge graph
+task clean            # remove build/
+```
+
+---
+
 # License
 
 TBD
