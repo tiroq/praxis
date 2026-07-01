@@ -13,6 +13,9 @@ type InputMessage struct {
 	// ID is the globally unique event identifier (e.g. "evt_...").
 	ID string `json:"id"`
 
+	// CorrelationID groups related messages into one logical activity.
+	CorrelationID string `json:"correlation_id,omitempty"`
+
 	// Source identifies the originating system or user (e.g. "manual", "telegram").
 	Source string `json:"source"`
 
@@ -55,6 +58,7 @@ func (m InputMessage) toKernelEvent() kernel.Event {
 
 	return kernel.Event{
 		ID:               m.ID,
+		CorrelationID:    m.CorrelationID,
 		Source:           m.Source,
 		Text:             m.Text,
 		OccurredAt:       ts,
