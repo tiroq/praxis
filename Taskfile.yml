@@ -1,0 +1,46 @@
+version: '3'
+
+tasks:
+  test:
+    desc: Run all Go tests
+    cmds:
+      - go test ./...
+
+  test:coverage:
+    desc: Run all Go tests with coverage profile written to build/coverage.out
+    cmds:
+      - mkdir -p build
+      - go test -coverprofile=build/coverage.out ./...
+
+  build:
+    desc: Build all binaries into build/
+    deps:
+      - build:kernel-demo
+
+  build:kernel-demo:
+    desc: Build cmd/kernel-demo into build/kernel-demo
+    cmds:
+      - mkdir -p build
+      - go build -o build/kernel-demo ./cmd/kernel-demo
+
+  run:kernel-demo:
+    desc: 'Run kernel demo with default sample text: нужно купить билеты в Шанхай'
+    deps:
+      - build:kernel-demo
+    cmds:
+      - ./build/kernel-demo "нужно купить билеты в Шанхай"
+
+  clean:
+    desc: Remove build/
+    cmds:
+      - rm -rf build/
+
+  verify:rfc:
+    desc: Run RFC verification scripts
+    cmds:
+      - python3 verify/rfc/run.py
+
+  graph:rebuild:
+    desc: Rebuild the graphify knowledge graph
+    cmds:
+      - python3 scripts/rebuild_graph.py
