@@ -9,18 +9,38 @@ import (
 	natstransport "github.com/tiroq/praxis/internal/transport/nats"
 )
 
+type transportClient interface {
+	Close()
+}
+
+type jetStream interface {
+	Publish(subj string, data []byte, opts ...nats.PubOpt) (*nats.PubAck, error)
+	SubscribeSync(subj string, opts ...nats.SubOpt) (syncSubscription, error)
+}
+
+type syncSubscription interface {
+	NextMsg(timeout time.Duration) (transportMessage, error)
+	Unsubscribe() error
+}
+
+type transportMessage interface {
+	Data() []byte
+	Ack() error
+	Nak() error
+}
+
 // NewTransport builds a NATS-backed transport client for praxis CLI.
 func NewTransport(cfg natstransport.Config) (praxiscli.Transport, error) {
 	client, err := natstransport.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}
-	return &transport{client: client, js: client.JetStream()}, nil
+	return &transport{client: client, js: jetStreamAdapter{js: client.JetStream()}}, nil
 }
 
 type transport struct {
-	client *natstransport.Client
-	js     nats.JetStreamContext
+	client transportClient
+	js     jetStream
 }
 
 func (t *transport) PublishInput(subject string, payload []byte, msgID string) error {
@@ -46,7 +66,7 @@ func (t *transport) Close() {
 }
 
 type subscription struct {
-	sub *nats.Subscription
+	sub syncSubscription
 }
 
 func (s *subscription) Next(timeout time.Duration) (praxiscli.Delivery, error) {
@@ -68,11 +88,11 @@ func (s *subscription) Close() error {
 }
 
 type delivery struct {
-	msg *nats.Msg
+	msg transportMessage
 }
 
 func (d *delivery) Data() []byte {
-	return d.msg.Data
+	return d.msg.Data()
 }
 
 func (d *delivery) Ack() error {
@@ -81,4 +101,52 @@ func (d *delivery) Ack() error {
 
 func (d *delivery) Nak() error {
 	return d.msg.Nak()
+}
+
+type jetStreamAdapter struct {
+	js nats.JetStreamContext
+}
+
+func (a jetStreamAdapter) Publish(subj string, data []byte, opts ...nats.PubOpt) (*nats.PubAck, error) {
+	return a.js.Publish(subj, data, opts...)
+}
+
+func (a jetStreamAdapter) SubscribeSync(subj string, opts ...nats.SubOpt) (syncSubscription, error) {
+	sub, err := a.js.SubscribeSync(subj, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return subscriptionAdapter{sub: sub}, nil
+}
+
+type subscriptionAdapter struct {
+	sub *nats.Subscription
+}
+
+func (a subscriptionAdapter) NextMsg(timeout time.Duration) (transportMessage, error) {
+	msg, err := a.sub.NextMsg(timeout)
+	if err != nil {
+		return nil, err
+	}
+	return messageAdapter{msg: msg}, nil
+}
+
+func (a subscriptionAdapter) Unsubscribe() error {
+	return a.sub.Unsubscribe()
+}
+
+type messageAdapter struct {
+	msg *nats.Msg
+}
+
+func (a messageAdapter) Data() []byte {
+	return a.msg.Data
+}
+
+func (a messageAdapter) Ack() error {
+	return a.msg.Ack()
+}
+
+func (a messageAdapter) Nak() error {
+	return a.msg.Nak()
 }

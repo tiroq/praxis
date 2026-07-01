@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -8,14 +9,23 @@ import (
 	natstransport "github.com/tiroq/praxis/internal/transport/nats"
 )
 
+func mustResult(t *testing.T, result kernel.PipelineResult) json.RawMessage {
+	t.Helper()
+	data, err := json.Marshal(result)
+	if err != nil {
+		t.Fatalf("marshal result: %v", err)
+	}
+	return data
+}
+
 func TestValidateOutput_SucceedsOnExpectedResult(t *testing.T) {
 	out := natstransport.OutputMessage{
 		InputEventID: "evt_123",
 		Status:       "ok",
-		Result: &kernel.PipelineResult{
+		Result: mustResult(t, kernel.PipelineResult{
 			Decision: kernel.Decision{ID: "dec_123", Outcome: kernel.DecisionOutcomeApprove},
 			Actions:  []kernel.Action{{ID: "act_123"}},
-		},
+		}),
 	}
 
 	if err := validateOutput("evt_123", out); err != nil {
@@ -49,7 +59,7 @@ func TestValidateOutput_FailsOnInvalidResult(t *testing.T) {
 			output: natstransport.OutputMessage{
 				InputEventID: "evt_123",
 				Status:       "ok",
-				Result:       &kernel.PipelineResult{},
+				Result:       mustResult(t, kernel.PipelineResult{}),
 			},
 			wantErr: "result missing decision",
 		},
@@ -58,9 +68,9 @@ func TestValidateOutput_FailsOnInvalidResult(t *testing.T) {
 			output: natstransport.OutputMessage{
 				InputEventID: "evt_123",
 				Status:       "ok",
-				Result: &kernel.PipelineResult{
+				Result: mustResult(t, kernel.PipelineResult{
 					Decision: kernel.Decision{ID: "dec_123", Outcome: kernel.DecisionOutcomeApprove},
-				},
+				}),
 			},
 			wantErr: "result missing actions",
 		},

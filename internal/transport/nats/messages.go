@@ -1,9 +1,8 @@
 package nats
 
 import (
+	"encoding/json"
 	"time"
-
-	"github.com/tiroq/praxis/internal/core/kernel"
 )
 
 // InputMessage is the wire format for events arriving on the input subject.
@@ -29,9 +28,8 @@ type InputMessage struct {
 	Metadata map[string]string `json:"metadata"`
 }
 
-// validate checks that the InputMessage satisfies the minimum requirements
-// for a valid kernel.Event.
-func (m InputMessage) validate() error {
+// Validate checks that the InputMessage satisfies the minimum wire-level requirements.
+func (m InputMessage) Validate() error {
 	if m.ID == "" {
 		return ErrEmptyMessageID
 	}
@@ -41,37 +39,8 @@ func (m InputMessage) validate() error {
 	return nil
 }
 
-// toKernelEvent converts a validated InputMessage to a kernel.Event.
-// OccurredAt and ObservedAt are both set from m.Timestamp; if Timestamp is
-// zero the current UTC time is used. Confidence defaults to 1.0 for
-// externally supplied events.
-func (m InputMessage) toKernelEvent() kernel.Event {
-	ts := m.Timestamp
-	if ts.IsZero() {
-		ts = time.Now().UTC()
-	}
-
-	meta := m.Metadata
-	if meta == nil {
-		meta = map[string]string{}
-	}
-
-	return kernel.Event{
-		ID:               m.ID,
-		CorrelationID:    m.CorrelationID,
-		Source:           m.Source,
-		Text:             m.Text,
-		OccurredAt:       ts,
-		ObservedAt:       time.Now().UTC(),
-		Type:             "external.text",
-		ContentType:      "text/plain",
-		Payload:          map[string]any{},
-		Metadata:         meta,
-		Confidence:       1.0,
-		TrustLevel:       kernel.TrustLevelMedium,
-		ValidationStatus: kernel.ValidationStatusPending,
-		Origin:           kernel.EventOriginExternal,
-	}
+func (m InputMessage) validate() error {
+	return m.Validate()
 }
 
 // OutputMessage is the wire format published to the output subject after the
@@ -83,33 +52,12 @@ type OutputMessage struct {
 	// Status is "ok" on success or "error" on failure.
 	Status string `json:"status"`
 
-	// Result holds the full kernel.PipelineResult on success.
-	Result *kernel.PipelineResult `json:"result,omitempty"`
+	// Result holds the full pipeline result JSON on success.
+	Result json.RawMessage `json:"result,omitempty"`
 
 	// Error holds the error string on failure.
 	Error *string `json:"error,omitempty"`
 
 	// ProcessedAt is when the pipeline completed.
 	ProcessedAt time.Time `json:"processed_at"`
-}
-
-// newOutputOK constructs a success OutputMessage from a PipelineResult.
-func newOutputOK(inputEventID string, result kernel.PipelineResult) OutputMessage {
-	return OutputMessage{
-		InputEventID: inputEventID,
-		Status:       "ok",
-		Result:       &result,
-		ProcessedAt:  time.Now().UTC(),
-	}
-}
-
-// newOutputError constructs an error OutputMessage from an error value.
-func newOutputError(inputEventID string, err error) OutputMessage {
-	s := err.Error()
-	return OutputMessage{
-		InputEventID: inputEventID,
-		Status:       "error",
-		Error:        &s,
-		ProcessedAt:  time.Now().UTC(),
-	}
 }

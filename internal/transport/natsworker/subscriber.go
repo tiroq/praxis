@@ -1,4 +1,4 @@
-package nats
+package natsworker
 
 import (
 	"context"
@@ -10,32 +10,25 @@ import (
 
 	"github.com/nats-io/nats.go"
 	"github.com/tiroq/praxis/internal/core/kernel"
+	natstransport "github.com/tiroq/praxis/internal/transport/nats"
 )
 
 // KernelRunner is the interface the Subscriber uses to execute the pipeline.
-// It is satisfied by *kernel.Kernel and is defined here to allow easy mocking
-// in unit tests without importing the kernel in test helpers.
+// It is satisfied by *kernel.Kernel and defined here for fake-based tests.
 type KernelRunner interface {
 	Run(ctx context.Context, event kernel.Event) (kernel.PipelineResult, error)
 }
 
 // MessagePublisher is the interface the Subscriber uses to publish results.
-// Satisfied by *Publisher; separated for testability.
 type MessagePublisher interface {
-	Publish(msg OutputMessage) error
+	Publish(msg natstransport.OutputMessage) error
 }
 
-// Subscriber wraps a JetStream push-subscribe loop and routes each message
+// Subscriber wraps a JetStream pull-subscribe loop and routes each message
 // through the kernel pipeline before publishing the result.
-//
-// Ack / Nak contract (enforced strictly):
-//   - Ack is sent only after a successful Publish.
-//   - If Publish fails, the message is Nak'd so it is redelivered.
-//   - If the payload is invalid JSON or fails validation, the message is
-//     terminated (TermMsg) to prevent endless redelivery of poison messages.
 type Subscriber struct {
 	js        nats.JetStreamContext
-	cfg       Config
+	cfg       natstransport.Config
 	kernel    KernelRunner
 	publisher MessagePublisher
 	logger    *slog.Logger
@@ -44,7 +37,7 @@ type Subscriber struct {
 // NewSubscriber constructs a Subscriber. All parameters are required.
 func NewSubscriber(
 	js nats.JetStreamContext,
-	cfg Config,
+	cfg natstransport.Config,
 	k KernelRunner,
 	pub MessagePublisher,
 	logger *slog.Logger,
@@ -58,15 +51,12 @@ func NewSubscriber(
 	}
 }
 
-// pullSubscription is the minimal interface for a JetStream pull subscription.
-// Defined to allow fake implementations in unit tests.
 type pullSubscription interface {
 	Fetch(n int, opts ...nats.PullOpt) ([]*nats.Msg, error)
 	Unsubscribe() error
 }
 
-// Run subscribes to the input subject and processes messages until ctx is
-// cancelled.  It blocks until the context is done.
+// Run subscribes to the input subject and processes messages until ctx is cancelled.
 func (s *Subscriber) Run(ctx context.Context) error {
 	sub, err := s.js.PullSubscribe(
 		s.cfg.InputSubject,
@@ -87,8 +77,6 @@ func (s *Subscriber) Run(ctx context.Context) error {
 	return s.runLoop(ctx, sub)
 }
 
-// runLoop is the core fetch-and-process loop. It is separated from Run so
-// that it can be tested with a fake pullSubscription without a real server.
 func (s *Subscriber) runLoop(ctx context.Context, sub pullSubscription) error {
 	for {
 		select {
@@ -116,8 +104,6 @@ func (s *Subscriber) runLoop(ctx context.Context, sub pullSubscription) error {
 	}
 }
 
-// natsMsg is the minimal interface of *nats.Msg used by handleMessage.
-// Defined here so tests can pass a fake without a live NATS connection.
 type natsMsg interface {
 	Ack() error
 	Nak() error
@@ -126,7 +112,6 @@ type natsMsg interface {
 	GetSubject() string
 }
 
-// natsMsgWrapper adapts *nats.Msg to the natsMsg interface.
 type natsMsgWrapper struct{ m *nats.Msg }
 
 func (w *natsMsgWrapper) Ack() error         { return w.m.Ack() }
@@ -135,12 +120,10 @@ func (w *natsMsgWrapper) Term() error        { return w.m.Term() }
 func (w *natsMsgWrapper) GetData() []byte    { return w.m.Data }
 func (w *natsMsgWrapper) GetSubject() string { return w.m.Subject }
 
-// handleMessage decodes, validates, runs the pipeline, and publishes the result.
-// Ack/Nak/Term semantics are enforced strictly inside this method.
 func (s *Subscriber) handleMessage(ctx context.Context, msg natsMsg) {
-	var input InputMessage
+	var input natstransport.InputMessage
 	if err := json.Unmarshal(msg.GetData(), &input); err != nil {
-		s.logger.Error("nats: invalid JSON — terminating message",
+		s.logger.Error("nats: invalid JSON - terminating message",
 			"err", err,
 			"subject", msg.GetSubject(),
 		)
@@ -148,8 +131,8 @@ func (s *Subscriber) handleMessage(ctx context.Context, msg natsMsg) {
 		return
 	}
 
-	if err := input.validate(); err != nil {
-		s.logger.Error("nats: invalid message — terminating",
+	if err := input.Validate(); err != nil {
+		s.logger.Error("nats: invalid message - terminating",
 			"id", input.ID,
 			"err", err,
 		)
@@ -157,10 +140,10 @@ func (s *Subscriber) handleMessage(ctx context.Context, msg natsMsg) {
 		return
 	}
 
-	event := input.toKernelEvent()
+	event := toKernelEvent(input)
 	result, kernelErr := s.kernel.Run(ctx, event)
 
-	var out OutputMessage
+	var out natstransport.OutputMessage
 	if kernelErr != nil {
 		s.logger.Error("nats: kernel pipeline failed",
 			"event_id", input.ID,
@@ -172,7 +155,7 @@ func (s *Subscriber) handleMessage(ctx context.Context, msg natsMsg) {
 	}
 
 	if err := s.publisher.Publish(out); err != nil {
-		s.logger.Error("nats: publish failed — naking message",
+		s.logger.Error("nats: publish failed - naking message",
 			"event_id", input.ID,
 			"err", err,
 		)
@@ -180,7 +163,6 @@ func (s *Subscriber) handleMessage(ctx context.Context, msg natsMsg) {
 		return
 	}
 
-	// Ack only after a successful publish.
 	if err := msg.Ack(); err != nil {
 		s.logger.Warn("nats: ack failed", "event_id", input.ID, "err", err)
 	}
@@ -189,4 +171,58 @@ func (s *Subscriber) handleMessage(ctx context.Context, msg natsMsg) {
 		"event_id", input.ID,
 		"status", out.Status,
 	)
+}
+
+func toKernelEvent(m natstransport.InputMessage) kernel.Event {
+	ts := m.Timestamp
+	if ts.IsZero() {
+		ts = time.Now().UTC()
+	}
+
+	meta := m.Metadata
+	if meta == nil {
+		meta = map[string]string{}
+	}
+
+	return kernel.Event{
+		ID:               m.ID,
+		CorrelationID:    m.CorrelationID,
+		Source:           m.Source,
+		Text:             m.Text,
+		OccurredAt:       ts,
+		ObservedAt:       time.Now().UTC(),
+		Type:             "external.text",
+		ContentType:      "text/plain",
+		Payload:          map[string]any{},
+		Metadata:         meta,
+		Confidence:       1.0,
+		TrustLevel:       kernel.TrustLevelMedium,
+		ValidationStatus: kernel.ValidationStatusPending,
+		Origin:           kernel.EventOriginExternal,
+	}
+}
+
+func newOutputOK(inputEventID string, result kernel.PipelineResult) natstransport.OutputMessage {
+	payload, err := json.Marshal(result)
+	if err != nil {
+		err = fmt.Errorf("marshal pipeline result: %w", err)
+		return newOutputError(inputEventID, err)
+	}
+
+	return natstransport.OutputMessage{
+		InputEventID: inputEventID,
+		Status:       "ok",
+		Result:       payload,
+		ProcessedAt:  time.Now().UTC(),
+	}
+}
+
+func newOutputError(inputEventID string, err error) natstransport.OutputMessage {
+	s := err.Error()
+	return natstransport.OutputMessage{
+		InputEventID: inputEventID,
+		Status:       "error",
+		Error:        &s,
+		ProcessedAt:  time.Now().UTC(),
+	}
 }

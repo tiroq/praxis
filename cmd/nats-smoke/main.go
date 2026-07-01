@@ -12,6 +12,14 @@ import (
 	natstransport "github.com/tiroq/praxis/internal/transport/nats"
 )
 
+type outputResult struct {
+	Decision struct {
+		ID      string `json:"id"`
+		Outcome string `json:"outcome"`
+	} `json:"decision"`
+	Actions []json.RawMessage `json:"actions"`
+}
+
 const smokeTimeout = 10 * time.Second
 
 type smokeReport struct {
@@ -124,10 +132,14 @@ func validateOutput(expectedEventID string, output natstransport.OutputMessage) 
 	if output.Result == nil {
 		return errors.New("missing result")
 	}
-	if output.Result.Decision.ID == "" || output.Result.Decision.Outcome == "" {
+	var result outputResult
+	if err := json.Unmarshal(output.Result, &result); err != nil {
+		return fmt.Errorf("decode result: %w", err)
+	}
+	if result.Decision.ID == "" || result.Decision.Outcome == "" {
 		return errors.New("result missing decision")
 	}
-	if len(output.Result.Actions) == 0 {
+	if len(result.Actions) == 0 {
 		return errors.New("result missing actions")
 	}
 	return nil

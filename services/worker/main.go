@@ -23,6 +23,7 @@ import (
 
 	"github.com/tiroq/praxis/internal/core/kernel"
 	natstransport "github.com/tiroq/praxis/internal/transport/nats"
+	"github.com/tiroq/praxis/internal/transport/natsworker"
 )
 
 // defaultKeywords mirrors the keyword set used by the api-kernel service so
@@ -72,7 +73,7 @@ func main() {
 	js := client.JetStream()
 	pub := natstransport.NewPublisher(js, cfg.OutputSubject)
 	k := buildKernel()
-	sub := natstransport.NewSubscriber(js, cfg, k, pub, logger)
+	sub := natsworker.NewSubscriber(js, cfg, k, pub, logger)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()

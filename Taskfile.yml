@@ -149,6 +149,17 @@ tasks:
       - |
         go tool cover -func=build/coverage.out > build/coverage-func.txt
         TOTAL=$(tail -1 build/coverage-func.txt | awk '{print $3}')
+        {
+          echo 'mode: set'
+          grep -E '/(cmd/praxis|internal/cli/praxiscli|internal/transport/natscli)/' build/coverage.out || true
+        } > build/coverage-cli.out
+        CLI_COVERAGE_NOTE="no CLI coverage entries"
+        if [ "$(wc -l < build/coverage-cli.out | tr -d ' ')" -gt 1 ]; then
+          go tool cover -func=build/coverage-cli.out > build/coverage-cli-func.txt
+          CLI_COVERAGE_NOTE=$(tail -1 build/coverage-cli-func.txt | awk '{print $3}')
+        else
+          : > build/coverage-cli-func.txt
+        fi
         BINARIES=$(ls -1 build/ 2>/dev/null | grep -v '\.' | tr '\n' ' ')
         RFC_STATUS="unknown"
         if python3 verify/rfc/run.py > /dev/null 2>&1; then RFC_STATUS="pass"; else RFC_STATUS="fail"; fi
@@ -177,6 +188,20 @@ tasks:
             print('parse error: ' + str(e))
         ")
         fi
+        PRAXIS_SMOKE_NOTE="not run"
+        if [ -f build/smoke-praxis.json ]; then
+          PRAXIS_SMOKE_NOTE=$(python3 -c "
+        import json
+        try:
+            d = json.load(open('build/smoke-praxis.json'))
+            ok = 'yes' if d.get('worker_flow_ok') else 'no'
+            published = d.get('published', {})
+            received = d.get('received', {})
+            print('run=' + ok + ', status=' + str(received.get('status', 'unknown')) + ', message_id=' + str(published.get('message_id', '?')) + ', correlation_id=' + str(published.get('correlation_id', '?')))
+        except Exception as e:
+            print('parse error: ' + str(e))
+        ")
+        fi
         {
           echo "# Praxis Build Report"
           echo ""
@@ -193,6 +218,18 @@ tasks:
           echo "\`\`\`"
           echo ""
           echo "**Total coverage:** $TOTAL"
+          echo ""
+          echo "## CLI Coverage Summary"
+          echo ""
+          echo "\`\`\`"
+          if [ -s build/coverage-cli-func.txt ]; then
+            cat build/coverage-cli-func.txt | grep -E "^(github|total)"
+          else
+            echo "no CLI coverage entries"
+          fi
+          echo "\`\`\`"
+          echo ""
+          echo "**CLI coverage:** $CLI_COVERAGE_NOTE"
           echo ""
           echo "## Built Binaries"
           echo ""
@@ -216,11 +253,15 @@ tasks:
           echo ""
           echo "Smoke result: **$NATS_SMOKE_NOTE**"
           echo ""
+          echo "## Praxis CLI Smoke"
+          echo ""
+          echo "Smoke result: **$PRAXIS_SMOKE_NOTE**"
+          echo ""
           echo "## Notes"
           echo ""
           echo "- Kernel is transport-agnostic (no NATS imports in internal/core/kernel)."
           echo "- NATS unit tests use fakes — no real NATS server required for task test."
-          echo "- Real NATS smoke is only exercised by task smoke:nats."
+          echo "- Real NATS smoke is exercised by task smoke:nats and task smoke:praxis."
         } > build/report.md
         echo "Report written to build/report.md"
         cat build/report.md
