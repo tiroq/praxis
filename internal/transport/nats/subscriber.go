@@ -116,10 +116,10 @@ type natsMsg interface {
 // natsMsgWrapper adapts *nats.Msg to the natsMsg interface.
 type natsMsgWrapper struct{ m *nats.Msg }
 
-func (w *natsMsgWrapper) Ack() error        { return w.m.Ack() }
-func (w *natsMsgWrapper) Nak() error        { return w.m.Nak() }
-func (w *natsMsgWrapper) Term() error       { return w.m.Term() }
-func (w *natsMsgWrapper) GetData() []byte   { return w.m.Data }
+func (w *natsMsgWrapper) Ack() error         { return w.m.Ack() }
+func (w *natsMsgWrapper) Nak() error         { return w.m.Nak() }
+func (w *natsMsgWrapper) Term() error        { return w.m.Term() }
+func (w *natsMsgWrapper) GetData() []byte    { return w.m.Data }
 func (w *natsMsgWrapper) GetSubject() string { return w.m.Subject }
 
 // handleMessage decodes, validates, runs the pipeline, and publishes the result.
