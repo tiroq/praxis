@@ -20,7 +20,7 @@ type storeFactory func(t *testing.T) eventstore.EventStore
 func makeMemoryStore(t *testing.T) eventstore.EventStore {
 	store := eventstore.NewMemoryEventStore()
 	t.Cleanup(func() {
-		store.Close()
+		_ = store.Close()
 	})
 	return store
 }
@@ -36,7 +36,7 @@ func makeSQLiteStore(t *testing.T) eventstore.EventStore {
 	}
 
 	t.Cleanup(func() {
-		store.Close()
+		_ = store.Close()
 	})
 
 	return store
@@ -50,7 +50,7 @@ func makeSQLiteMemoryStore(t *testing.T) eventstore.EventStore {
 	}
 
 	t.Cleanup(func() {
-		store.Close()
+		_ = store.Close()
 	})
 
 	return store
@@ -566,7 +566,7 @@ func TestSQLiteEventStore(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to reopen store: %v", err)
 		}
-		defer store2.Close()
+		defer func() { _ = store2.Close() }()
 
 		retrieved, err := store2.Get(ctx, "persist-1")
 		if err != nil {
@@ -592,13 +592,13 @@ func TestSQLiteEventStore(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to open store1: %v", err)
 		}
-		defer store1.Close()
+		defer func() { _ = store1.Close() }()
 
 		store2, err := sqlite.OpenEventStore(ctx, filepath.Join(tmpDir, "store2.db"))
 		if err != nil {
 			t.Fatalf("Failed to open store2: %v", err)
 		}
-		defer store2.Close()
+		defer func() { _ = store2.Close() }()
 
 		event := testEventRecord("independent-1")
 		if err := store1.Append(ctx, event); err != nil {
