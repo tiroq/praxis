@@ -48,6 +48,97 @@ type EventStore interface {
 4. **Validated** — required fields and JSON payload are validated on Append
 5. **Isolated** — no direct coupling to Kernel or other domain logic
 
+## Storage Registry
+
+The Storage Registry is the composition point for all Praxis persistence. It owns the construction of backend-specific stores and provides a single point of configuration and lifecycle management.
+
+### Interface
+
+```go
+type Storage struct {
+    Events eventstore.EventStore
+}
+
+func Open(ctx context.Context, cfg Config) (*Storage, error)
+func (s *Storage) Close() error
+```
+
+### Configuration
+
+Storage backend is selected via `Config`:
+
+```go
+type Config struct {
+    Backend    string // "memory" or "sqlite"
+    SQLitePath string // path to SQLite database file
+}
+```
+
+Environment variables:
+- `PRAXIS_STORAGE_BACKEND` — backend selection (default: `sqlite`)
+- `PRAXIS_SQLITE_PATH` — SQLite database path (default: `build/praxis.db`)
+
+### Usage
+
+```go
+// From environment
+cfg := storage.ConfigFromEnv()
+store, err := storage.Open(ctx, cfg)
+if err != nil {
+    return err
+}
+defer store.Close()
+
+// Use the event store
+err = store.Events.Append(ctx, eventRecord)
+```
+` ≥ 85% (includes registry)
+- `internal/storage/eventstore` ≥ 90%
+- `internal/storage/sqlite` ≥ 80%
+
+### Test strategy
+
+Contract tests in `eventstore/eventstore_test.go` run against both Memory and SQLite implementations to ensure behavioral equivalence.
+
+Storage Registry tests in `storage_test.go` verify:
+- Config parsing (defaults, environment variables)
+- Backend selection (memory, sqlite, unsupported)
+- Lifecycle management (open, close, persistence)
+- Kernel DI boundary (EventRecorder adapter)
+Unknown backends return `ErrUnsupportedBackend`.
+
+### Kernel Dependency Injection
+
+The Kernel can optionally record pipeline execution events via an EventRecorder interface:
+
+```go
+// Create storage
+store, _ := storage.Open(ctx, storage.DefaultConfig())
+defer store.Close()
+
+// Create adapter
+adapter := storage.NewEventRecorderAdapter(store.Events)
+
+// Create kernel with event recording
+kernel := kernel.New(reviewer, decisionMaker, planner, 
+    kernel.WithEventRecorder(adapter))
+
+// Run pipeline — events are recorded automatically
+result, err := kernel.Run(ctx, event)
+```
+
+**Important**: The Kernel only depends on the `EventRecorder` interface defined in `internal/core/kernel/kernel.go`. It does NOT import any storage adapter packages. The storage package provides the adapter that bridges `EventRecorder` to `eventstore.EventStore`.
+
+### Why This Boundary Matters
+
+The Storage Registry allows:
+- Kernel to optionally persist events WITHOUT coupling to SQLite
+- CLI and services to select backends via configuration
+- Tests to use memory storage without file I/O
+- Future backends (Postgres, etc.) to be added without touching Kernel
+
+The Kernel's `EventRecorder` interface uses only simple types (string, time, json.RawMessage) that the kernel package already depends on. This avoids circular dependencies and preserves the kernel's adapter-free guarantee.
+
 ## Boundary Rules
 
 ### What Kernel CAN do:
