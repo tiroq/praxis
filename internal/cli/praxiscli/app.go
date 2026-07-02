@@ -139,7 +139,7 @@ func (a *App) Watch(ctx context.Context, req WatchRequest) error {
 	if err != nil {
 		return fmt.Errorf("subscribe output: %w", err)
 	}
-	defer sub.Close()
+	defer func() { _ = sub.Close() }()
 
 	processed := 0
 	for {
