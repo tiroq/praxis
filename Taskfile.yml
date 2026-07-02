@@ -26,11 +26,36 @@ tasks:
       - go test -coverprofile=build/coverage.out ./...
 
   test:storage:
-    desc: Run storage layer tests (registry, eventstore, and sqlite)
+    desc: Run storage layer tests (eventstore + sqlite)
     cmds:
-      - go test -v ./internal/storage
       - go test -v ./internal/storage/eventstore/...
       - go test -v ./internal/storage/sqlite/...
+
+  test:storage:race:
+    desc: Run storage tests with -race detector
+    cmds:
+      - go test -race ./internal/storage/...
+
+  test:storage:shuffle:
+    desc: Run storage tests with randomised test order
+    cmds:
+      - go test -shuffle=on ./internal/storage/...
+
+  test:storage:stress:
+    desc: Run storage tests 100 times (stability check)
+    cmds:
+      - go test -count=100 ./internal/storage/...
+
+  test:storage:fuzz:
+    desc: Run fuzz tests for 30 seconds (do not include in task dev)
+    cmds:
+      - go test -run '^$' -fuzz=FuzzEventRecordValidate -fuzztime=30s ./internal/storage/eventstore
+
+  bench:storage:
+    desc: Run storage benchmarks and write results to build/storage-bench.txt
+    cmds:
+      - mkdir -p build
+      - go test -bench=. -benchmem ./internal/storage/... | tee build/storage-bench.txt
 
   build:
     desc: Build all binaries into build/
@@ -179,6 +204,24 @@ tasks:
         else
           : > build/coverage-storage-func.txt
         fi
+        # Combined storage coverage: eventstore tests exercise sqlite package too.
+        go test -coverprofile=build/storage-combined.out \
+          -coverpkg=./internal/storage/eventstore,./internal/storage/sqlite \
+          ./internal/storage/eventstore > /dev/null 2>&1 || true
+        go tool cover -func=build/storage-combined.out > build/coverage-storage-combined-func.txt 2>/dev/null || true
+        STORAGE_COMBINED_TOTAL="n/a"
+        EVENTSTORE_COVERAGE="n/a"
+        SQLITE_COVERAGE="n/a"
+        if [ -s build/coverage-storage-combined-func.txt ]; then
+          STORAGE_COMBINED_TOTAL=$(tail -1 build/coverage-storage-combined-func.txt | awk '{print $3}')
+          EVENTSTORE_COVERAGE=$(grep 'internal/storage/eventstore' build/coverage-storage-combined-func.txt | grep 'total:' | awk '{print $3}' || echo "see combined")
+          SQLITE_COVERAGE=$(grep 'internal/storage/sqlite' build/coverage-storage-combined-func.txt | awk 'END{print NR" functions measured"}')
+        fi
+        BENCH_NOTE="not run (use: task bench:storage)"
+        if [ -f build/storage-bench.txt ]; then BENCH_NOTE="see build/storage-bench.txt"; fi
+        RACE_NOTE="not run (use: task test:storage:race)"
+        SHUFFLE_NOTE="not run (use: task test:storage:shuffle)"
+        STRESS_NOTE="not run (use: task test:storage:stress)"
         BINARIES=$(ls -1 build/ 2>/dev/null | grep -v '\.' | tr '\n' ' ')
         RFC_STATUS="unknown"
         if python3 verify/rfc/run.py > /dev/null 2>&1; then RFC_STATUS="pass"; else RFC_STATUS="fail"; fi
@@ -260,7 +303,26 @@ tasks:
           fi
           echo "\`\`\`"
           echo ""
-          echo "**Storage coverage:** $STORAGE_COVERAGE_NOTE"
+          echo "**Storage coverage (eventstore only):** $STORAGE_COVERAGE_NOTE"
+          echo ""
+          echo "## Storage Combined Coverage (eventstore + sqlite)"
+          echo ""
+          echo "\`\`\`"
+          if [ -s build/coverage-storage-combined-func.txt ]; then
+            cat build/coverage-storage-combined-func.txt | grep -E "^(github|total)"
+          else
+            echo "run task bench:storage or task test:storage to populate"
+          fi
+          echo "\`\`\`"
+          echo ""
+          echo "**Combined storage total:** $STORAGE_COMBINED_TOTAL"
+          echo ""
+          echo "## Storage Auxiliary Runs"
+          echo ""
+          echo "- Race: $RACE_NOTE"
+          echo "- Shuffle: $SHUFFLE_NOTE"
+          echo "- Stress: $STRESS_NOTE"
+          echo "- Benchmarks: $BENCH_NOTE"
           echo ""
           echo "## Built Binaries"
           echo ""
