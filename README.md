@@ -462,6 +462,7 @@ Every major feature begins with an RFC before implementation.
 ```sh
 task test             # run all Go tests
 task test:coverage    # run tests and write coverage to build/coverage.out
+task test:storage     # run storage layer tests (eventstore and sqlite)
 task build            # build all binaries into build/
 task build:worker     # build services/worker into build/worker
 task run:kernel-demo  # build and run kernel demo
