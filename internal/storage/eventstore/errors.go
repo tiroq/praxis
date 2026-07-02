@@ -1,6 +1,12 @@
 package eventstore
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
+
+// ErrStoreClosed is returned when an operation is attempted after the store has been closed.
+var ErrStoreClosed = errors.New("event store is closed")
 
 // ErrDuplicateEvent is returned when attempting to append an event with a duplicate ID.
 type ErrDuplicateEvent struct {
