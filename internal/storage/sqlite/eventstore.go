@@ -25,13 +25,13 @@ func OpenEventStore(ctx context.Context, path string) (*EventStore, error) {
 
 	// Enable WAL mode for better concurrency
 	if _, err := db.ExecContext(ctx, "PRAGMA journal_mode=WAL"); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, err
 	}
 
 	// Create schema
 	if _, err := db.ExecContext(ctx, schema); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, err
 	}
 
@@ -193,7 +193,7 @@ func (s *EventStore) List(ctx context.Context, filter eventstore.ListFilter) ([]
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var events []eventstore.EventRecord
 	for rows.Next() {
