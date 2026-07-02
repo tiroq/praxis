@@ -39,10 +39,6 @@ func (m InputMessage) Validate() error {
 	return nil
 }
 
-func (m InputMessage) validate() error {
-	return m.Validate()
-}
-
 // OutputMessage is the wire format published to the output subject after the
 // kernel pipeline completes.
 type OutputMessage struct {
