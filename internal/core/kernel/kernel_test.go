@@ -2,6 +2,7 @@ package kernel
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"testing"
 )
@@ -562,4 +563,246 @@ func TestNew_PanicsOnNilPlanner(t *testing.T) {
 		}
 	}()
 	New(&stubReviewer{}, &stubDecisionMaker{}, nil)
+}
+
+// ---- Event Recording / DI tests ----
+
+type stubEventRecorder struct {
+	records []EventRecord
+	err     error
+}
+
+func (s *stubEventRecorder) Append(_ context.Context, event EventRecord) error {
+	if s.err != nil {
+		return s.err
+	}
+	s.records = append(s.records, event)
+	return nil
+}
+
+func TestKernel_WithoutEventRecorder_BehavesAsUsual(t *testing.T) {
+	evt := makeValidEvent()
+	rev := makeApprovalReview(evt.ID)
+	dec := makeApproveDecision(evt.ID, rev.ID)
+	acts := []Action{{ID: "act-1", Type: ActionTypeNotify}}
+
+	// Create kernel WITHOUT event recorder option
+	k := New(&stubReviewer{review: rev}, &stubDecisionMaker{decision: dec}, &stubPlanner{actions: acts})
+
+	result, err := k.Run(context.Background(), evt)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.EventID != evt.ID {
+		t.Errorf("result.EventID = %q; want %q", result.EventID, evt.ID)
+	}
+}
+
+func TestKernel_WithEventRecorder_RecordsEvent(t *testing.T) {
+	evt := makeValidEvent()
+	evt.CorrelationID = "corr-123"
+	evt.TraceID = "trace-456"
+
+	rev := makeApprovalReview(evt.ID)
+	dec := makeApproveDecision(evt.ID, rev.ID)
+	dec.Policy = "test-policy"
+	acts := []Action{{ID: "act-1", Type: ActionTypeNotify}, {ID: "act-2", Type: ActionTypeCreate}}
+
+	recorder := &stubEventRecorder{}
+	k := New(
+		&stubReviewer{review: rev},
+		&stubDecisionMaker{decision: dec},
+		&stubPlanner{actions: acts},
+		WithEventRecorder(recorder),
+	)
+
+	result, err := k.Run(context.Background(), evt)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Verify event was recorded
+	if len(recorder.records) != 1 {
+		t.Fatalf("expected 1 recorded event, got %d", len(recorder.records))
+	}
+
+	record := recorder.records[0]
+
+	// Verify event type
+	if record.Type != "kernel.pipeline.completed" {
+		t.Errorf("record.Type = %q; want %q", record.Type, "kernel.pipeline.completed")
+	}
+
+	// Verify source
+	if record.Source != "kernel" {
+		t.Errorf("record.Source = %q; want %q", record.Source, "kernel")
+	}
+
+	// Verify subject is decision ID
+	if record.SubjectID != dec.ID {
+		t.Errorf("record.SubjectID = %q; want %q", record.SubjectID, dec.ID)
+	}
+
+	// Verify correlation/causation/trace mapping
+	if record.CorrelationID != evt.CorrelationID {
+		t.Errorf("record.CorrelationID = %q; want %q", record.CorrelationID, evt.CorrelationID)
+	}
+	if record.CausationID != evt.ID {
+		t.Errorf("record.CausationID = %q; want %q (input event ID)", record.CausationID, evt.ID)
+	}
+	if record.TraceID != evt.TraceID {
+		t.Errorf("record.TraceID = %q; want %q", record.TraceID, evt.TraceID)
+	}
+
+	// Verify metadata
+	if record.Metadata["decision_outcome"] != string(dec.Outcome) {
+		t.Errorf("metadata[decision_outcome] = %q; want %q", record.Metadata["decision_outcome"], dec.Outcome)
+	}
+	if record.Metadata["action_count"] != "2" {
+		t.Errorf("metadata[action_count] = %q; want %q", record.Metadata["action_count"], "2")
+	}
+	if record.Metadata["policy"] != "test-policy" {
+		t.Errorf("metadata[policy] = %q; want %q", record.Metadata["policy"], "test-policy")
+	}
+
+	// Verify ID is generated
+	if record.ID == "" {
+		t.Error("record.ID must not be empty")
+	}
+
+	// Verify timestamps are set
+	if record.OccurredAt.IsZero() {
+		t.Error("record.OccurredAt must be set")
+	}
+	if record.CreatedAt.IsZero() {
+		t.Error("record.CreatedAt must be set")
+	}
+
+	// Verify result is still returned correctly
+	if result.EventID != evt.ID {
+		t.Errorf("result.EventID = %q; want %q", result.EventID, evt.ID)
+	}
+}
+
+func TestKernel_EventRecord_HasValidJSON(t *testing.T) {
+	evt := makeValidEvent()
+	rev := makeApprovalReview(evt.ID)
+	dec := makeApproveDecision(evt.ID, rev.ID)
+	acts := []Action{{ID: "act-1", Type: ActionTypeNotify}}
+
+	recorder := &stubEventRecorder{}
+	k := New(
+		&stubReviewer{review: rev},
+		&stubDecisionMaker{decision: dec},
+		&stubPlanner{actions: acts},
+		WithEventRecorder(recorder),
+	)
+
+	_, err := k.Run(context.Background(), evt)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(recorder.records) != 1 {
+		t.Fatalf("expected 1 recorded event, got %d", len(recorder.records))
+	}
+
+	record := recorder.records[0]
+
+	// Verify payload is valid JSON
+	var payload map[string]interface{}
+	if err := json.Unmarshal(record.Payload, &payload); err != nil {
+		t.Fatalf("payload is not valid JSON: %v", err)
+	}
+
+	// Verify payload structure
+	if payload["event_id"] != evt.ID {
+		t.Errorf("payload[event_id] = %v; want %q", payload["event_id"], evt.ID)
+	}
+	if payload["action_count"] != float64(1) {
+		t.Errorf("payload[action_count] = %v; want 1", payload["action_count"])
+	}
+
+	decision, ok := payload["decision"].(map[string]interface{})
+	if !ok {
+		t.Fatal("payload[decision] is not a map")
+	}
+	if decision["id"] != dec.ID {
+		t.Errorf("payload[decision][id] = %v; want %q", decision["id"], dec.ID)
+	}
+	if decision["outcome"] != string(dec.Outcome) {
+		t.Errorf("payload[decision][outcome] = %v; want %q", decision["outcome"], dec.Outcome)
+	}
+}
+
+func TestKernel_EventRecorderError_ReturnsError(t *testing.T) {
+	evt := makeValidEvent()
+	rev := makeApprovalReview(evt.ID)
+	dec := makeApproveDecision(evt.ID, rev.ID)
+	acts := []Action{{ID: "act-1", Type: ActionTypeNotify}}
+
+	recorderErr := errors.New("storage unavailable")
+	recorder := &stubEventRecorder{err: recorderErr}
+	k := New(
+		&stubReviewer{review: rev},
+		&stubDecisionMaker{decision: dec},
+		&stubPlanner{actions: acts},
+		WithEventRecorder(recorder),
+	)
+
+	result, err := k.Run(context.Background(), evt)
+
+	// Pipeline execution should complete successfully
+	if result.EventID != evt.ID {
+		t.Errorf("result.EventID = %q; want %q", result.EventID, evt.ID)
+	}
+
+	// But error should be returned for event recording failure
+	if err == nil {
+		t.Fatal("expected error for event recording failure, got nil")
+	}
+	if !errors.Is(err, recorderErr) {
+		t.Errorf("expected error to wrap recorderErr, got %v", err)
+	}
+}
+
+func TestKernel_EventRecorder_EmptyCorrelationID(t *testing.T) {
+	evt := makeValidEvent()
+	evt.CorrelationID = "" // empty
+	evt.TraceID = ""       // empty
+
+	rev := makeApprovalReview(evt.ID)
+	dec := makeApproveDecision(evt.ID, rev.ID)
+	acts := []Action{{ID: "act-1", Type: ActionTypeNotify}}
+
+	recorder := &stubEventRecorder{}
+	k := New(
+		&stubReviewer{review: rev},
+		&stubDecisionMaker{decision: dec},
+		&stubPlanner{actions: acts},
+		WithEventRecorder(recorder),
+	)
+
+	_, err := k.Run(context.Background(), evt)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(recorder.records) != 1 {
+		t.Fatalf("expected 1 recorded event, got %d", len(recorder.records))
+	}
+
+	record := recorder.records[0]
+
+	// Empty IDs should be passed through as-is
+	if record.CorrelationID != "" {
+		t.Errorf("record.CorrelationID = %q; want empty", record.CorrelationID)
+	}
+	if record.TraceID != "" {
+		t.Errorf("record.TraceID = %q; want empty", record.TraceID)
+	}
+	// Causation should still be set to event ID
+	if record.CausationID != evt.ID {
+		t.Errorf("record.CausationID = %q; want %q", record.CausationID, evt.ID)
+	}
 }
