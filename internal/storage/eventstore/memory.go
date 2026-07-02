@@ -14,6 +14,7 @@ type MemoryEventStore struct {
 	mu     sync.RWMutex
 	events map[string]EventRecord // indexed by ID
 	order  []string               // ordered list of event IDs
+	closed bool                   // protected by mu; set by Close
 }
 
 // NewMemoryEventStore creates a new in-memory event store.
@@ -26,13 +27,22 @@ func NewMemoryEventStore() *MemoryEventStore {
 
 // Append stores a new event in memory.
 func (m *MemoryEventStore) Append(ctx context.Context, event EventRecord) error {
-	// Validate the event
+	// Check context cancellation before acquiring lock.
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	// Validate the event before taking the lock.
 	if err := event.Validate(); err != nil {
 		return err
 	}
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
+	if m.closed {
+		return ErrStoreClosed
+	}
 
 	// Check for duplicate ID
 	if _, exists := m.events[event.ID]; exists {
@@ -59,8 +69,16 @@ func (m *MemoryEventStore) Append(ctx context.Context, event EventRecord) error 
 
 // Get retrieves an event by ID.
 func (m *MemoryEventStore) Get(ctx context.Context, id string) (EventRecord, error) {
+	if err := ctx.Err(); err != nil {
+		return EventRecord{}, err
+	}
+
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+
+	if m.closed {
+		return EventRecord{}, ErrStoreClosed
+	}
 
 	event, exists := m.events[id]
 	if !exists {
@@ -74,8 +92,16 @@ func (m *MemoryEventStore) Get(ctx context.Context, id string) (EventRecord, err
 // List retrieves events matching the filter criteria.
 // Results are ordered by occurred_at ascending, then ID ascending.
 func (m *MemoryEventStore) List(ctx context.Context, filter ListFilter) ([]EventRecord, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+
+	if m.closed {
+		return nil, ErrStoreClosed
+	}
 
 	// Collect matching events
 	var matches []EventRecord
@@ -126,7 +152,11 @@ func (m *MemoryEventStore) List(ctx context.Context, filter ListFilter) ([]Event
 	return matches[start:end], nil
 }
 
-// Close releases resources. For memory store, this is a no-op.
+// Close marks the store as closed. Subsequent Append/Get/List calls return ErrStoreClosed.
+// Close is idempotent: calling it multiple times is safe and always returns nil.
 func (m *MemoryEventStore) Close() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.closed = true
 	return nil
 }
