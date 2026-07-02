@@ -60,12 +60,12 @@ func TestConfigFromEnv(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Set environment variables
 			if tt.envBackend != "" {
-				os.Setenv("PRAXIS_STORAGE_BACKEND", tt.envBackend)
-				defer os.Unsetenv("PRAXIS_STORAGE_BACKEND")
+				_ = os.Setenv("PRAXIS_STORAGE_BACKEND", tt.envBackend)
+				defer func() { _ = os.Unsetenv("PRAXIS_STORAGE_BACKEND") }()
 			}
 			if tt.envPath != "" {
-				os.Setenv("PRAXIS_SQLITE_PATH", tt.envPath)
-				defer os.Unsetenv("PRAXIS_SQLITE_PATH")
+				_ = os.Setenv("PRAXIS_SQLITE_PATH", tt.envPath)
+				defer func() { _ = os.Unsetenv("PRAXIS_SQLITE_PATH") }()
 			}
 
 			cfg := storage.ConfigFromEnv()
@@ -141,7 +141,7 @@ func TestOpenMemoryBackend(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() error = %v", err)
 	}
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	if s.Events == nil {
 		t.Fatal("expected Events to be non-nil")
@@ -177,7 +177,7 @@ func TestOpenSQLiteBackend(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() error = %v", err)
 	}
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	if s.Events == nil {
 		t.Fatal("expected Events to be non-nil")
@@ -262,7 +262,7 @@ func TestSQLitePersistence(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() after reopen error = %v", err)
 	}
-	defer s2.Close()
+	defer func() { _ = s2.Close() }()
 
 	retrieved, err := s2.Events.Get(ctx, "persist-1")
 	if err != nil {
@@ -285,7 +285,7 @@ func TestMustOpen(t *testing.T) {
 		}
 
 		s := storage.MustOpen(ctx, cfg)
-		defer s.Close()
+		defer func() { _ = s.Close() }()
 
 		if s.Events == nil {
 			t.Fatal("expected Events to be non-nil")
@@ -317,7 +317,7 @@ func TestStorageConfig(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() error = %v", err)
 	}
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	retrieved := s.Config()
 	if retrieved.Backend != cfg.Backend {
@@ -344,7 +344,7 @@ func TestSQLiteDirectoryCreation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() error = %v", err)
 	}
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	// Verify the directory was created
 	dir := filepath.Dir(dbPath)
@@ -372,7 +372,7 @@ func TestSQLiteMemoryDatabase(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() error = %v", err)
 	}
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	// Verify we can append and retrieve an event
 	event := newTestEvent("memory-db-1")
@@ -466,7 +466,7 @@ func TestEventRecorderAdapter_WithSQLiteBackend(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() error = %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	// Create adapter
 	adapter := storage.NewEventRecorderAdapter(store.Events)
