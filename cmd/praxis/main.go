@@ -58,8 +58,8 @@ func newPublishCommand(app *praxiscli.App) *cobra.Command {
 				return err
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "published message_id=%s correlation_id=%s\n", published.MessageID, published.CorrelationID)
-			return nil
+			_, err = fmt.Fprintf(cmd.OutOrStdout(), "published message_id=%s correlation_id=%s\n", published.MessageID, published.CorrelationID)
+			return err
 		},
 	}
 
