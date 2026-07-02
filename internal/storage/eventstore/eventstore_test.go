@@ -3,6 +3,7 @@ package eventstore_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"sync"
@@ -443,6 +444,165 @@ func runContractTests(t *testing.T, factory storeFactory) {
 		if testEvents[0].ID != "event-a" || testEvents[1].ID != "event-b" || testEvents[2].ID != "event-c" {
 			t.Errorf("Expected IDs [event-a, event-b, event-c], got [%s, %s, %s]",
 				testEvents[0].ID, testEvents[1].ID, testEvents[2].ID)
+		}
+	})
+
+	t.Run("ContextCanceledAppend", func(t *testing.T) {
+		store := factory(t)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel() // cancel before any operation
+
+		event := testEventRecord("ctx-cancel-append")
+		err := store.Append(ctx, event)
+		if err == nil {
+			t.Fatal("Expected error with canceled context, got nil")
+		}
+		if !errors.Is(err, context.Canceled) {
+			t.Errorf("Expected context.Canceled in error chain, got: %v (%T)", err, err)
+		}
+	})
+
+	t.Run("ContextCanceledGet", func(t *testing.T) {
+		store := factory(t)
+		ctx := context.Background()
+
+		// Seed one event so Get would otherwise succeed.
+		event := testEventRecord("ctx-cancel-get")
+		if err := store.Append(ctx, event); err != nil {
+			t.Fatalf("Append failed: %v", err)
+		}
+
+		cancelCtx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		_, err := store.Get(cancelCtx, "ctx-cancel-get")
+		if err == nil {
+			t.Fatal("Expected error with canceled context, got nil")
+		}
+		if !errors.Is(err, context.Canceled) {
+			t.Errorf("Expected context.Canceled in error chain, got: %v (%T)", err, err)
+		}
+	})
+
+	t.Run("ContextCanceledList", func(t *testing.T) {
+		store := factory(t)
+
+		cancelCtx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		_, err := store.List(cancelCtx, eventstore.ListFilter{})
+		if err == nil {
+			t.Fatal("Expected error with canceled context, got nil")
+		}
+		if !errors.Is(err, context.Canceled) {
+			t.Errorf("Expected context.Canceled in error chain, got: %v (%T)", err, err)
+		}
+	})
+
+	t.Run("ClosedStoreRejectsAppend", func(t *testing.T) {
+		store := factory(t) // cleanup also calls Close — idempotent
+		ctx := context.Background()
+
+		if err := store.Close(); err != nil {
+			t.Fatalf("Close failed: %v", err)
+		}
+
+		event := testEventRecord("closed-append")
+		err := store.Append(ctx, event)
+		if err == nil {
+			t.Fatal("Expected error from closed store, got nil")
+		}
+		if !errors.Is(err, eventstore.ErrStoreClosed) {
+			t.Errorf("Expected ErrStoreClosed, got: %v (%T)", err, err)
+		}
+	})
+
+	t.Run("ClosedStoreRejectsGet", func(t *testing.T) {
+		store := factory(t)
+		ctx := context.Background()
+
+		if err := store.Close(); err != nil {
+			t.Fatalf("Close failed: %v", err)
+		}
+
+		_, err := store.Get(ctx, "any-id")
+		if err == nil {
+			t.Fatal("Expected error from closed store, got nil")
+		}
+		if !errors.Is(err, eventstore.ErrStoreClosed) {
+			t.Errorf("Expected ErrStoreClosed, got: %v (%T)", err, err)
+		}
+	})
+
+	t.Run("ClosedStoreRejectsList", func(t *testing.T) {
+		store := factory(t)
+		ctx := context.Background()
+
+		if err := store.Close(); err != nil {
+			t.Fatalf("Close failed: %v", err)
+		}
+
+		_, err := store.List(ctx, eventstore.ListFilter{})
+		if err == nil {
+			t.Fatal("Expected error from closed store, got nil")
+		}
+		if !errors.Is(err, eventstore.ErrStoreClosed) {
+			t.Errorf("Expected ErrStoreClosed, got: %v (%T)", err, err)
+		}
+	})
+
+	t.Run("CloseIsIdempotent", func(t *testing.T) {
+		store := factory(t) // cleanup also calls Close — third close total
+
+		if err := store.Close(); err != nil {
+			t.Fatalf("First Close failed: %v", err)
+		}
+		// Second explicit close must not fail.
+		if err := store.Close(); err != nil {
+			t.Errorf("Second Close failed (must be idempotent): %v", err)
+		}
+	})
+
+	t.Run("FailedAppendInvalidJSONLeavesNoRow", func(t *testing.T) {
+		store := factory(t)
+		ctx := context.Background()
+
+		event := testEventRecord("atomicity-json")
+		event.Payload = json.RawMessage("not valid json")
+
+		if err := store.Append(ctx, event); err == nil {
+			t.Fatal("Expected error from invalid JSON, got nil")
+		}
+
+		// No partial row must exist.
+		_, err := store.Get(ctx, "atomicity-json")
+		if err == nil {
+			t.Fatal("Expected ErrEventNotFound after failed append, got event")
+		}
+		if _, ok := err.(eventstore.ErrEventNotFound); !ok {
+			t.Fatalf("Expected ErrEventNotFound, got %T: %v", err, err)
+		}
+	})
+
+	t.Run("FailedAppendMissingFieldLeavesNoRow", func(t *testing.T) {
+		store := factory(t)
+		ctx := context.Background()
+
+		event := testEventRecord("atomicity-field")
+		event.Type = "" // missing required field
+
+		if err := store.Append(ctx, event); err == nil {
+			t.Fatal("Expected error from missing field, got nil")
+		}
+
+		// No partial row must exist.
+		_, err := store.Get(ctx, "atomicity-field")
+		if err == nil {
+			t.Fatal("Expected ErrEventNotFound after failed append, got event")
+		}
+		if _, ok := err.(eventstore.ErrEventNotFound); !ok {
+			t.Fatalf("Expected ErrEventNotFound, got %T: %v", err, err)
 		}
 	})
 
