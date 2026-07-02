@@ -1,4 +1,3 @@
-package sqlite
 package sqlite_test
 
 import (
