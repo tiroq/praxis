@@ -25,6 +25,12 @@ tasks:
       - mkdir -p build
       - go test -coverprofile=build/coverage.out ./...
 
+  test:storage:
+    desc: Run storage layer tests (eventstore and sqlite)
+    cmds:
+      - go test -v ./internal/storage/eventstore/...
+      - go test -v ./internal/storage/sqlite/...
+
   build:
     desc: Build all binaries into build/
     deps:
@@ -137,6 +143,7 @@ tasks:
     desc: Full development verification — test, coverage, build, RFC hygiene
     cmds:
       - task: test
+      - task: test:storage
       - task: test:coverage
       - task: build
       - task: verify:rfc
@@ -159,6 +166,17 @@ tasks:
           CLI_COVERAGE_NOTE=$(tail -1 build/coverage-cli-func.txt | awk '{print $3}')
         else
           : > build/coverage-cli-func.txt
+        fi
+        {
+          echo 'mode: set'
+          grep -E '/internal/storage/' build/coverage.out || true
+        } > build/coverage-storage.out
+        STORAGE_COVERAGE_NOTE="no storage coverage entries"
+        if [ "$(wc -l < build/coverage-storage.out | tr -d ' ')" -gt 1 ]; then
+          go tool cover -func=build/coverage-storage.out > build/coverage-storage-func.txt
+          STORAGE_COVERAGE_NOTE=$(tail -1 build/coverage-storage-func.txt | awk '{print $3}')
+        else
+          : > build/coverage-storage-func.txt
         fi
         BINARIES=$(ls -1 build/ 2>/dev/null | grep -v '\.' | tr '\n' ' ')
         RFC_STATUS="unknown"
@@ -230,6 +248,18 @@ tasks:
           echo "\`\`\`"
           echo ""
           echo "**CLI coverage:** $CLI_COVERAGE_NOTE"
+          echo ""
+          echo "## Storage Coverage Summary"
+          echo ""
+          echo "\`\`\`"
+          if [ -s build/coverage-storage-func.txt ]; then
+            cat build/coverage-storage-func.txt | grep -E "^(github|total)"
+          else
+            echo "no storage coverage entries"
+          fi
+          echo "\`\`\`"
+          echo ""
+          echo "**Storage coverage:** $STORAGE_COVERAGE_NOTE"
           echo ""
           echo "## Built Binaries"
           echo ""
