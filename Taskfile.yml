@@ -26,8 +26,9 @@ tasks:
       - go test -coverprofile=build/coverage.out ./...
 
   test:storage:
-    desc: Run storage layer tests (eventstore and sqlite)
+    desc: Run storage layer tests (registry, eventstore, and sqlite)
     cmds:
+      - go test -v ./internal/storage
       - go test -v ./internal/storage/eventstore/...
       - go test -v ./internal/storage/sqlite/...
 
