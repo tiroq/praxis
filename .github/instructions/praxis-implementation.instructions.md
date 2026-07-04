@@ -10,7 +10,37 @@ RFCs in `./rfcs` are the **architectural source of truth**. Implementation follo
 architecture, never the reverse. Never write code that contradicts an accepted RFC.
 If code and an RFC disagree, the RFC wins — stop and flag the conflict.
 
-## 1. Plan Before Coding — Never Start Immediately
+## 1. Architecture Review Gate — Stop Before New Abstractions
+
+**Before implementing any:**
+
+- new package
+- new repository
+- new engine
+- new storage mechanism
+- new runtime
+- new adapter
+- new projection
+- new public interface
+- new composition root
+
+**You MUST:**
+
+1. Read and follow `.github/instructions/praxis-architecture-guardian.instructions.md`
+2. Complete the full 10-phase architecture review
+3. Produce all deliverables (RFC summary, ownership analysis, dependency graph, etc.)
+4. **STOP and wait for explicit approval**
+5. Only after approval: proceed to implementation
+
+Never skip architecture review.
+
+Never implement first and justify later.
+
+Never assume approval.
+
+---
+
+## 2. Plan Before Coding — Never Start Immediately
 
 Do not write code first. Produce an **Implementation Plan** and get approval (or an
 explicit "just do it") before editing. The plan must include:
@@ -26,14 +56,14 @@ explicit "just do it") before editing. The plan must include:
 
 If you cannot map the work to an RFC, stop and ask — do not invent behavior.
 
-## 2. Prefer Extending Existing Architecture
+## 3. Prefer Extending Existing Architecture
 
 Never introduce a new abstraction if an RFC or the codebase already defines one. Before
 creating anything, search for an existing: **service, event, command, query, aggregate,
 projection, agent, storage**. Extend or compose what exists; only create new when reuse
 is genuinely impossible, and say why.
 
-## 3. Think in Vertical Slices
+## 4. Think in Vertical Slices
 
 Never build entire subsystems at once. Implement the smallest end-to-end slice that
 provides value, typically:
@@ -44,7 +74,7 @@ Command → Event → Projection → Query → Verification
 
 Ship one working path through the layers instead of many half-built services.
 
-## 4. RFC Compliance Review (before implementing)
+## 5. RFC Compliance Review (before implementing)
 
 Before writing the slice, explicitly answer each. If any answer is **YES**, stop and explain:
 
@@ -55,15 +85,7 @@ Before writing the slice, explicitly answer each. If any answer is **YES**, stop
 - Does this introduce mutable canonical state?
 - Does this weaken auditability?
 
-## Architecture Guardian
-
-Before implementing any new package, repository, engine, storage, runtime, adapter, projection, or public interface, read and follow:
-
-.github/instructions/praxis-architecture-guardian.instructions.md
-
-If the change introduces a new architectural abstraction, stop after the architecture review and wait for approval.
-
-## Implementation Order
+## 6. Implementation Order
 
 Build foundations before dependents. Respect this sequence:
 
@@ -77,7 +99,7 @@ Build foundations before dependents. Respect this sequence:
 
 Do not implement a later layer before its prerequisites exist and are tested.
 
-## Hard Rules (Invariants)
+## 7. Hard Rules (Invariants)
 
 These are non-negotiable. Any code that violates one is wrong by definition.
 
@@ -92,31 +114,31 @@ These are non-negotiable. Any code that violates one is wrong by definition.
 - **Cross-space communication is explicit.** Use defined contracts/events; no hidden coupling.
 - **Derived stores are rebuildable.** Never treat a projection/cache as a source of truth.
 
-## Avoid Speculative Implementation
+## 8. Avoid Speculative Implementation
 
 Do not implement future features, generic frameworks, unused abstractions, placeholder
 services, or speculative configuration. Everything must be justified by an existing RFC
 or an accepted implementation slice.
 
-## Minimize Architectural Debt
+## 9. Minimize Architectural Debt
 
 - Prefer deleting code over adding abstractions.
 - Prefer composition over inheritance.
 - Prefer explicit behavior over magic.
 - Prefer deterministic behavior over convenience.
 
-## Challenge Assumptions
+## 10. Challenge Assumptions
 
 Do not blindly implement the requested design. If a simpler solution satisfies the RFCs,
 explain it and recommend it before implementing. If the request contradicts long-term
 architecture, explain why instead of complying silently.
 
-## Leave the Repository Healthier
+## 11. Leave the Repository Healthier
 
 Every change should improve at least one of: documentation, verification, naming,
 comments, tests, architecture consistency, or dead-code removal.
 
-## After Implementation — Architecture Review
+## 12. After Implementation — Architecture Review
 
 When a slice is complete, produce a short review:
 
@@ -125,7 +147,7 @@ When a slice is complete, produce a short review:
 - **Future RFC impact** — RFCs that should be updated because implementation revealed
   missing or ambiguous detail.
 
-## After Implementation — Summary
+## 13. After Implementation — Summary
 
 End every implementation with:
 
@@ -140,12 +162,12 @@ End every implementation with:
 - Remaining work
 - Recommended next implementation slice
 
-## When Unsure
+## 14. When Unsure
 
 Prefer reading the RFC over guessing. If an RFC is ambiguous or missing, surface the gap
 rather than filling it with assumed behavior.
 
-## Build and Verification Operations
+## 15. Build and Verification Operations
 
 Rules:
 - Prefer Taskfile commands over raw go/python commands.
