@@ -560,6 +560,41 @@ Avoid adding:
 
 Extract only after demonstrated duplication.
 
+### Golden Mapper Comparison
+
+**For every new transport adapter with a mapping function, mandatory comparison against the Golden Mapper reference.**
+
+Reference implementation: `apps/telegram/main.py::telegram_update_to_payload()`
+
+Documentation: [docs/architecture/GOLDEN_MAPPER.md](../architecture/GOLDEN_MAPPER.md)
+
+**Comparison Rule:**
+
+Before approving any new adapter mapper, compare it directly against the Golden Mapper.
+
+- If the new mapper is **simpler or equal in complexity**, approve.
+- If the new mapper is **more complex**, require explicit justification:
+  - What additional responsibility necessitates the complexity?
+  - Is this responsibility documented in the relevant RFC?
+  - Could this complexity be extracted to a different owner?
+
+**Complexity Justification Rule:**
+
+If the new mapper is more complex than the reference and the complexity is **not justified by current code patterns or approved RFCs**, reject the mapper. Require refactoring to match the Golden Mapper pattern.
+
+**Reference Mapper Properties:**
+
+- One translation (external → wire contract)
+- One input, one output
+- 13 lines of code (excluding docstring)
+- Comprehensible in under one minute
+- All output fields traceable to input
+- No side effects, no I/O, no state
+- No business logic, no infrastructure calls
+- No accumulated behavior
+
+New mappers should match or exceed this standard.
+
 ---
 
 ## Justification Requirements
@@ -765,6 +800,9 @@ Before claiming architecture review complete, confirm:
 - [ ] **Mapper has not accumulated unrelated behavior**
 - [ ] **Mapper remains the obvious place only for representation translation**
 - [ ] **Architecture review completed if mapper scope expanded**
+- [ ] **Golden Mapper comparison completed**
+- [ ] **New mapper is not more complex than the reference, or complexity is explicitly justified by RFC or existing code patterns**
+- [ ] **No mapper framework, interfaces, base classes, or shared utilities introduced without demonstrated duplication**
 - [ ] **No speculative abstractions were introduced**
 - [ ] **STOPPED and waiting for approval**
 
