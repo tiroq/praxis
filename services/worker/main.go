@@ -22,6 +22,7 @@ import (
 	"syscall"
 
 	"github.com/tiroq/praxis/internal/core/kernel"
+	"github.com/tiroq/praxis/internal/storage"
 	natstransport "github.com/tiroq/praxis/internal/transport/nats"
 	"github.com/tiroq/praxis/internal/transport/natsworker"
 )
@@ -42,11 +43,37 @@ var defaultKeywords = map[string]string{
 
 // buildKernel wires the default, deterministic pipeline components.
 // No LLM calls, no external dependencies.
-func buildKernel() *kernel.Kernel {
+// Accepts optional kernel.Option parameters for configuration (e.g., WithEventRecorder).
+func buildKernel(opts ...kernel.Option) *kernel.Kernel {
 	reviewer := kernel.NewKeywordReviewer(defaultKeywords, "keyword-reviewer-v1")
 	dm := kernel.NewRuleBasedDecisionMaker(kernel.DefaultConfidenceThreshold, "rule-based-policy-v1", "worker")
 	planner := kernel.NewSimpleActionPlanner(nil)
-	return kernel.New(reviewer, dm, planner)
+	return kernel.New(reviewer, dm, planner, opts...)
+}
+
+// tryOpenStorage attempts to open storage using environment configuration.
+// If storage cannot be opened, logs the error and returns nil (non-fatal).
+// The worker will continue without event recording if storage is unavailable.
+func tryOpenStorage(ctx context.Context, logger *slog.Logger) *storage.Storage {
+	cfg := storage.ConfigFromEnv()
+	logger.Info("attempting to open storage",
+		"backend", cfg.Backend,
+		"sqlite_path", cfg.SQLitePath,
+	)
+
+	store, err := storage.Open(ctx, cfg)
+	if err != nil {
+		logger.Warn("failed to open storage; worker will continue without event recording",
+			"err", err,
+			"backend", cfg.Backend,
+		)
+		return nil
+	}
+
+	logger.Info("storage opened successfully",
+		"backend", cfg.Backend,
+	)
+	return store
 }
 
 func main() {
@@ -63,6 +90,21 @@ func main() {
 		"durable", cfg.Durable,
 	)
 
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	// Attempt to open storage; non-fatal if it fails
+	store := tryOpenStorage(ctx, logger)
+	if store != nil {
+		defer func() {
+			if err := store.Close(); err != nil {
+				logger.Error("failed to close storage", "err", err)
+			} else {
+				logger.Info("storage closed")
+			}
+		}()
+	}
+
 	client, err := natstransport.NewClient(cfg)
 	if err != nil {
 		logger.Error("failed to connect to NATS", "err", err)
@@ -72,11 +114,19 @@ func main() {
 
 	js := client.JetStream()
 	pub := natstransport.NewPublisher(js, cfg.OutputSubject)
-	k := buildKernel()
-	sub := natsworker.NewSubscriber(js, cfg, k, pub, logger)
 
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
+	// Build kernel with optional event recording
+	var k *kernel.Kernel
+	if store != nil {
+		recorder := storage.NewEventRecorderAdapter(store.Events)
+		k = buildKernel(kernel.WithEventRecorder(recorder))
+		logger.Info("kernel built with event recording enabled")
+	} else {
+		k = buildKernel()
+		logger.Info("kernel built without event recording")
+	}
+
+	sub := natsworker.NewSubscriber(js, cfg, k, pub, logger)
 
 	if err := sub.Run(ctx); err != nil {
 		logger.Error("subscriber exited with error", "err", err)
