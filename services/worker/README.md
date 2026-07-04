@@ -32,6 +32,39 @@ NATS JetStream (output subject)
 | `NATS_DURABLE`         | `praxis-worker`           | Durable consumer name              |
 | `NATS_ACK_WAIT_SECONDS`| `30`                      | Ack wait in seconds                |
 | `NATS_MAX_DELIVER`     | `3`                       | Max delivery attempts              |
+| `PRAXIS_STORAGE_BACKEND` | `sqlite`                | Storage backend: `memory` or `sqlite` |
+| `PRAXIS_SQLITE_PATH`   | `build/praxis.db`         | Path to SQLite database file       |
+
+### Storage Configuration
+
+The worker optionally records kernel pipeline execution events to a persistent EventStore.
+Event recording is configured via environment variables and is **non-fatal** — if storage
+fails to open, the worker logs a warning and continues without event recording.
+
+- **`PRAXIS_STORAGE_BACKEND`**: Storage backend to use (`memory` or `sqlite`).
+  - `memory` — In-memory EventStore; events are not persisted to disk.
+  - `sqlite` — SQLite-backed EventStore; events are persisted to the configured database file.
+  - Default: `sqlite`
+
+- **`PRAXIS_SQLITE_PATH`**: Path to the SQLite database file (only used when `PRAXIS_STORAGE_BACKEND=sqlite`).
+  - Default: `build/praxis.db`
+
+When storage is successfully opened, the worker injects an `EventRecorder` into the kernel via
+`kernel.WithEventRecorder()`. The kernel then records a `kernel.pipeline.completed` event after
+each successful pipeline execution.
+
+**Example:**
+
+```sh
+# Use SQLite storage (default)
+PRAXIS_STORAGE_BACKEND=sqlite PRAXIS_SQLITE_PATH=build/praxis.db go run ./services/worker
+
+# Use in-memory storage (no persistence)
+PRAXIS_STORAGE_BACKEND=memory go run ./services/worker
+
+# Disable storage (not recommended; for testing only)
+PRAXIS_STORAGE_BACKEND=invalid go run ./services/worker  # Logs error, continues without storage
+```
 
 ## Message Contracts
 
