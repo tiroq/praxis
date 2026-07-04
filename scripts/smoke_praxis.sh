@@ -7,6 +7,11 @@ cd "$ROOT_DIR"
 
 mkdir -p build
 
+# Configure storage for the smoke test
+export PRAXIS_STORAGE_BACKEND=sqlite
+export PRAXIS_SQLITE_PATH=build/smoke-praxis.db
+rm -f "$PRAXIS_SQLITE_PATH" # Clean slate for each smoke test run
+
 cleanup() {
 	if [ -n "${WATCH_PID:-}" ] && kill -0 "$WATCH_PID" 2>/dev/null; then
 		kill "$WATCH_PID" 2>/dev/null || true
@@ -86,3 +91,32 @@ report = {
 Path("build/smoke-praxis.json").write_text(json.dumps(report, indent=2) + "\n")
 print(json.dumps(report, indent=2))
 PY
+
+# Verify that the worker persisted kernel.pipeline.completed events to storage
+if [ ! -f "$PRAXIS_SQLITE_PATH" ]; then
+	echo "storage database not found: $PRAXIS_SQLITE_PATH" >&2
+	exit 1
+fi
+
+./build/verify-storage "$PRAXIS_SQLITE_PATH" > build/smoke-praxis-storage.json
+
+STORAGE_VERIFICATION=$(python3 -c "
+import json
+try:
+    d = json.load(open('build/smoke-praxis-storage.json'))
+    if d.get('verification') == 'passed':
+        print('ok')
+    else:
+        print('failed')
+except Exception as e:
+    print('error')
+")
+
+if [ "$STORAGE_VERIFICATION" != "ok" ]; then
+	echo "storage verification failed" >&2
+	cat build/smoke-praxis-storage.json >&2 || true
+	exit 1
+fi
+
+echo "storage verification passed: kernel.pipeline.completed events persisted"
+cat build/smoke-praxis-storage.json
