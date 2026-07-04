@@ -8,13 +8,14 @@ applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
 
 **Architecture is always more important than implementation.**
 
-Mandatory architecture review gate. **MUST** complete before implementing any new abstraction. Never skip. Never assume approval.
+This instruction acts as a mandatory architecture review gate. You **MUST** complete this
+review before implementing any new abstraction. Never skip. Never assume approval.
 
 ---
 
 ## When This Gate Applies
 
-Complete full architecture review before creating any:
+You must complete this full architecture review before creating any:
 
 - new package
 - new repository
@@ -25,7 +26,7 @@ Complete full architecture review before creating any:
 - new public interface
 - new exported type
 
-**Only modifying existing components? Gate does not apply.**
+**If you are only modifying existing components, this gate does not apply.**
 
 ---
 
@@ -36,24 +37,25 @@ RFCs in `./rfcs` are **immutable architectural contracts**.
 **Never:**
 
 - Reinterpret them
-- Extend with assumptions
+- Extend them with assumptions
 - Fill gaps with "reasonable" guesses
 - Implement behavior not explicitly specified
 
-**If RFC is ambiguous, incomplete, or contradictory:**
+**If an RFC is ambiguous, incomplete, or contradictory:**
 
 - **STOP immediately**
-- Document specific ambiguity
+- Document the specific ambiguity
 - Explain what cannot be determined
 - Wait for clarification
 
-Do not proceed when architecture is unclear.
+Do not proceed with implementation when the architecture is unclear.
 
 ---
 
 ## 10-Phase Architecture Review
 
-Complete all phases in order. Document findings. If any phase reveals problem, **STOP** and explain issue.
+Complete all phases in order. Document your findings. If any phase reveals a problem,
+**STOP** and explain the issue.
 
 ### Phase 1: RFC Review
 
@@ -62,9 +64,9 @@ Complete all phases in order. Document findings. If any phase reveals problem, *
 **Deliverables:**
 
 - List all relevant RFCs (by number and title)
-- Quote specific sections that govern this work
+- Quote the specific sections that govern this work
 - Identify any RFC ambiguities, gaps, or contradictions
-- Confirm no RFC prohibits proposed approach
+- Confirm no RFC prohibits the proposed approach
 
 **Stop condition:** If RFCs conflict or are ambiguous, stop here.
 
@@ -79,15 +81,15 @@ Complete all phases in order. Document findings. If any phase reveals problem, *
 - List existing public interfaces and exported types
 - Identify reusable components
 
-**Stop condition:** If existing component satisfies need, stop and reuse it.
+**Stop condition:** If an existing component satisfies the need, stop and reuse it.
 
 ### Phase 3: Responsibility Analysis
 
-**Objective:** Define what new component owns and does not own.
+**Objective:** Define what the new component owns and does not own.
 
 **Deliverables:**
 
-For proposed component, explicitly state:
+For the proposed component, explicitly state:
 
 - What it owns (data, logic, behavior)
 - What it does NOT own (delegated responsibilities)
@@ -102,7 +104,7 @@ For proposed component, explicitly state:
 
 **Deliverables:**
 
-- Identify single owner of each responsibility
+- Identify the single owner of each responsibility
 - Confirm no shared ownership
 - Confirm no orphaned responsibilities
 
@@ -114,7 +116,7 @@ For proposed component, explicitly state:
 
 **Deliverables:**
 
-Classify component into exactly one layer:
+Classify the component into exactly one layer:
 
 ```
 Domain          ← business logic, entities, value objects
@@ -133,15 +135,15 @@ Confirm:
 - Application depends only on Domain interfaces
 - Only Composition Root wires unrelated layers
 
-**Stop condition:** If component violates layer boundaries, stop and redesign.
+**Stop condition:** If the component violates layer boundaries, stop and redesign.
 
 ### Phase 6: Component Categorization
 
-**Objective:** Classify component into exactly one architectural category.
+**Objective:** Classify the component into exactly one architectural category.
 
 **Deliverables:**
 
-Assign component to exactly one category:
+Assign the component to exactly one category:
 
 - **Repository** — storage interface, no business logic
 - **Engine** — stateless logic processor, no storage
@@ -150,17 +152,17 @@ Assign component to exactly one category:
 - **Adapter** — translates between layers, no domain logic
 - **Composition Root** — wiring only, no behavior
 
-**Reject designs mixing categories.**
+**Reject designs that mix categories.**
 
-Invalid designs:
+Examples of invalid designs:
 
-- Repository containing business logic ❌
-- Engine storing state ❌
-- Reducer calling external services ❌
-- Coordinator implementing domain logic ❌
-- Adapter making decisions ❌
+- Repository that contains business logic ❌
+- Engine that stores state ❌
+- Reducer that calls external services ❌
+- Coordinator that implements domain logic ❌
+- Adapter that makes decisions ❌
 
-**Stop condition:** If component mixes categories, stop and separate concerns.
+**Stop condition:** If the component mixes categories, stop and separate concerns.
 
 ### Phase 7: Storage Rules Validation
 
@@ -168,7 +170,7 @@ Invalid designs:
 
 **Deliverables:**
 
-If component is storage-related, confirm it does NOT own:
+If the component is storage-related, confirm it does NOT own:
 
 - ❌ Business logic
 - ❌ Replay logic
@@ -191,7 +193,7 @@ Storage responsibilities:
 - Projection construction belongs to **Reducers**
 - Checkpoint management belongs to **Checkpoint Store**
 
-**Stop condition:** If storage violates these rules, stop and extract logic.
+**Stop condition:** If storage violates these rules, stop and extract the logic.
 
 ### Phase 8: Dependency Graph
 
@@ -199,9 +201,9 @@ Storage responsibilities:
 
 **Deliverables:**
 
-Produce dependency graph showing:
+Produce a dependency graph showing:
 
-- New component
+- The new component
 - What it imports
 - What imports it
 - Transitive dependencies
@@ -231,11 +233,11 @@ Validate:
 
 ### Phase 9: Runtime Data Flow
 
-**Objective:** Trace how data moves through system at runtime.
+**Objective:** Trace how data moves through the system at runtime.
 
 **Deliverables:**
 
-Produce data flow diagram showing:
+Produce a data flow diagram showing:
 
 - Request entry point
 - Data transformations
@@ -279,9 +281,9 @@ Validate:
 For every exported function, type, interface, or method:
 
 - Justify why it must be public
-- Confirm required by immediate production caller
-- Confirm does not expose internal implementation details
-- Confirm follows RFC naming conventions
+- Confirm it is required by an immediate production caller
+- Confirm it does not expose internal implementation details
+- Confirm it follows RFC naming conventions
 
 **Reject:**
 
@@ -352,11 +354,11 @@ For every new component, provide explicit justification:
 
 ## Architecture Self-Review
 
-Before finalizing review, ask:
+Before finalizing your review, ask yourself:
 
 ### Simplicity
 
-- Is this simplest design satisfying RFCs?
+- Is this the simplest design that satisfies the RFCs?
 - Can I remove any abstraction?
 - Can I reuse instead of create?
 
@@ -374,8 +376,8 @@ Before finalizing review, ask:
 
 ### RFC Fidelity
 
-- Does this implement exactly what RFC specifies?
-- Does this add behavior not in RFC?
+- Does this implement exactly what the RFC specifies?
+- Does this add behavior not in the RFC?
 - Does this contradict any RFC?
 
 ### Testability
@@ -393,7 +395,7 @@ Before proceeding to implementation, produce:
 ### 1. RFC Summary
 
 - List of relevant RFCs
-- Quoted sections governing this work
+- Quoted sections that govern this work
 - Any ambiguities or gaps identified
 
 ### 2. Ownership Analysis
@@ -428,7 +430,7 @@ Even if none, state: "No architecture debt introduced."
 
 ### 6. Smallest Vertical Slice
 
-Define minimal end-to-end implementation:
+Define the minimal end-to-end implementation:
 
 - Entry point
 - Core logic
@@ -442,7 +444,7 @@ Ship one working path, not multiple partial paths.
 
 ## Stop-Before-Code Rule
 
-**After completing 10-phase review and producing all deliverables:**
+**After completing the 10-phase review and producing all deliverables:**
 
 **STOP.**
 
@@ -450,13 +452,13 @@ Ship one working path, not multiple partial paths.
 
 **Wait for explicit approval.**
 
-Present architecture review and ask:
+Present your architecture review and ask:
 
-> I have completed architecture review for [component name].
+> I have completed the architecture review for [component name].
 >
-> Review identified [X RFCs], [Y dependencies], [Z risks].
+> The review identified [X RFCs], [Y dependencies], [Z risks].
 >
-> All deliverables documented above.
+> All deliverables are documented above.
 >
 > Should I proceed with implementation?
 
@@ -466,13 +468,13 @@ Only after receiving explicit approval ("yes", "proceed", "go ahead") may you ge
 
 **Never implement first and justify later.**
 
-**Never skip stop-and-wait step.**
+**Never skip the stop-and-wait step.**
 
 ---
 
 ## Final Checklist
 
-Before claiming architecture review complete, confirm:
+Before claiming the architecture review is complete, confirm:
 
 - [ ] All 10 phases completed
 - [ ] All deliverables produced
@@ -486,7 +488,7 @@ Before claiming architecture review complete, confirm:
 - [ ] Smallest vertical slice defined
 - [ ] **STOPPED and waiting for approval**
 
-If any checkbox unchecked, review is incomplete.
+If any checkbox is unchecked, the review is incomplete.
 
 ---
 
@@ -494,10 +496,10 @@ If any checkbox unchecked, review is incomplete.
 
 **Architecture is always more important than implementation.**
 
-Wrong implementation can be rewritten.
+A wrong implementation can be rewritten.
 
-Wrong architecture pollutes codebase permanently.
+A wrong architecture pollutes the codebase permanently.
 
-Take time to get architecture right before writing single line of code.
+Take the time to get architecture right before writing a single line of code.
 
-Never skip architecture review.
+Never skip the architecture review.
