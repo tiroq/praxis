@@ -597,6 +597,78 @@ New mappers should match or exceed this standard.
 
 ---
 
+## Reference Implementations
+
+**Architectural consistency through proven examples.**
+
+When Praxis already contains an implementation that is considered architecturally correct, new implementations of the same category should be compared against it before introducing new patterns.
+
+A Reference Implementation is **not reusable code**. It is a reviewed example of correct ownership, responsibility, and boundaries. It exists to reduce architectural drift and prevent inconsistent design evolution.
+
+### Categories with Reference Implementations
+
+Reference Implementations may be defined for:
+
+- **Transport Mapper** — translates external object to wire contract
+- **Repository** — storage interface for a specific domain entity
+- **Adapter** — translates between external system and internal services
+- **Worker** — background job processor, event handler
+- **Transport** — connection, polling, acknowledgment mechanism
+- **Storage Backend** — persistence engine (event store, projection store, etc.)
+- **Service Bootstrap** — service initialization, dependency injection, lifecycle
+- **Configuration Loader** — environment variable parsing, validation, defaults
+
+Other categories may be added when multiple implementations exist.
+
+### Review Rule: Search Before Creating
+
+**Before creating a new implementation in any category listed above:**
+
+1. **Search** for an existing Reference Implementation in that category.
+2. **If one exists:**
+   - Compare the new implementation directly against it.
+   - Prefer following the same structure.
+   - Any deviation requires explicit justification.
+   - If the new implementation is significantly more complex, identify which current requirement makes that complexity necessary.
+   - If complexity exists only because of future predictions, reject the design.
+
+3. **If none exists:**
+   - Implement the new category following the general principles (purity, single responsibility, clear ownership).
+   - Document whether this implementation should become the Reference Implementation for future use.
+
+### Currently Defined Reference Implementations
+
+#### Transport Mapper
+
+| Aspect | Value |
+|---|---|
+| Reference | `apps/telegram/main.py` |
+| Function | `telegram_update_to_payload()` |
+| Documentation | [docs/architecture/GOLDEN_MAPPER.md](../architecture/GOLDEN_MAPPER.md) |
+| Properties | One translation; one input, one output; 13 lines; pure; no side effects; no business logic |
+
+### Mandatory Review Questions
+
+For every new implementation in a category with a Reference Implementation, answer:
+
+1. Does a Reference Implementation already exist for this category?
+2. If yes, why is this implementation different?
+3. Can the existing reference simply be copied and adapted?
+4. What new requirement forces deviation from the reference?
+5. Would copying the reference produce a simpler implementation?
+
+**Stop-and-Review Rule:** If answers reveal that the new implementation is more complex without justification, stop and refactor to match the reference pattern.
+
+### Architecture Law: Consistency Through Reference
+
+> Prefer evolving a proven implementation over inventing a new implementation style.
+>
+> Consistency is an architectural asset.
+>
+> When a Reference Implementation exists, follow it unless you can justify deviation by current requirements or approved RFCs.
+
+---
+
 ## Justification Requirements
 
 For every new component, provide explicit justification:
@@ -803,6 +875,9 @@ Before claiming architecture review complete, confirm:
 - [ ] **Golden Mapper comparison completed**
 - [ ] **New mapper is not more complex than the reference, or complexity is explicitly justified by RFC or existing code patterns**
 - [ ] **No mapper framework, interfaces, base classes, or shared utilities introduced without demonstrated duplication**
+- [ ] **Existing Reference Implementation searched (if applicable to implementation category)**
+- [ ] **Deviations from Reference Implementation explicitly justified**
+- [ ] **No new implementation pattern introduced when a Reference Implementation already exists**
 - [ ] **No speculative abstractions were introduced**
 - [ ] **STOPPED and waiting for approval**
 
@@ -841,6 +916,12 @@ A mapper that continuously grows is evidence that responsibility is misplaced.
 Large mappers are architectural smells, not implementation achievements.
 
 When a mapper keeps accumulating rules, stop extending it and identify the missing owner.
+
+**Consistency over novelty.**
+
+Prefer evolving a proven implementation over inventing a new implementation style.
+
+Consistency is an architectural asset. When a Reference Implementation exists, follow it unless you can justify deviation by current requirements or approved RFCs.
 
 ---
 
