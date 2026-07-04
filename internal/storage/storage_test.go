@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/tiroq/praxis/internal/core/kernel"
 	"github.com/tiroq/praxis/internal/storage"
 	"github.com/tiroq/praxis/internal/storage/eventstore"
 )
@@ -416,7 +417,7 @@ func TestEventRecorderAdapter_Append(t *testing.T) {
 	adapter := storage.NewEventRecorderAdapter(store)
 
 	// Create a kernel-style event record
-	kernelRecord := storage.KernelEventRecord{
+	kernelRecord := kernel.EventRecord{
 		ID:            "kernel-evt-1",
 		CorrelationID: "corr-123",
 		CausationID:   "cause-456",
@@ -472,7 +473,7 @@ func TestEventRecorderAdapter_WithSQLiteBackend(t *testing.T) {
 	adapter := storage.NewEventRecorderAdapter(store.Events)
 
 	// Append via adapter
-	kernelRecord := storage.KernelEventRecord{
+	kernelRecord := kernel.EventRecord{
 		ID:         "kernel-evt-2",
 		Type:       "kernel.pipeline.completed",
 		Source:     "kernel",
