@@ -1,5 +1,5 @@
 ---
-description: "Mandatory architecture review gate before ANY implementation of new abstractions in Praxis. Enforces RFC fidelity, clean architecture boundaries, component categorization, and justification requirements. Architecture is always more important than implementation."
+description: "Mandatory architecture review gate before ANY implementation of new abstractions in Praxis. Enforces RFC fidelity, clean architecture boundaries, component categorization, abstraction justification (Extract Don't Invent), and justification requirements. Architecture is always more important than implementation."
 name: "Praxis Architecture Guardian"
 applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
 ---
@@ -24,6 +24,10 @@ Complete full architecture review before creating any:
 - new adapter
 - new public interface
 - new exported type
+- new interface
+- new DTO or intermediate model
+- new service
+- new manager
 
 **Only modifying existing components? Gate does not apply.**
 
@@ -51,7 +55,55 @@ Do not proceed when architecture is unclear.
 
 ---
 
-## 10-Phase Architecture Review
+## Core Principle: Extract, Don't Invent
+
+Abstractions **MUST** be extracted from existing code or approved RFCs. Abstractions **MUST NOT** be invented from anticipated future needs.
+
+This rule applies to every abstraction in Praxis without exception:
+
+- interfaces
+- DTOs and intermediate models
+- repositories
+- services
+- adapters
+- engines
+- managers
+- public APIs
+
+### Validity Criteria
+
+A new abstraction **MUST** satisfy at least one of the following conditions:
+
+1. **Two or more independent implementations already exist** in the current codebase.
+2. **Duplicated behavior already exists** and extracting it measurably reduces complexity.
+3. **An approved RFC explicitly defines the abstraction** by name and contract.
+
+### Prohibited Justifications
+
+The following are **NEVER** valid justifications for introducing an abstraction:
+
+- Future integrations (Kafka, Slack, Email, Postgres, Redis, etc.) that do not yet exist
+- Speculative extensibility ("we may need this later")
+- Anticipated requirements without an approved RFC
+- Theoretical flexibility without a current concrete use
+
+**"We may need it later" is never sufficient justification.**
+
+### Presumption of Concreteness
+
+- Favor concrete implementations until duplication actually appears in the codebase.
+- The burden of proof belongs to the author introducing the abstraction.
+- If removing the abstraction simplifies the architecture, remove it.
+
+### Review Obligation
+
+During architecture review, the agent **MUST** explicitly justify every newly introduced abstraction using the Abstraction Review checklist (Phase 11).
+
+If the justification cannot be proven using the current codebase or approved RFCs, the abstraction **MUST** be removed before implementation proceeds.
+
+---
+
+## 11-Phase Architecture Review
 
 Complete all phases in order. Document findings. If any phase reveals problem, **STOP** and explain issue.
 
@@ -292,6 +344,31 @@ For every exported function, type, interface, or method:
 
 **Stop condition:** If public API includes speculative elements, stop and reduce surface area.
 
+### Phase 11: Abstraction Review
+
+**Objective:** Enforce the Extract, Don't Invent principle for every new abstraction.
+
+**Deliverables:**
+
+For every new interface, DTO, repository, service, adapter, engine, manager, intermediate model, or public API introduced, answer all of the following:
+
+| Question | Answer |
+|---|---|
+| Why does this abstraction exist today? | _(required)_ |
+| Which existing duplication does it remove? | _(required)_ |
+| How many concrete implementations currently exist? | _(required)_ |
+| Which approved RFC requires it? | _(required)_ |
+| Can a concrete implementation be used instead? | _(required)_ |
+| Would removing this abstraction simplify the architecture? | _(required)_ |
+
+**Validity check:** The abstraction is justified only if at least one of the following is true:
+
+- Two or more independent implementations already exist in the codebase
+- Duplicated behavior already exists and extraction reduces complexity
+- An approved RFC explicitly defines this abstraction
+
+**Stop condition:** If any abstraction cannot be justified by answering these questions satisfactorily using the current codebase or approved RFCs, **STOP**. The abstraction **MUST** be removed before implementation proceeds. Do not proceed until explicit approval is received.
+
 ---
 
 ## Justification Requirements
@@ -474,7 +551,7 @@ Only after receiving explicit approval ("yes", "proceed", "go ahead") may you ge
 
 Before claiming architecture review complete, confirm:
 
-- [ ] All 10 phases completed
+- [ ] All 11 phases completed
 - [ ] All deliverables produced
 - [ ] All justifications documented
 - [ ] No RFC ambiguities unresolved
@@ -484,6 +561,8 @@ Before claiming architecture review complete, confirm:
 - [ ] Public API minimized
 - [ ] Architecture debt documented
 - [ ] Smallest vertical slice defined
+- [ ] **Every new abstraction justified via Phase 11 Abstraction Review**
+- [ ] **No abstraction introduced on "we may need it later" grounds**
 - [ ] **STOPPED and waiting for approval**
 
 If any checkbox unchecked, review is incomplete.
