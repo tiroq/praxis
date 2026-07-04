@@ -57,7 +57,7 @@ func TestBuildKernel_WithEventRecorder(t *testing.T) {
 	}()
 
 	// Build kernel with EventRecorder
-	recorder := storage.NewEventRecorderAdapter(store.Events)
+	recorder := newEventRecorderAdapter(store.Events)
 	k := buildKernel(kernel.WithEventRecorder(recorder))
 	if k == nil {
 		t.Fatal("buildKernel() returned nil")

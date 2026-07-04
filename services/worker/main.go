@@ -118,7 +118,7 @@ func main() {
 	// Build kernel with optional event recording
 	var k *kernel.Kernel
 	if store != nil {
-		recorder := storage.NewEventRecorderAdapter(store.Events)
+		recorder := newEventRecorderAdapter(store.Events)
 		k = buildKernel(kernel.WithEventRecorder(recorder))
 		logger.Info("kernel built with event recording enabled")
 	} else {
