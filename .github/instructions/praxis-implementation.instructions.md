@@ -56,6 +56,18 @@ Cannot map work to RFC? Stop and ask — do not invent behavior.
 
 Never introduce new abstraction if RFC or codebase already defines one. Before creating anything, search for existing: **service, event, command, query, aggregate, projection, agent, storage**. Extend or compose what exists; only create new when reuse genuinely impossible, and say why.
 
+## 3a. Transport Adapter Mappers — Follow the Golden Mapper Pattern
+
+When implementing a new transport adapter with a mapping function:
+
+1. **Reference:** Review `docs/architecture/GOLDEN_MAPPER.md` before writing any code.
+2. **Pattern:** Transport mappers must match the Golden Mapper reference (`apps/telegram/main.py::telegram_update_to_payload()`).
+3. **Simplicity:** Mapper should be simple, pure, single-responsibility. If interesting, logic belongs elsewhere.
+4. **No Frameworks:** Do not introduce mapper frameworks, mapper interfaces, base mapper classes, shared mapper utilities, or generic transformation layers unless duplication already exists in the codebase.
+5. **Complexity Justification:** If your mapper is more complex than the reference, explain why. If complexity is not justified by existing patterns or RFCs, simplify.
+
+Do not extract reusable mapper abstractions prematurely. Each mapper is concrete and explicit. Extract only after demonstrated duplication across three or more adapters.
+
 ## 4. Think in Vertical Slices
 
 Never build entire subsystems at once. Implement smallest end-to-end slice providing value, typically:
