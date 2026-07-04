@@ -499,6 +499,67 @@ Changing a mapper must never silently change a transport contract.
 
 Transport contracts remain owned by RFCs.
 
+### Mapper Size Guideline
+
+Mapper size is not enforced by line count.
+
+Instead evaluate responsibility.
+
+A mapper should normally:
+
+- perform one transformation
+- have one input
+- produce one output
+- contain no nested decision trees
+- remain understandable in a single screen
+
+If a mapper requires sections, regions, helper classes, or extensive comments, architecture review is required.
+
+### Behavior Accumulation Test
+
+Every mapper review must answer:
+
+1. Has this mapper become more complex than the transport object it maps?
+2. Are new business cases being added to the mapper over time?
+3. Is this becoming the easiest place to add unrelated logic?
+4. Would another subsystem reasonably want to reuse this logic?
+5. Does this logic have a better owner?
+
+If any answer is "Yes", stop implementation and perform an architecture review.
+
+### One Translation Rule
+
+A mapper performs exactly one translation.
+
+Examples:
+
+```
+Telegram Update → Praxis InputMessage
+
+HTTP Request → Command DTO
+
+Database Row → Projection DTO
+```
+
+A mapper must never chain multiple conceptual transformations.
+
+If two translations exist, they should be two mappers owned by their respective boundaries.
+
+### No Helper Gravity
+
+Do not slowly convert mappers into utility modules.
+
+Avoid adding:
+
+- helper classes
+- shared mapping utilities
+- generic transformation libraries
+- base mapper classes
+- mapper inheritance
+- mapper registries
+
+Extract only after demonstrated duplication.
+
 ---
 
 ## Justification Requirements
@@ -700,6 +761,10 @@ Before claiming architecture review complete, confirm:
 - [ ] **No business decisions exist**
 - [ ] **No infrastructure calls exist**
 - [ ] **No state is maintained**
+- [ ] **Mapper performs exactly one translation**
+- [ ] **Mapper has not accumulated unrelated behavior**
+- [ ] **Mapper remains the obvious place only for representation translation**
+- [ ] **Architecture review completed if mapper scope expanded**
 - [ ] **No speculative abstractions were introduced**
 - [ ] **STOPPED and waiting for approval**
 
@@ -730,6 +795,14 @@ A mapper exists only to translate one representation into another.
 A mapper must never become a place where policy accumulates.
 
 If a mapper begins making business decisions, branching on domain state, or coordinating behavior, the logic belongs elsewhere.
+
+**Mapper growth is an architectural smell.**
+
+A mapper that continuously grows is evidence that responsibility is misplaced.
+
+Large mappers are architectural smells, not implementation achievements.
+
+When a mapper keeps accumulating rules, stop extending it and identify the missing owner.
 
 ---
 
