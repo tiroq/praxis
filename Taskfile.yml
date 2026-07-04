@@ -65,6 +65,7 @@ tasks:
       - build:api-kernel
       - build:worker
       - build:nats-smoke
+      - build:verify-storage
 
   build:kernel-demo:
     desc: Build cmd/kernel-demo into build/kernel-demo
@@ -95,6 +96,12 @@ tasks:
     cmds:
       - mkdir -p build
       - go build -o build/nats-smoke ./cmd/nats-smoke
+
+  build:verify-storage:
+    desc: Build cmd/verify-storage into build/verify-storage
+    cmds:
+      - mkdir -p build
+      - go build -o build/verify-storage ./cmd/verify-storage
 
   run:api-kernel:
     desc: Run api-kernel service
