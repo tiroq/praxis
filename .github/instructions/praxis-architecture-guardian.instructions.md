@@ -16,6 +16,37 @@ Reject designs that violate architecture even if they appear easier.
 
 ---
 
+# WHEN THIS APPLIES
+
+You MUST follow this architectural review process before implementing:
+
+- new package
+- new repository
+- new engine
+- new storage mechanism
+- new runtime
+- new adapter
+- new projection
+- new public interface
+- new composition root
+- any component that introduces a new architectural abstraction
+
+When ANY of these apply:
+
+**STOP.**
+
+**Complete the full architecture review (all phases below).**
+
+**Wait for explicit approval.**
+
+**Only after approval: implement code.**
+
+Never skip the architecture review.
+
+Never implement first and review later.
+
+---
+
 # CORE PRINCIPLES
 
 Architecture always wins over implementation.
