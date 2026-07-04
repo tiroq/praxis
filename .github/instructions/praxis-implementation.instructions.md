@@ -6,9 +6,7 @@ applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
 
 # Praxis Implementation Discipline
 
-RFCs in `./rfcs` are the **architectural source of truth**. Implementation follows
-architecture, never the reverse. Never write code that contradicts an accepted RFC.
-If code and an RFC disagree, the RFC wins — stop and flag the conflict.
+RFCs in `./rfcs` are **architectural source of truth**. Implementation follows architecture, never reverse. Never write code contradicting accepted RFC. If code and RFC disagree, RFC wins — stop and flag conflict.
 
 ## 1. Architecture Review Gate — Stop Before New Abstractions
 
@@ -27,10 +25,10 @@ If code and an RFC disagree, the RFC wins — stop and flag the conflict.
 **You MUST:**
 
 1. Read and follow `.github/instructions/praxis-architecture-guardian.instructions.md`
-2. Complete the full 10-phase architecture review
+2. Complete full 10-phase architecture review
 3. Produce all deliverables (RFC summary, ownership analysis, dependency graph, etc.)
 4. **STOP and wait for explicit approval**
-5. Only after approval: proceed to implementation
+5. After approval: proceed to implementation
 
 Never skip architecture review.
 
@@ -42,45 +40,39 @@ Never assume approval.
 
 ## 2. Plan Before Coding — Never Start Immediately
 
-Do not write code first. Produce an **Implementation Plan** and get approval (or an
-explicit "just do it") before editing. The plan must include:
+Do not write code first. Produce **Implementation Plan** and get approval (or explicit "just do it") before editing. Plan must include:
 
-- **Relevant RFCs** — the specific RFC(s) the work traces back to.
-- **Impacted invariants** — which hard rules (below) the change touches.
-- **Existing components to reuse** — services, events, commands, queries, aggregates,
-  projections, agents, storage already defined.
-- **New components to create** — only what reuse cannot cover, each justified by an RFC.
-- **Minimal implementation slice** — the smallest end-to-end change that delivers value.
-- **Verification strategy** — the tests / verification scripts that will pin behavior.
-- **Risks** — what could break, ambiguous RFC areas, and second-source-of-truth dangers.
+- **Relevant RFCs** — specific RFC(s) work traces back to.
+- **Impacted invariants** — which hard rules (below) change touches.
+- **Existing components to reuse** — services, events, commands, queries, aggregates, projections, agents, storage already defined.
+- **New components to create** — only what reuse cannot cover, each justified by RFC.
+- **Minimal implementation slice** — smallest end-to-end change that delivers value.
+- **Verification strategy** — tests / verification scripts that will pin behavior.
+- **Risks** — what could break, ambiguous RFC areas, second-source-of-truth dangers.
 
-If you cannot map the work to an RFC, stop and ask — do not invent behavior.
+Cannot map work to RFC? Stop and ask — do not invent behavior.
 
 ## 3. Prefer Extending Existing Architecture
 
-Never introduce a new abstraction if an RFC or the codebase already defines one. Before
-creating anything, search for an existing: **service, event, command, query, aggregate,
-projection, agent, storage**. Extend or compose what exists; only create new when reuse
-is genuinely impossible, and say why.
+Never introduce new abstraction if RFC or codebase already defines one. Before creating anything, search for existing: **service, event, command, query, aggregate, projection, agent, storage**. Extend or compose what exists; only create new when reuse genuinely impossible, and say why.
 
 ## 4. Think in Vertical Slices
 
-Never build entire subsystems at once. Implement the smallest end-to-end slice that
-provides value, typically:
+Never build entire subsystems at once. Implement smallest end-to-end slice providing value, typically:
 
 ```
 Command → Event → Projection → Query → Verification
 ```
 
-Ship one working path through the layers instead of many half-built services.
+Ship one working path through layers instead of many half-built services.
 
 ## 5. RFC Compliance Review (before implementing)
 
-Before writing the slice, explicitly answer each. If any answer is **YES**, stop and explain:
+Before writing slice, explicitly answer each. If any answer is **YES**, stop and explain:
 
 - Does this violate any RFC?
-- Does this duplicate an existing concept?
-- Does this introduce a second source of truth?
+- Does this duplicate existing concept?
+- Does this introduce second source of truth?
 - Does this bypass Review → Decision → Action?
 - Does this introduce mutable canonical state?
 - Does this weaken auditability?
@@ -97,28 +89,26 @@ Build foundations before dependents. Respect this sequence:
 6. RFC-021 — decision model (`rfcs/021-decision-model.md`)
 7. RFC-023 — action model (`rfcs/023-action-model.md`)
 
-Do not implement a later layer before its prerequisites exist and are tested.
+Do not implement later layer before prerequisites exist and are tested.
 
 ## 7. Hard Rules (Invariants)
 
-These are non-negotiable. Any code that violates one is wrong by definition.
+Non-negotiable. Any code violating one is wrong by definition.
 
-- **Events are immutable.** Never mutate or delete an emitted event; correct via new events.
-- **Decisions are explicit and auditable.** Every Decision records who/what, why, and inputs.
-- **Reviews never commit Decisions.** A Review produces findings; it cannot enact a Decision.
-- **Agents never mutate canonical state directly.** They propose; the system commits.
-- **Agents never call LLM providers directly.** All model access goes through the LLM router.
-- **Prompt versions are immutable after release.** Released prompts are frozen; ship a new version.
-- **Memory is policy-bound.** Reads/writes to memory honor the governing policy; no ad-hoc access.
-- **Spaces are bounded contexts.** Keep models, data, and logic within their space.
+- **Events are immutable.** Never mutate or delete emitted event; correct via new events.
+- **Decisions are explicit and auditable.** Every Decision records who/what, why, inputs.
+- **Reviews never commit Decisions.** Review produces findings; cannot enact Decision.
+- **Agents never mutate canonical state directly.** They propose; system commits.
+- **Agents never call LLM providers directly.** All model access goes through LLM router.
+- **Prompt versions are immutable after release.** Released prompts frozen; ship new version.
+- **Memory is policy-bound.** Reads/writes to memory honor governing policy; no ad-hoc access.
+- **Spaces are bounded contexts.** Keep models, data, logic within their space.
 - **Cross-space communication is explicit.** Use defined contracts/events; no hidden coupling.
-- **Derived stores are rebuildable.** Never treat a projection/cache as a source of truth.
+- **Derived stores are rebuildable.** Never treat projection/cache as source of truth.
 
 ## 8. Avoid Speculative Implementation
 
-Do not implement future features, generic frameworks, unused abstractions, placeholder
-services, or speculative configuration. Everything must be justified by an existing RFC
-or an accepted implementation slice.
+Do not implement future features, generic frameworks, unused abstractions, placeholder services, or speculative config. Everything must be justified by existing RFC or accepted implementation slice.
 
 ## 9. Minimize Architectural Debt
 
@@ -129,23 +119,19 @@ or an accepted implementation slice.
 
 ## 10. Challenge Assumptions
 
-Do not blindly implement the requested design. If a simpler solution satisfies the RFCs,
-explain it and recommend it before implementing. If the request contradicts long-term
-architecture, explain why instead of complying silently.
+Do not blindly implement requested design. If simpler solution satisfies RFCs, explain and recommend it before implementing. If request contradicts long-term architecture, explain why instead of complying silently.
 
 ## 11. Leave the Repository Healthier
 
-Every change should improve at least one of: documentation, verification, naming,
-comments, tests, architecture consistency, or dead-code removal.
+Every change should improve at least one of: documentation, verification, naming, comments, tests, architecture consistency, or dead-code removal.
 
 ## 12. After Implementation — Architecture Review
 
-When a slice is complete, produce a short review:
+When slice complete, produce short review:
 
-- **RFC Compliance** — every RFC the change satisfies.
+- **RFC Compliance** — every RFC change satisfies.
 - **Invariants** — every invariant preserved.
-- **Future RFC impact** — RFCs that should be updated because implementation revealed
-  missing or ambiguous detail.
+- **Future RFC impact** — RFCs to update because implementation revealed missing or ambiguous detail.
 
 ## 13. After Implementation — Summary
 
@@ -164,8 +150,7 @@ End every implementation with:
 
 ## 14. When Unsure
 
-Prefer reading the RFC over guessing. If an RFC is ambiguous or missing, surface the gap
-rather than filling it with assumed behavior.
+Prefer reading RFC over guessing. If RFC ambiguous or missing, surface gap rather than filling with assumed behavior.
 
 ## 15. Build and Verification Operations
 
@@ -173,8 +158,8 @@ Rules:
 - Prefer Taskfile commands over raw go/python commands.
 - Use `task test` for normal validation.
 - Use `task build` before claiming binaries compile.
-- Use `task verify:rfc` after changing RFCs or docs under rfcs/.
+- Use `task verify:rfc` after changing RFCs or docs under `rfcs/`.
 - Use `task graph:rebuild` after changing graph-relevant docs or code.
-- Never commit build/ or graphify-out/.
-- Do not create ad-hoc build scripts unless Taskfile cannot express the operation.
-- No command is canonical unless it is in Taskfile.yml.
+- Never commit `build/` or `graphify-out/`.
+- Do not create ad-hoc build scripts unless Taskfile cannot express operation.
+- No command canonical unless in `Taskfile.yml`.
