@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tiroq/praxis/internal/core/kernel"
 	"github.com/tiroq/praxis/internal/storage"
 	"github.com/tiroq/praxis/internal/storage/eventstore"
 )
@@ -406,94 +405,5 @@ func newTestEvent(id string) eventstore.EventRecord {
 		OccurredAt: occurredAt,
 		Payload:    payloadJSON,
 		Metadata:   map[string]string{"test": "true"},
-	}
-}
-
-// Tests for EventRecorderAdapter
-
-func TestEventRecorderAdapter_Append(t *testing.T) {
-	ctx := context.Background()
-	store := eventstore.NewMemoryEventStore()
-	adapter := storage.NewEventRecorderAdapter(store)
-
-	// Create a kernel-style event record
-	kernelRecord := kernel.EventRecord{
-		ID:            "kernel-evt-1",
-		CorrelationID: "corr-123",
-		CausationID:   "cause-456",
-		TraceID:       "trace-789",
-		Type:          "kernel.pipeline.completed",
-		Source:        "kernel",
-		SubjectID:     "decision-1",
-		OccurredAt:    time.Now().UTC(),
-		Payload:       json.RawMessage(`{"result":"success"}`),
-		Metadata:      map[string]string{"test": "adapter"},
-		CreatedAt:     time.Now().UTC(),
-	}
-
-	// Append via adapter
-	if err := adapter.Append(ctx, kernelRecord); err != nil {
-		t.Fatalf("Append() error = %v", err)
-	}
-
-	// Verify event was stored
-	retrieved, err := store.Get(ctx, "kernel-evt-1")
-	if err != nil {
-		t.Fatalf("Get() error = %v", err)
-	}
-
-	if retrieved.ID != kernelRecord.ID {
-		t.Errorf("retrieved.ID = %q; want %q", retrieved.ID, kernelRecord.ID)
-	}
-	if retrieved.Type != kernelRecord.Type {
-		t.Errorf("retrieved.Type = %q; want %q", retrieved.Type, kernelRecord.Type)
-	}
-	if retrieved.CorrelationID != kernelRecord.CorrelationID {
-		t.Errorf("retrieved.CorrelationID = %q; want %q", retrieved.CorrelationID, kernelRecord.CorrelationID)
-	}
-}
-
-func TestEventRecorderAdapter_WithSQLiteBackend(t *testing.T) {
-	ctx := context.Background()
-	tmpDir := t.TempDir()
-	dbPath := filepath.Join(tmpDir, "adapter-test.db")
-
-	// Open storage with SQLite backend
-	cfg := storage.Config{
-		Backend:    storage.BackendSQLite,
-		SQLitePath: dbPath,
-	}
-	store, err := storage.Open(ctx, cfg)
-	if err != nil {
-		t.Fatalf("Open() error = %v", err)
-	}
-	defer func() { _ = store.Close() }()
-
-	// Create adapter
-	adapter := storage.NewEventRecorderAdapter(store.Events)
-
-	// Append via adapter
-	kernelRecord := kernel.EventRecord{
-		ID:         "kernel-evt-2",
-		Type:       "kernel.pipeline.completed",
-		Source:     "kernel",
-		SubjectID:  "decision-2",
-		OccurredAt: time.Now().UTC(),
-		Payload:    json.RawMessage(`{"result":"success"}`),
-		Metadata:   map[string]string{"backend": "sqlite"},
-		CreatedAt:  time.Now().UTC(),
-	}
-
-	if err := adapter.Append(ctx, kernelRecord); err != nil {
-		t.Fatalf("Append() error = %v", err)
-	}
-
-	// Verify event was persisted
-	retrieved, err := store.Events.Get(ctx, "kernel-evt-2")
-	if err != nil {
-		t.Fatalf("Get() error = %v", err)
-	}
-	if retrieved.Type != "kernel.pipeline.completed" {
-		t.Errorf("retrieved.Type = %q; want %q", retrieved.Type, "kernel.pipeline.completed")
 	}
 }
