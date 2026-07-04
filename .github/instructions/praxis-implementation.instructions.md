@@ -55,6 +55,14 @@ Before writing the slice, explicitly answer each. If any answer is **YES**, stop
 - Does this introduce mutable canonical state?
 - Does this weaken auditability?
 
+## Architecture Guardian
+
+Before implementing any new package, repository, engine, storage, runtime, adapter, projection, or public interface, read and follow:
+
+.github/instructions/praxis-architecture-guardian.instructions.md
+
+If the change introduces a new architectural abstraction, stop after the architecture review and wait for approval.
+
 ## Implementation Order
 
 Build foundations before dependents. Respect this sequence:
