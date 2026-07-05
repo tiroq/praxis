@@ -262,7 +262,7 @@ def telegram_update_to_payload(update: Update) -> dict:
 
     return {
         "id": f"tg-{chat_id}-{message_id}",
-        "correlation_id": f"tg-chat-{chat_id}",
+        "correlation_id": f"telegram-chat-{chat_id}",
         "source": "telegram",
         "text": msg.text,
         "timestamp": msg.date.astimezone(timezone.utc).isoformat(),
@@ -302,17 +302,48 @@ async def publish_with_retry(
 def render_reply_text(output: dict[str, Any]) -> str:
     if output.get("status") == "error":
         error = output.get("error") or "pipeline failed"
-        return f"Sorry, processing failed: {error}"
+        return f"Praxis error: {error}"
 
     result = output.get("result")
     if isinstance(result, dict):
         decision = result.get("decision")
+        actions = result.get("actions", [])
         if isinstance(decision, dict):
-            outcome = decision.get("outcome")
-            if outcome:
-                return f"Processed successfully. Outcome: {outcome}."
+            outcome = decision.get("outcome", "unknown")
+            action_count = len(actions) if isinstance(actions, list) else 0
+            return f"Decision: {outcome}\nActions: {action_count}"
 
-    return "Processed successfully."
+    return "Decision: unknown\nActions: 0"
+
+
+async def handle_output_message(
+    app: Application,
+    state: RuntimeState,
+    pending_chat_by_event_id: dict[str, str],
+    output: dict[str, Any],
+) -> None:
+    state.inc("output_messages_total")
+    input_event_id = str(output.get("input_event_id", ""))
+
+    metadata = output.get("metadata")
+    chat_id = ""
+    if isinstance(metadata, dict):
+        chat_id = str(metadata.get("chat_id", ""))
+    if not chat_id:
+        chat_id = pending_chat_by_event_id.get(input_event_id, "")
+
+    if not chat_id:
+        return
+
+    try:
+        await app.bot.send_message(chat_id=int(chat_id), text=render_reply_text(output))
+        state.inc("replies_sent_total")
+        state.mark_reply()
+        pending_chat_by_event_id.pop(input_event_id, None)
+    except Exception as exc:  # pragma: no cover - network path
+        state.inc("replies_failed_total")
+        state.set_last_error(str(exc))
+        logger.error("reply failed input_event_id=%s chat_id=%s err=%s", input_event_id, chat_id, exc)
 
 
 async def run(config: Config, state: RuntimeState) -> None:
@@ -365,28 +396,7 @@ async def run(config: Config, state: RuntimeState) -> None:
             logger.error("invalid output json: %s", exc)
             return
 
-        state.inc("output_messages_total")
-        input_event_id = str(output.get("input_event_id", ""))
-
-        metadata = output.get("metadata")
-        chat_id = ""
-        if isinstance(metadata, dict):
-            chat_id = str(metadata.get("chat_id", ""))
-        if not chat_id:
-            chat_id = pending_chat_by_event_id.get(input_event_id, "")
-
-        if not chat_id:
-            return
-
-        try:
-            await app.bot.send_message(chat_id=int(chat_id), text=render_reply_text(output))
-            state.inc("replies_sent_total")
-            state.mark_reply()
-            pending_chat_by_event_id.pop(input_event_id, None)
-        except Exception as exc:  # pragma: no cover - network path
-            state.inc("replies_failed_total")
-            state.set_last_error(str(exc))
-            logger.error("reply failed input_event_id=%s chat_id=%s err=%s", input_event_id, chat_id, exc)
+        await handle_output_message(app, state, pending_chat_by_event_id, output)
 
     await nc.subscribe(config.output_subject, cb=handle_output)
     logger.info("subscribed to output subject=%s", config.output_subject)
