@@ -45,6 +45,9 @@ type OutputMessage struct {
 	// InputEventID is the ID of the InputMessage that triggered this result.
 	InputEventID string `json:"input_event_id"`
 
+	// CorrelationID groups related messages into one logical activity.
+	CorrelationID string `json:"correlation_id,omitempty"`
+
 	// Status is "ok" on success or "error" on failure.
 	Status string `json:"status"`
 
@@ -53,6 +56,9 @@ type OutputMessage struct {
 
 	// Error holds the error string on failure.
 	Error *string `json:"error,omitempty"`
+
+	// Metadata carries transport-level context propagated from input.
+	Metadata map[string]string `json:"metadata,omitempty"`
 
 	// ProcessedAt is when the pipeline completed.
 	ProcessedAt time.Time `json:"processed_at"`
