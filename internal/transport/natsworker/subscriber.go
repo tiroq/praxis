@@ -151,6 +151,7 @@ func (s *Subscriber) handleMessage(ctx context.Context, msg natsMsg) {
 
 	event := toKernelEvent(input)
 	result, kernelErr := s.kernel.Run(ctx, event)
+	correlationID := event.CorrelationID
 
 	var out natstransport.OutputMessage
 	if kernelErr != nil {
@@ -158,9 +159,9 @@ func (s *Subscriber) handleMessage(ctx context.Context, msg natsMsg) {
 			"event_id", input.ID,
 			"err", kernelErr,
 		)
-		out = newOutputError(input.ID, input.CorrelationID, input.Metadata, kernelErr)
+		out = newOutputError(input.ID, correlationID, input.Metadata, kernelErr)
 	} else {
-		out = newOutputOK(input.ID, input.CorrelationID, input.Metadata, result)
+		out = newOutputOK(input.ID, correlationID, input.Metadata, result)
 	}
 
 	if err := s.publisher.Publish(out); err != nil {

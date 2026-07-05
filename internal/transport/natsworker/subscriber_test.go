@@ -163,6 +163,25 @@ func TestHandleMessageContracts(t *testing.T) {
 		}
 	})
 
+	t.Run("missing correlation defaults through to output", func(t *testing.T) {
+		pub := &fakePublisher{}
+		k := &fakeKernel{result: kernel.PipelineResult{EventID: "evt_missing_corr"}}
+		s := handlerHarness(k, pub)
+		data, _ := json.Marshal(natstransport.InputMessage{
+			ID:       "evt_missing_corr",
+			Text:     "hello",
+			Metadata: map[string]string{"chat_id": "123"},
+		})
+		msg := &fakeMsg{data: data}
+		s.handleMessage(context.Background(), msg)
+		if !msg.acked || len(pub.published) != 1 {
+			t.Fatalf("msg = %#v published=%d", msg, len(pub.published))
+		}
+		if pub.published[0].CorrelationID != "evt_missing_corr" {
+			t.Fatalf("expected fallback correlation_id, got %#v", pub.published[0])
+		}
+	})
+
 	t.Run("kernel error publishes error output", func(t *testing.T) {
 		pub := &fakePublisher{}
 		k := &fakeKernel{err: errors.New("kernel blew up")}
