@@ -1,0 +1,60 @@
+# Praxis Implementation Loop — workflow spec
+#
+# Development accelerator for building Praxis itself. NOT part of Praxis runtime.
+# Introduces no services, agents, queues, storage, or orchestration engines.
+# This YAML is a declarative description of a manual/agentic prompt loop — it is
+# executed by a human or coding agent (Copilot/Cursor), not by a real runtime.
+
+name: praxis-implementation-loop
+mode: development-accelerator
+runtime: manual-or-agentic
+
+input:
+  task_file: engineering/tasks/current-task.md
+
+orchestrator: .github/prompts/praxis-engineering-orchestrator.prompt.md
+
+stages:
+  - id: intake
+    prompt: .github/prompts/praxis-intake.prompt.md
+    output: engineering/reports/01-intake.md
+
+  - id: architecture_review
+    prompt: .github/prompts/praxis-architecture-review.prompt.md
+    output: engineering/reports/02-architecture-review.md
+    gate: architecture_approved
+
+  - id: implementation
+    prompt: .github/prompts/praxis-implementation.prompt.md
+    output: engineering/reports/03-implementation.md
+
+  - id: verification
+    prompt: .github/prompts/praxis-verification.prompt.md
+    commands:
+      - go test ./...
+      - golangci-lint run
+      - task dev
+    output: engineering/reports/04-verification.md
+    gate: tests_pass
+
+  - id: self_review
+    prompt: .github/prompts/praxis-self-review.prompt.md
+    output: engineering/reports/05-self-review.md
+    gate: review_pass
+
+  - id: final_report
+    prompt: .github/prompts/praxis-final-report.prompt.md
+    output: engineering/reports/final-report.md
+
+# Gate semantics: a stage may not advance until its gate passes.
+# On gate failure the loop returns to `implementation` with the failing details,
+# then re-runs `verification` and `self_review`.
+gates:
+  architecture_approved: Architecture review decision is APPROVED (RFC/ADR/reuse/extract satisfied).
+  tests_pass: go test, golangci-lint, and task dev all pass.
+  review_pass: Self-review verdict is CLEAN (invariants preserved against the diff).
+
+constraints:
+  - Documentation/prompt files only. No product code is added by the workflow itself.
+  - No new services, agents, queues, storage, or orchestration.
+  - RFCs in rfcs/ are the source of truth; ADRs in docs/adr/ are binding.
