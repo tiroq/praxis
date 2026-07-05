@@ -18,6 +18,31 @@ Every stage must produce explicit artifacts.
 
 ---
 
+# Workflow Wiring (development accelerator)
+
+This orchestrator drives the file-based **Praxis Implementation Loop**. It is a development
+accelerator, not part of Praxis runtime — it adds no services, agents, queues, storage, or
+orchestration engines, and writes reports only.
+
+- Spec: `engineering/workflows/implementation-loop.yaml`
+- Task input: `engineering/tasks/current-task.md` (from `engineering/tasks/TASK_TEMPLATE.md`)
+- Reports output: `engineering/reports/`
+
+The 14 stages below expand the loop's six named stages. Map their artifacts to the report files:
+
+| Loop stage | Prompt | Report | Gate |
+|---|---|---|---|
+| Intake | [`praxis-intake.prompt.md`](praxis-intake.prompt.md) | `engineering/reports/01-intake.md` | ready for review |
+| Architecture Review | [`praxis-architecture-review.prompt.md`](praxis-architecture-review.prompt.md) | `engineering/reports/02-architecture-review.md` | `architecture_approved` |
+| Implementation | [`praxis-implementation.prompt.md`](praxis-implementation.prompt.md) | `engineering/reports/03-implementation.md` | slice implemented |
+| Verification | [`praxis-verification.prompt.md`](praxis-verification.prompt.md) | `engineering/reports/04-verification.md` | `tests_pass` |
+| Self-Review | [`praxis-self-review.prompt.md`](praxis-self-review.prompt.md) | `engineering/reports/05-self-review.md` | `review_pass` |
+| Final Report | [`praxis-final-report.prompt.md`](praxis-final-report.prompt.md) | `engineering/reports/final-report.md` | done |
+
+Gates are hard: never advance past a failed gate, and never weaken a gate to force progress.
+
+---
+
 # Engineering Workflow
 
 For every task execute the following stages.
