@@ -42,6 +42,7 @@ type fakeMsg struct {
 	naked   bool
 	termed  bool
 	subject string
+	num     uint64
 }
 
 func (m *fakeMsg) Ack() error         { m.acked = true; return nil }
@@ -49,6 +50,12 @@ func (m *fakeMsg) Nak() error         { m.naked = true; return nil }
 func (m *fakeMsg) Term() error        { m.termed = true; return nil }
 func (m *fakeMsg) GetData() []byte    { return m.data }
 func (m *fakeMsg) GetSubject() string { return m.subject }
+func (m *fakeMsg) GetNumDelivered() uint64 {
+	if m.num == 0 {
+		return 1
+	}
+	return m.num
+}
 
 func handlerHarness(k KernelRunner, pub MessagePublisher) *Subscriber {
 	return &Subscriber{
@@ -86,14 +93,20 @@ func TestToKernelEvent(t *testing.T) {
 }
 
 func TestOutputBuilders(t *testing.T) {
-	ok := newOutputOK("evt_1", kernel.PipelineResult{EventID: "evt_1"})
+	ok := newOutputOK("evt_1", "corr_1", map[string]string{"chat_id": "5"}, kernel.PipelineResult{EventID: "evt_1"})
 	if ok.Status != "ok" || len(ok.Result) == 0 || ok.Error != nil {
 		t.Fatalf("ok = %#v", ok)
 	}
+	if ok.CorrelationID != "corr_1" || ok.Metadata["chat_id"] != "5" {
+		t.Fatalf("ok correlation/metadata = %#v", ok)
+	}
 
-	errOut := newOutputError("evt_2", errors.New("boom"))
+	errOut := newOutputError("evt_2", "corr_2", map[string]string{"chat_id": "7"}, errors.New("boom"))
 	if errOut.Status != "error" || errOut.Error == nil || *errOut.Error != "boom" {
 		t.Fatalf("errOut = %#v", errOut)
+	}
+	if errOut.CorrelationID != "corr_2" || errOut.Metadata["chat_id"] != "7" {
+		t.Fatalf("errOut correlation/metadata = %#v", errOut)
 	}
 }
 
@@ -133,11 +146,20 @@ func TestHandleMessageContracts(t *testing.T) {
 		pub := &fakePublisher{}
 		k := &fakeKernel{result: kernel.PipelineResult{EventID: "evt_ok"}}
 		s := handlerHarness(k, pub)
-		data, _ := json.Marshal(natstransport.InputMessage{ID: "evt_ok", Text: "hello", Timestamp: time.Now().UTC()})
+		data, _ := json.Marshal(natstransport.InputMessage{
+			ID:            "evt_ok",
+			CorrelationID: "corr_ok",
+			Text:          "hello",
+			Timestamp:     time.Now().UTC(),
+			Metadata:      map[string]string{"chat_id": "99"},
+		})
 		msg := &fakeMsg{data: data}
 		s.handleMessage(context.Background(), msg)
 		if !msg.acked || msg.naked || msg.termed || len(pub.published) != 1 {
 			t.Fatalf("msg = %#v published=%d", msg, len(pub.published))
+		}
+		if pub.published[0].CorrelationID != "corr_ok" || pub.published[0].Metadata["chat_id"] != "99" {
+			t.Fatalf("published = %#v", pub.published[0])
 		}
 	})
 
@@ -145,13 +167,23 @@ func TestHandleMessageContracts(t *testing.T) {
 		pub := &fakePublisher{}
 		k := &fakeKernel{err: errors.New("kernel blew up")}
 		s := handlerHarness(k, pub)
-		data, _ := json.Marshal(natstransport.InputMessage{ID: "evt_err", Text: "something"})
+		data, _ := json.Marshal(natstransport.InputMessage{ID: "evt_err", CorrelationID: "corr_err", Text: "something"})
 		msg := &fakeMsg{data: data}
 		s.handleMessage(context.Background(), msg)
 		if !msg.acked || len(pub.published) != 1 || pub.published[0].Status != "error" {
 			t.Fatalf("msg = %#v published=%#v", msg, pub.published)
 		}
+		if pub.published[0].CorrelationID != "corr_err" {
+			t.Fatalf("published = %#v", pub.published[0])
+		}
 	})
+}
+
+func TestToKernelEventDefaultsCorrelationID(t *testing.T) {
+	event := toKernelEvent(natstransport.InputMessage{ID: "evt_no_corr", Text: "hello"})
+	if event.CorrelationID != "evt_no_corr" {
+		t.Fatalf("expected fallback correlation id, got %#v", event)
+	}
 }
 
 var _ natsMsg = (*fakeMsg)(nil)

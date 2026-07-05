@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/nats-io/nats.go"
@@ -110,6 +111,7 @@ type natsMsg interface {
 	Term() error
 	GetData() []byte
 	GetSubject() string
+	GetNumDelivered() uint64
 }
 
 type natsMsgWrapper struct{ m *nats.Msg }
@@ -119,6 +121,13 @@ func (w *natsMsgWrapper) Nak() error         { return w.m.Nak() }
 func (w *natsMsgWrapper) Term() error        { return w.m.Term() }
 func (w *natsMsgWrapper) GetData() []byte    { return w.m.Data }
 func (w *natsMsgWrapper) GetSubject() string { return w.m.Subject }
+func (w *natsMsgWrapper) GetNumDelivered() uint64 {
+	meta, err := w.m.Metadata()
+	if err != nil || meta == nil || meta.NumDelivered == 0 {
+		return 1
+	}
+	return meta.NumDelivered
+}
 
 func (s *Subscriber) handleMessage(ctx context.Context, msg natsMsg) {
 	var input natstransport.InputMessage
@@ -149,16 +158,34 @@ func (s *Subscriber) handleMessage(ctx context.Context, msg natsMsg) {
 			"event_id", input.ID,
 			"err", kernelErr,
 		)
-		out = newOutputError(input.ID, kernelErr)
+		out = newOutputError(input.ID, input.CorrelationID, input.Metadata, kernelErr)
 	} else {
-		out = newOutputOK(input.ID, result)
+		out = newOutputOK(input.ID, input.CorrelationID, input.Metadata, result)
 	}
 
 	if err := s.publisher.Publish(out); err != nil {
+		delivered := msg.GetNumDelivered()
 		s.logger.Error("nats: publish failed - naking message",
 			"event_id", input.ID,
+			"num_delivered", delivered,
 			"err", err,
 		)
+
+		if s.shouldSendToDLQ(delivered) {
+			if dlqErr := s.publishDLQ(input, out, err, delivered); dlqErr != nil {
+				s.logger.Error("nats: dlq publish failed",
+					"event_id", input.ID,
+					"num_delivered", delivered,
+					"err", dlqErr,
+				)
+			} else {
+				if ackErr := msg.Ack(); ackErr != nil {
+					s.logger.Warn("nats: ack after dlq failed", "event_id", input.ID, "err", ackErr)
+				}
+				return
+			}
+		}
+
 		_ = msg.Nak()
 		return
 	}
@@ -184,9 +211,14 @@ func toKernelEvent(m natstransport.InputMessage) kernel.Event {
 		meta = map[string]string{}
 	}
 
+	corr := strings.TrimSpace(m.CorrelationID)
+	if corr == "" {
+		corr = m.ID
+	}
+
 	return kernel.Event{
 		ID:               m.ID,
-		CorrelationID:    m.CorrelationID,
+		CorrelationID:    corr,
 		Source:           m.Source,
 		Text:             m.Text,
 		OccurredAt:       ts,
@@ -202,27 +234,81 @@ func toKernelEvent(m natstransport.InputMessage) kernel.Event {
 	}
 }
 
-func newOutputOK(inputEventID string, result kernel.PipelineResult) natstransport.OutputMessage {
+func newOutputOK(inputEventID string, correlationID string, metadata map[string]string, result kernel.PipelineResult) natstransport.OutputMessage {
 	payload, err := json.Marshal(result)
 	if err != nil {
 		err = fmt.Errorf("marshal pipeline result: %w", err)
-		return newOutputError(inputEventID, err)
+		return newOutputError(inputEventID, correlationID, metadata, err)
 	}
 
 	return natstransport.OutputMessage{
-		InputEventID: inputEventID,
-		Status:       "ok",
-		Result:       payload,
-		ProcessedAt:  time.Now().UTC(),
+		InputEventID:  inputEventID,
+		CorrelationID: correlationID,
+		Status:        "ok",
+		Result:        payload,
+		Metadata:      cloneMetadata(metadata),
+		ProcessedAt:   time.Now().UTC(),
 	}
 }
 
-func newOutputError(inputEventID string, err error) natstransport.OutputMessage {
+func newOutputError(inputEventID string, correlationID string, metadata map[string]string, err error) natstransport.OutputMessage {
 	s := err.Error()
 	return natstransport.OutputMessage{
-		InputEventID: inputEventID,
-		Status:       "error",
-		Error:        &s,
-		ProcessedAt:  time.Now().UTC(),
+		InputEventID:  inputEventID,
+		CorrelationID: correlationID,
+		Status:        "error",
+		Error:         &s,
+		Metadata:      cloneMetadata(metadata),
+		ProcessedAt:   time.Now().UTC(),
 	}
+}
+
+func cloneMetadata(src map[string]string) map[string]string {
+	if len(src) == 0 {
+		return nil
+	}
+	out := make(map[string]string, len(src))
+	for k, v := range src {
+		out[k] = v
+	}
+	return out
+}
+
+func (s *Subscriber) shouldSendToDLQ(numDelivered uint64) bool {
+	if s.cfg.DLQSubject == "" {
+		return false
+	}
+	if s.cfg.MaxDeliver <= 0 {
+		return false
+	}
+	return numDelivered >= uint64(s.cfg.MaxDeliver)
+}
+
+func (s *Subscriber) publishDLQ(input natstransport.InputMessage, out natstransport.OutputMessage, cause error, numDelivered uint64) error {
+	payload := map[string]any{
+		"input":          input,
+		"output":         out,
+		"error":          cause.Error(),
+		"num_delivered":  numDelivered,
+		"failed_at":      time.Now().UTC(),
+		"failed_subject": s.cfg.OutputSubject,
+	}
+
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("marshal dlq payload: %w", err)
+	}
+
+	if _, err := s.js.Publish(s.cfg.DLQSubject, data); err != nil {
+		return fmt.Errorf("publish dlq message: %w", err)
+	}
+
+	s.logger.Warn("nats: message moved to dlq",
+		"event_id", input.ID,
+		"correlation_id", input.CorrelationID,
+		"dlq_subject", s.cfg.DLQSubject,
+		"num_delivered", numDelivered,
+	)
+
+	return nil
 }
