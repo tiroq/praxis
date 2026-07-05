@@ -24,6 +24,9 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.OutputSubject != "praxis.kernel.output" {
 		t.Fatalf("OutputSubject = %q", cfg.OutputSubject)
 	}
+	if cfg.DLQSubject != "praxis.kernel.dlq" {
+		t.Fatalf("DLQSubject = %q", cfg.DLQSubject)
+	}
 	if cfg.Durable != "praxis-worker" {
 		t.Fatalf("Durable = %q", cfg.Durable)
 	}
@@ -40,6 +43,7 @@ func TestConfigFromEnv(t *testing.T) {
 	t.Setenv("NATS_STREAM", "MYSTREAM")
 	t.Setenv("NATS_INPUT_SUBJECT", "my.input")
 	t.Setenv("NATS_OUTPUT_SUBJECT", "my.output")
+	t.Setenv("NATS_DLQ_SUBJECT", "my.dlq")
 	t.Setenv("NATS_DURABLE", "my-consumer")
 	t.Setenv("NATS_ACK_WAIT_SECONDS", "60")
 	t.Setenv("NATS_MAX_DELIVER", "5")
@@ -50,6 +54,9 @@ func TestConfigFromEnv(t *testing.T) {
 	}
 	if cfg.InputSubject != "my.input" || cfg.OutputSubject != "my.output" {
 		t.Fatalf("cfg subjects = %#v", cfg)
+	}
+	if cfg.DLQSubject != "my.dlq" {
+		t.Fatalf("cfg dlq = %#v", cfg)
 	}
 	if cfg.Durable != "my-consumer" || cfg.AckWait != 60*time.Second || cfg.MaxDeliver != 5 {
 		t.Fatalf("cfg timing = %#v", cfg)
@@ -70,10 +77,12 @@ func TestInputMessageValidate(t *testing.T) {
 
 func TestOutputMessageRoundTrip(t *testing.T) {
 	out := OutputMessage{
-		InputEventID: "evt_1",
-		Status:       "ok",
-		Result:       json.RawMessage(`{"decision":{"id":"dec_1","outcome":"approve"},"actions":[{"id":"act_1"}]}`),
-		ProcessedAt:  time.Now().UTC(),
+		InputEventID:  "evt_1",
+		CorrelationID: "corr_1",
+		Status:        "ok",
+		Result:        json.RawMessage(`{"decision":{"id":"dec_1","outcome":"approve"},"actions":[{"id":"act_1"}]}`),
+		Metadata:      map[string]string{"chat_id": "42"},
+		ProcessedAt:   time.Now().UTC(),
 	}
 
 	data, err := json.Marshal(out)
@@ -87,6 +96,9 @@ func TestOutputMessageRoundTrip(t *testing.T) {
 	}
 	if decoded.Status != "ok" || len(decoded.Result) == 0 {
 		t.Fatalf("decoded = %#v", decoded)
+	}
+	if decoded.CorrelationID != "corr_1" || decoded.Metadata["chat_id"] != "42" {
+		t.Fatalf("decoded metadata = %#v", decoded)
 	}
 }
 
