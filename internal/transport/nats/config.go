@@ -25,6 +25,9 @@ type Config struct {
 	// OutputSubject is the subject the worker publishes processed results to.
 	OutputSubject string
 
+	// DLQSubject is the subject terminally failed messages are published to.
+	DLQSubject string
+
 	// Durable is the durable consumer name for at-least-once delivery.
 	Durable string
 
@@ -44,6 +47,7 @@ func DefaultConfig() Config {
 		StreamName:    "PRAXIS",
 		InputSubject:  "praxis.kernel.input",
 		OutputSubject: "praxis.kernel.output",
+		DLQSubject:    "praxis.kernel.dlq",
 		Durable:       "praxis-worker",
 		AckWait:       30 * time.Second,
 		MaxDeliver:    3,
@@ -59,6 +63,7 @@ func DefaultConfig() Config {
 //	NATS_STREAM            – JetStream stream name
 //	NATS_INPUT_SUBJECT     – inbound subject
 //	NATS_OUTPUT_SUBJECT    – outbound subject
+//	NATS_DLQ_SUBJECT       – dead-letter subject
 //	NATS_DURABLE           – durable consumer name
 //	NATS_ACK_WAIT_SECONDS  – ack wait in seconds (integer)
 //	NATS_MAX_DELIVER        – max delivery attempts (integer)
@@ -76,6 +81,9 @@ func ConfigFromEnv() Config {
 	}
 	if v := os.Getenv("NATS_OUTPUT_SUBJECT"); v != "" {
 		cfg.OutputSubject = v
+	}
+	if v := os.Getenv("NATS_DLQ_SUBJECT"); v != "" {
+		cfg.DLQSubject = v
 	}
 	if v := os.Getenv("NATS_DURABLE"); v != "" {
 		cfg.Durable = v
