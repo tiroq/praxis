@@ -26,6 +26,9 @@ type MessagePublisher interface {
 	Publish(msg natstransport.OutputMessage) error
 }
 
+// ReplyGenerator builds a user-facing assistant reply from input and kernel output.
+type ReplyGenerator func(ctx context.Context, input natstransport.InputMessage, result kernel.PipelineResult) (string, error)
+
 // Subscriber wraps a JetStream pull-subscribe loop and routes each message
 // through the kernel pipeline before publishing the result.
 // Optionally persists conversation history to a rebuildable SQLite projection store.
@@ -34,9 +37,13 @@ type Subscriber struct {
 	cfg               natstransport.Config
 	kernel            KernelRunner
 	publisher         MessagePublisher
+	replyGenerator    ReplyGenerator
+	replyTimeout      time.Duration
 	logger            *slog.Logger
 	conversationStore *conversationstore.SQLiteStore // optional; nil if not provided
 }
+
+const defaultReplyTimeout = 5 * time.Second
 
 // NewSubscriber constructs a Subscriber. Parameters are required except conversationStore which is optional.
 func NewSubscriber(
@@ -51,6 +58,7 @@ func NewSubscriber(
 		cfg:               cfg,
 		kernel:            k,
 		publisher:         pub,
+		replyTimeout:      defaultReplyTimeout,
 		logger:            logger,
 		conversationStore: nil,
 	}
@@ -60,6 +68,18 @@ func NewSubscriber(
 // Returns the Subscriber for method chaining.
 func (s *Subscriber) WithConversationStore(store *conversationstore.SQLiteStore) *Subscriber {
 	s.conversationStore = store
+	return s
+}
+
+// WithReplyGenerator configures optional LLM-powered assistant reply generation.
+// If timeout is <= 0, a safe default timeout is used.
+func (s *Subscriber) WithReplyGenerator(generator ReplyGenerator, timeout time.Duration) *Subscriber {
+	s.replyGenerator = generator
+	if timeout > 0 {
+		s.replyTimeout = timeout
+	} else {
+		s.replyTimeout = defaultReplyTimeout
+	}
 	return s
 }
 
@@ -204,7 +224,34 @@ func (s *Subscriber) handleMessage(ctx context.Context, msg natsMsg) {
 		)
 		out = newOutputError(input.ID, correlationID, input.Metadata, kernelErr)
 	} else {
-		out = newOutputOK(input.ID, correlationID, input.Metadata, result)
+		assistantReply := ""
+		if s.replyGenerator != nil {
+			replyCtx := ctx
+			cancel := func() {}
+			if s.replyTimeout > 0 {
+				replyCtx, cancel = context.WithTimeout(ctx, s.replyTimeout)
+			}
+			reply, replyErr := s.replyGenerator(replyCtx, input, result)
+			cancel()
+
+			if replyErr != nil {
+				s.logger.Warn("nats: llm reply generation failed; using deterministic fallback",
+					"event_id", input.ID,
+					"err", replyErr,
+				)
+				assistantReply = deterministicFallbackReply(input.Text)
+			} else {
+				assistantReply = strings.TrimSpace(reply)
+				if assistantReply == "" {
+					s.logger.Warn("nats: llm reply generation returned empty reply; using deterministic fallback",
+						"event_id", input.ID,
+					)
+					assistantReply = deterministicFallbackReply(input.Text)
+				}
+			}
+		}
+
+		out = newOutputOK(input.ID, correlationID, input.Metadata, result, assistantReply)
 	}
 
 	if err := s.publisher.Publish(out); err != nil {
@@ -236,11 +283,16 @@ func (s *Subscriber) handleMessage(ctx context.Context, msg natsMsg) {
 
 	// Optionally persist output message to conversation store (RFC-033: Message Projection)
 	if s.conversationStore != nil && conversationID != "" && out.Status == "ok" {
+		assistantText := strings.TrimSpace(out.AssistantReply)
+		if assistantText == "" {
+			assistantText = string(out.Result)
+		}
+
 		outputMsg := conversationstore.NewMessage(
 			conversationID,
 			out.InputEventID,
 			"assistant",
-			string(out.Result),
+			assistantText,
 			out.ProcessedAt.Format(time.RFC3339Nano),
 			out.Metadata,
 		)
@@ -298,7 +350,7 @@ func toKernelEvent(m natstransport.InputMessage) kernel.Event {
 	}
 }
 
-func newOutputOK(inputEventID string, correlationID string, metadata map[string]string, result kernel.PipelineResult) natstransport.OutputMessage {
+func newOutputOK(inputEventID string, correlationID string, metadata map[string]string, result kernel.PipelineResult, assistantReply string) natstransport.OutputMessage {
 	payload, err := json.Marshal(result)
 	if err != nil {
 		err = fmt.Errorf("marshal pipeline result: %w", err)
@@ -306,13 +358,25 @@ func newOutputOK(inputEventID string, correlationID string, metadata map[string]
 	}
 
 	return natstransport.OutputMessage{
-		InputEventID:  inputEventID,
-		CorrelationID: correlationID,
-		Status:        "ok",
-		Result:        payload,
-		Metadata:      cloneMetadata(metadata),
-		ProcessedAt:   time.Now().UTC(),
+		InputEventID:   inputEventID,
+		CorrelationID:  correlationID,
+		Status:         "ok",
+		Result:         payload,
+		AssistantReply: strings.TrimSpace(assistantReply),
+		Metadata:       cloneMetadata(metadata),
+		ProcessedAt:    time.Now().UTC(),
 	}
+}
+
+func deterministicFallbackReply(text string) string {
+	trimmed := strings.TrimSpace(text)
+	if trimmed == "" {
+		return "I could not generate a reply right now."
+	}
+	if len(trimmed) > 160 {
+		trimmed = trimmed[:160] + "..."
+	}
+	return "I received your message: " + trimmed
 }
 
 func newOutputError(inputEventID string, correlationID string, metadata map[string]string, err error) natstransport.OutputMessage {

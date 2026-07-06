@@ -94,12 +94,15 @@ func TestToKernelEvent(t *testing.T) {
 }
 
 func TestOutputBuilders(t *testing.T) {
-	ok := newOutputOK("evt_1", "corr_1", map[string]string{"chat_id": "5"}, kernel.PipelineResult{EventID: "evt_1"})
+	ok := newOutputOK("evt_1", "corr_1", map[string]string{"chat_id": "5"}, kernel.PipelineResult{EventID: "evt_1"}, "hello from llm")
 	if ok.Status != "ok" || len(ok.Result) == 0 || ok.Error != nil {
 		t.Fatalf("ok = %#v", ok)
 	}
 	if ok.CorrelationID != "corr_1" || ok.Metadata["chat_id"] != "5" {
 		t.Fatalf("ok correlation/metadata = %#v", ok)
+	}
+	if ok.AssistantReply != "hello from llm" {
+		t.Fatalf("ok assistant_reply = %#v", ok)
 	}
 
 	errOut := newOutputError("evt_2", "corr_2", map[string]string{"chat_id": "7"}, errors.New("boom"))
@@ -164,6 +167,99 @@ func TestHandleMessageContracts(t *testing.T) {
 		}
 	})
 
+	t.Run("llm reply is invoked and published", func(t *testing.T) {
+		pub := &fakePublisher{}
+		k := &fakeKernel{result: kernel.PipelineResult{EventID: "evt_llm_ok"}}
+		s := handlerHarness(k, pub)
+
+		called := false
+		s.WithReplyGenerator(func(_ context.Context, input natstransport.InputMessage, _ kernel.PipelineResult) (string, error) {
+			called = true
+			if input.ID != "evt_llm_ok" {
+				t.Fatalf("expected input id evt_llm_ok, got %s", input.ID)
+			}
+			return "LLM says hi", nil
+		}, 2*time.Second)
+
+		data, _ := json.Marshal(natstransport.InputMessage{
+			ID:            "evt_llm_ok",
+			CorrelationID: "corr_llm_ok",
+			Text:          "hello",
+			Timestamp:     time.Now().UTC(),
+		})
+		msg := &fakeMsg{data: data}
+		s.handleMessage(context.Background(), msg)
+
+		if !called {
+			t.Fatal("expected llm reply generator to be called")
+		}
+		if len(pub.published) != 1 {
+			t.Fatalf("expected one published output, got %d", len(pub.published))
+		}
+		if pub.published[0].AssistantReply != "LLM says hi" {
+			t.Fatalf("expected assistant reply to be published, got %#v", pub.published[0])
+		}
+	})
+
+	t.Run("llm provider error falls back deterministically", func(t *testing.T) {
+		pub := &fakePublisher{}
+		k := &fakeKernel{result: kernel.PipelineResult{EventID: "evt_llm_err"}}
+		s := handlerHarness(k, pub)
+
+		s.WithReplyGenerator(func(_ context.Context, _ natstransport.InputMessage, _ kernel.PipelineResult) (string, error) {
+			return "", errors.New("provider unavailable")
+		}, 2*time.Second)
+
+		data, _ := json.Marshal(natstransport.InputMessage{
+			ID:            "evt_llm_err",
+			CorrelationID: "corr_llm_err",
+			Text:          "please summarize this",
+			Timestamp:     time.Now().UTC(),
+		})
+		msg := &fakeMsg{data: data}
+		s.handleMessage(context.Background(), msg)
+
+		if len(pub.published) != 1 {
+			t.Fatalf("expected one published output, got %d", len(pub.published))
+		}
+		if pub.published[0].AssistantReply == "" {
+			t.Fatalf("expected fallback assistant reply, got %#v", pub.published[0])
+		}
+		if pub.published[0].InputEventID != "evt_llm_err" || pub.published[0].CorrelationID != "corr_llm_err" {
+			t.Fatalf("expected ids preserved, got %#v", pub.published[0])
+		}
+	})
+
+	t.Run("llm timeout falls back deterministically", func(t *testing.T) {
+		pub := &fakePublisher{}
+		k := &fakeKernel{result: kernel.PipelineResult{EventID: "evt_llm_timeout"}}
+		s := handlerHarness(k, pub)
+
+		s.WithReplyGenerator(func(ctx context.Context, _ natstransport.InputMessage, _ kernel.PipelineResult) (string, error) {
+			<-ctx.Done()
+			return "", ctx.Err()
+		}, 10*time.Millisecond)
+
+		data, _ := json.Marshal(natstransport.InputMessage{
+			ID:            "evt_llm_timeout",
+			CorrelationID: "corr_llm_timeout",
+			Text:          "timeout please",
+			Timestamp:     time.Now().UTC(),
+		})
+		msg := &fakeMsg{data: data}
+		s.handleMessage(context.Background(), msg)
+
+		if len(pub.published) != 1 {
+			t.Fatalf("expected one published output, got %d", len(pub.published))
+		}
+		if pub.published[0].AssistantReply == "" {
+			t.Fatalf("expected timeout fallback assistant reply, got %#v", pub.published[0])
+		}
+		if pub.published[0].InputEventID != "evt_llm_timeout" || pub.published[0].CorrelationID != "corr_llm_timeout" {
+			t.Fatalf("expected ids preserved, got %#v", pub.published[0])
+		}
+	})
+
 	t.Run("missing correlation defaults through to output", func(t *testing.T) {
 		pub := &fakePublisher{}
 		k := &fakeKernel{result: kernel.PipelineResult{EventID: "evt_missing_corr"}}
@@ -222,6 +318,9 @@ func TestHandleMessage_PersistsConversationProjection(t *testing.T) {
 	pub := &fakePublisher{}
 	k := &fakeKernel{result: kernel.PipelineResult{EventID: "evt_persist_1"}}
 	s := handlerHarness(k, pub).WithConversationStore(store)
+	s.WithReplyGenerator(func(_ context.Context, _ natstransport.InputMessage, _ kernel.PipelineResult) (string, error) {
+		return "hello from llm reply", nil
+	}, time.Second)
 
 	data, _ := json.Marshal(natstransport.InputMessage{
 		ID:            "evt_persist_1",
@@ -257,6 +356,9 @@ func TestHandleMessage_PersistsConversationProjection(t *testing.T) {
 		roles[m.Role]++
 		if m.EventID != "evt_persist_1" {
 			t.Fatalf("expected projection message to preserve event id, got %q", m.EventID)
+		}
+		if m.Role == "assistant" && m.Content != "hello from llm reply" {
+			t.Fatalf("expected assistant message content from llm reply, got %q", m.Content)
 		}
 	}
 	if roles["user"] != 1 || roles["assistant"] != 1 {
