@@ -17,7 +17,6 @@ package main
 import (
 	"context"
 	"log/slog"
-	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -25,6 +24,7 @@ import (
 	"time"
 
 	"github.com/tiroq/praxis/internal/core/kernel"
+	"github.com/tiroq/praxis/internal/llm"
 	"github.com/tiroq/praxis/internal/storage"
 	"github.com/tiroq/praxis/internal/storage/conversationstore"
 	natstransport "github.com/tiroq/praxis/internal/transport/nats"
@@ -214,9 +214,16 @@ func main() {
 
 	llmCfg := llmRuntimeConfigFromEnv()
 	if llmCfg.Enabled {
-		llmHTTPClient := &http.Client{}
-		llmClient := natsworker.NewLLMRouterClient(llmCfg.Endpoint, llmHTTPClient)
-		sub.WithReplyGenerator(llmClient.GenerateReply, llmCfg.Timeout)
+		llmClient := llm.NewClient(llmCfg.Endpoint, nil)
+		sub.WithReplyGenerator(func(ctx context.Context, input natstransport.InputMessage, _ kernel.PipelineResult) (string, error) {
+			return llmClient.GenerateReply(ctx, llm.GenerateReplyInput{
+				InputEventID:  input.ID,
+				CorrelationID: input.CorrelationID,
+				Source:        input.Source,
+				UserMessage:   input.Text,
+				Metadata:      input.Metadata,
+			})
+		}, llmCfg.Timeout)
 		logger.Info("subscriber configured with llm reply generator",
 			"llm_router_url", llmCfg.Endpoint,
 			"llm_timeout", llmCfg.Timeout,
