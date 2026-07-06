@@ -8,7 +8,8 @@ import (
 )
 
 // Conversation represents a persistent dialogue between participants.
-// It is a Canonical Object per RFC-014, owned by and stored in the Canonical Store per RFC-033.
+// It is a projection grouping key derived from external correlation metadata.
+// It is not canonical truth and can be rebuilt from immutable events.
 //
 // Fields:
 //
