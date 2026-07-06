@@ -1,7 +1,6 @@
 ---
-name: "Validation & Verification Discipline"
-description: "Build and verification operations. Test execution, validation command strategy, repair loops, and continuous validation during implementation."
-applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
+name: "Validation & Verification Discipline — Reference"
+description: "Reference documentation. For active Copilot instructions, see .github/copilot-instructions.md"
 ---
 
 # Validation & Verification Discipline

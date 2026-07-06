@@ -1,7 +1,6 @@
 ---
-name: "Engineering Laws & Invariants"
-description: "Core principles, architectural invariants (immutable events, auditable decisions, policy-bound memory, bounded spaces), and engineering laws."
-applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
+name: "Engineering Laws & Invariants — Reference"
+description: "Reference documentation. For active Copilot instructions, see .github/copilot-instructions.md"
 ---
 
 # Engineering Laws & Invariants

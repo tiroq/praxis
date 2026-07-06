@@ -1,7 +1,6 @@
 ---
-name: "Pure Mapper Discipline"
-description: "Mandatory rules for all transport mapping functions (adapters). Enforces purity, pure function shape, referential transparency, and structural triviality."
-applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
+name: "Pure Mapper Discipline — Reference"
+description: "Reference documentation. For active Copilot instructions, see .github/copilot-instructions.md"
 ---
 
 # Pure Mapper Discipline

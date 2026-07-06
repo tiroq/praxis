@@ -1,7 +1,6 @@
 ---
-description: "CONSOLIDATED — Refer to COPILOT_AUTONOMOUS_WORKFLOW.instructions.md (Phase 3 and Phase 2.2)"
-name: "Praxis Architecture Guardian [DEPRECATED]"
-applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
+description: "This file is deprecated. For active Copilot instructions, see .github/copilot-instructions.md"
+name: "Deprecated — Architecture Guardian"
 ---
 
 # ⚠️ CONSOLIDATED — Use New Modular System

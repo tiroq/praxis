@@ -1,7 +1,6 @@
 ---
-description: "CONSOLIDATED — Refer to COPILOT_AUTONOMOUS_WORKFLOW.instructions.md"
-name: "Praxis Implementation Discipline [DEPRECATED]"
-applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
+description: "This file is deprecated. For active Copilot instructions, see .github/copilot-instructions.md"
+name: "Deprecated — Implementation Instructions"
 ---
 
 # ⚠️ CONSOLIDATED — Use New Modular System

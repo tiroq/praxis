@@ -1,7 +1,6 @@
 ---
-name: "Architecture Review Discipline"
-description: "11-phase architecture review gate. Mandatory before implementing new abstractions. Enforces RFC fidelity, clean boundaries, component categorization, and Extract, Don't Invent principle."
-applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
+name: "Architecture Review Discipline — Reference"
+description: "Reference documentation. For active Copilot instructions, see .github/copilot-instructions.md"
 ---
 
 # Architecture Review Discipline

@@ -1,7 +1,6 @@
 ---
-name: "Implementation Discipline"
-description: "RFC-driven implementation rules. Vertical slices, reuse-before-build, reference implementations, implementation order, and planning discipline."
-applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
+name: "Implementation Discipline — Reference"
+description: "Reference documentation. For active Copilot instructions, see .github/copilot-instructions.md"
 ---
 
 # Implementation Discipline
