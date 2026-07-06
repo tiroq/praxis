@@ -5,54 +5,28 @@ import (
 	"testing"
 )
 
-// TestNewReplyGenerator verifies that NewReplyGenerator creates a generator with expected defaults.
-func TestNewReplyGenerator(t *testing.T) {
+// TestNewConversationResponder verifies construction.
+func TestNewConversationResponder(t *testing.T) {
 	client := NewClient("http://localhost:8081/v1/reply", nil)
-	gen := NewReplyGenerator(client, nil)
+	responder := NewConversationResponder(client, nil)
 
-	if gen == nil {
-		t.Fatal("NewReplyGenerator returned nil")
+	if responder == nil {
+		t.Fatal("NewConversationResponder returned nil")
 	}
-	if gen.client != client {
+	if responder.client != client {
 		t.Error("client not set correctly")
 	}
-	if gen.conversationStore != nil {
+	if responder.conversationStore != nil {
 		t.Error("conversation store should be nil when not provided")
 	}
-	if gen.contextLimit != defaultContextLimit {
-		t.Errorf("expected context limit %d, got %d", defaultContextLimit, gen.contextLimit)
-	}
 }
 
-// TestReplyGenerator_WithContextLimit verifies that WithContextLimit sets the limit correctly.
-func TestReplyGenerator_WithContextLimit(t *testing.T) {
+// TestConversationResponder_Respond_EmptyUserMessage verifies rejection of empty messages.
+func TestConversationResponder_Respond_EmptyUserMessage(t *testing.T) {
 	client := NewClient("http://localhost:8081/v1/reply", nil)
-	gen := NewReplyGenerator(client, nil).WithContextLimit(5)
+	responder := NewConversationResponder(client, nil)
 
-	if gen.contextLimit != 5 {
-		t.Errorf("expected context limit 5, got %d", gen.contextLimit)
-	}
-
-	// Verify negative/zero limit is ignored
-	gen.WithContextLimit(-1)
-	if gen.contextLimit != 5 {
-		t.Errorf("expected context limit to remain 5 after negative input, got %d", gen.contextLimit)
-	}
-
-	gen.WithContextLimit(0)
-	if gen.contextLimit != 5 {
-		t.Errorf("expected context limit to remain 5 after zero input, got %d", gen.contextLimit)
-	}
-}
-
-// TestReplyGenerator_GenerateReply_EmptyUserMessage verifies that GenerateReply
-// rejects empty user messages.
-func TestReplyGenerator_GenerateReply_EmptyUserMessage(t *testing.T) {
-	client := NewClient("http://localhost:8081/v1/reply", nil)
-	gen := NewReplyGenerator(client, nil)
-
-	ctx := context.Background()
-	_, err := gen.GenerateReply(ctx, ReplyRequest{
+	_, err := responder.Respond(context.Background(), RespondRequest{
 		CorrelationID: "conv-123",
 		UserMessage:   "",
 		Source:        "test",
@@ -63,30 +37,69 @@ func TestReplyGenerator_GenerateReply_EmptyUserMessage(t *testing.T) {
 	}
 }
 
-// TestReplyGenerator_GenerateReply_NilGenerator verifies that GenerateReply
-// handles nil generator gracefully.
-func TestReplyGenerator_GenerateReply_NilGenerator(t *testing.T) {
-	var gen *ReplyGenerator
+// TestConversationResponder_Respond_NilResponder verifies error handling.
+func TestConversationResponder_Respond_NilResponder(t *testing.T) {
+	var responder *ConversationResponder
 
-	_, err := gen.GenerateReply(context.Background(), ReplyRequest{
+	_, err := responder.Respond(context.Background(), RespondRequest{
 		UserMessage: "Hello",
 	})
 
 	if err == nil {
-		t.Fatal("expected error for nil generator")
+		t.Fatal("expected error for nil responder")
 	}
 }
 
-// TestReplyGenerator_GenerateReply_NilClient verifies that GenerateReply
-// handles nil client gracefully.
-func TestReplyGenerator_GenerateReply_NilClient(t *testing.T) {
-	gen := NewReplyGenerator(nil, nil)
+// TestConversationResponder_Respond_NilClient verifies error handling.
+func TestConversationResponder_Respond_NilClient(t *testing.T) {
+	responder := NewConversationResponder(nil, nil)
 
-	_, err := gen.GenerateReply(context.Background(), ReplyRequest{
+	_, err := responder.Respond(context.Background(), RespondRequest{
 		UserMessage: "Hello",
 	})
 
 	if err == nil {
 		t.Fatal("expected error for nil client")
+	}
+}
+
+// TestBackwardCompatibility_ReplyGenerator verifies old API still works.
+func TestBackwardCompatibility_ReplyGenerator(t *testing.T) {
+	client := NewClient("http://localhost:8081/v1/reply", nil)
+
+	// Old API: NewReplyGenerator (should work via alias)
+	gen := NewReplyGenerator(client, nil)
+	if gen == nil {
+		t.Fatal("NewReplyGenerator returned nil")
+	}
+
+	// Verify type
+	if _, ok := interface{}(gen).(*ConversationResponder); !ok {
+		t.Error("ReplyGenerator alias not pointing to ConversationResponder")
+	}
+}
+
+// TestBackwardCompatibility_WithContextLimit verifies deprecated method exists.
+func TestBackwardCompatibility_WithContextLimit(t *testing.T) {
+	client := NewClient("http://localhost:8081/v1/reply", nil)
+	responder := NewConversationResponder(client, nil)
+
+	// Old API: WithContextLimit (should be no-op)
+	result := responder.WithContextLimit(5)
+	if result != responder {
+		t.Error("WithContextLimit should return same responder")
+	}
+}
+
+// TestLoadConversationContext_NoStore verifies graceful degradation.
+func TestLoadConversationContext_NoStore(t *testing.T) {
+	ctx := context.Background()
+
+	// With nil store, should return empty context
+	conversationCtx := loadConversationContext(ctx, "any-id", nil)
+	msgs := conversationCtx.Messages()
+
+	if len(msgs) != 0 {
+		t.Errorf("expected empty messages, got %d", len(msgs))
 	}
 }
