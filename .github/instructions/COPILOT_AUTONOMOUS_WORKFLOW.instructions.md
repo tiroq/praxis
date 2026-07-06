@@ -1,14 +1,14 @@
 ---
-name: "Copilot Autonomous Implementation Workflow"
-description: "Complete execution workflow for autonomous implementation in Praxis. From discovery through RFCs, architecture validation, implementation, verification, and final report. Default behavior for all implementation tasks."
+name: "Copilot Autonomous Workflow"
+description: "Orchestration layer for autonomous implementation in Praxis. Coordinates 11 phases from discovery through validation and final report. Delegates rule enforcement to specialized instruction files."
 applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
 ---
 
-# Copilot Autonomous Implementation Workflow
+# Copilot Autonomous Workflow — Orchestration Layer
 
 **Default Assumption:** The user expects complete implementation, not just analysis or planning.
 
-This workflow transforms Copilot into an autonomous implementation agent. Execute all phases automatically from discovery through final report without stopping for intermediate confirmations unless genuinely blocked by missing information.
+This workflow orchestrates autonomous implementation from discovery through final report. Execute all phases automatically without stopping for intermediate confirmations unless genuinely blocked by missing information.
 
 ---
 
