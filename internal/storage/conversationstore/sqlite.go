@@ -6,14 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"sync/atomic"
 	"time"
 
 	_ "modernc.org/sqlite" // register SQLite driver
 )
 
-// SQLiteStore is the unexported SQLite-backed implementation of ConversationStore.
-// Callers receive only the ConversationStore interface; no *sql.DB is accessible.
+// SQLiteStore is a concrete SQLite-backed store for conversation history projections.
+// It is rebuildable from canonical events and is not a source of truth.
 type SQLiteStore struct {
 	db     *sql.DB
 	closed atomic.Bool
@@ -22,7 +23,7 @@ type SQLiteStore struct {
 // OpenStore opens or creates a SQLite conversation store at the specified path.
 // Use ":memory:" for an in-memory database (useful for tests).
 // Applies schema idempotently using CREATE TABLE IF NOT EXISTS.
-func OpenStore(ctx context.Context, path string) (ConversationStore, error) {
+func OpenStore(ctx context.Context, path string) (*SQLiteStore, error) {
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
 		return nil, err
@@ -230,7 +231,9 @@ func (s *SQLiteStore) ListMessages(ctx context.Context, conversationID string, f
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	var messages []*Message
 	for rows.Next() {
@@ -334,8 +337,17 @@ func (s *SQLiteStore) Close() error {
 
 // isSQLiteConstraintError checks if an error is a SQLite UNIQUE constraint error.
 func isSQLiteConstraintError(err error) bool {
-	var sqlErr interface {
-		Code() string
+	// modernc sqlite uses numeric extended result codes (1555, 2067) for unique violations.
+	var codeInt interface {
+		Code() int
 	}
-	return errors.As(err, &sqlErr) && sqlErr.Code() == "SQLITE_CONSTRAINT"
+	if errors.As(err, &codeInt) {
+		code := codeInt.Code()
+		if code == 1555 || code == 2067 {
+			return true
+		}
+	}
+
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "sqlite_constraint") || strings.Contains(msg, "unique constraint failed")
 }
