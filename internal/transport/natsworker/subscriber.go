@@ -28,14 +28,14 @@ type MessagePublisher interface {
 
 // Subscriber wraps a JetStream pull-subscribe loop and routes each message
 // through the kernel pipeline before publishing the result.
-// Optionally persists conversation history to a ConversationStore.
+// Optionally persists conversation history to a rebuildable SQLite projection store.
 type Subscriber struct {
 	js                nats.JetStreamContext
 	cfg               natstransport.Config
 	kernel            KernelRunner
 	publisher         MessagePublisher
 	logger            *slog.Logger
-	conversationStore conversationstore.ConversationStore // optional; nil if not provided
+	conversationStore *conversationstore.SQLiteStore // optional; nil if not provided
 }
 
 // NewSubscriber constructs a Subscriber. Parameters are required except conversationStore which is optional.
@@ -56,9 +56,9 @@ func NewSubscriber(
 	}
 }
 
-// WithConversationStore sets the ConversationStore for persisting conversation history.
+// WithConversationStore sets the concrete SQLite conversation projection store.
 // Returns the Subscriber for method chaining.
-func (s *Subscriber) WithConversationStore(store conversationstore.ConversationStore) *Subscriber {
+func (s *Subscriber) WithConversationStore(store *conversationstore.SQLiteStore) *Subscriber {
 	s.conversationStore = store
 	return s
 }

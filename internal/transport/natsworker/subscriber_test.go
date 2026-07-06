@@ -11,6 +11,7 @@ import (
 
 	natspkg "github.com/nats-io/nats.go"
 	"github.com/tiroq/praxis/internal/core/kernel"
+	"github.com/tiroq/praxis/internal/storage/conversationstore"
 	natstransport "github.com/tiroq/praxis/internal/transport/nats"
 )
 
@@ -202,6 +203,67 @@ func TestToKernelEventDefaultsCorrelationID(t *testing.T) {
 	event := toKernelEvent(natstransport.InputMessage{ID: "evt_no_corr", Text: "hello"})
 	if event.CorrelationID != "evt_no_corr" {
 		t.Fatalf("expected fallback correlation id, got %#v", event)
+	}
+}
+
+func TestHandleMessage_PersistsConversationProjection(t *testing.T) {
+	ctx := context.Background()
+
+	store, err := conversationstore.OpenStore(ctx, ":memory:")
+	if err != nil {
+		t.Fatalf("OpenStore(:memory:) failed: %v", err)
+	}
+	defer func() {
+		if closeErr := store.Close(); closeErr != nil {
+			t.Fatalf("store.Close() failed: %v", closeErr)
+		}
+	}()
+
+	pub := &fakePublisher{}
+	k := &fakeKernel{result: kernel.PipelineResult{EventID: "evt_persist_1"}}
+	s := handlerHarness(k, pub).WithConversationStore(store)
+
+	data, _ := json.Marshal(natstransport.InputMessage{
+		ID:            "evt_persist_1",
+		CorrelationID: "telegram-chat-555",
+		Source:        "telegram",
+		Text:          "hello from telegram",
+		Timestamp:     time.Date(2026, 7, 6, 10, 0, 0, 0, time.UTC),
+		Metadata:      map[string]string{"chat_id": "555", "username": "alice"},
+	})
+
+	msg := &fakeMsg{data: data}
+	s.handleMessage(ctx, msg)
+
+	if !msg.acked || msg.naked || msg.termed {
+		t.Fatalf("unexpected ack state: %#v", msg)
+	}
+
+	conv, err := store.GetConversationByCorrelationID(ctx, "telegram-chat-555")
+	if err != nil {
+		t.Fatalf("GetConversationByCorrelationID() failed: %v", err)
+	}
+
+	history, err := store.ListMessages(ctx, conv.ID, conversationstore.ListFilter{})
+	if err != nil {
+		t.Fatalf("ListMessages() failed: %v", err)
+	}
+	if len(history) != 2 {
+		t.Fatalf("expected 2 persisted projection messages (user+assistant), got %d", len(history))
+	}
+
+	roles := map[string]int{}
+	for _, m := range history {
+		roles[m.Role]++
+		if m.EventID != "evt_persist_1" {
+			t.Fatalf("expected projection message to preserve event id, got %q", m.EventID)
+		}
+	}
+	if roles["user"] != 1 || roles["assistant"] != 1 {
+		t.Fatalf("expected one user and one assistant message, got roles=%#v", roles)
+	}
+	if conv.CorrelationID != "telegram-chat-555" {
+		t.Fatalf("expected preserved correlation id, got %q", conv.CorrelationID)
 	}
 }
 
