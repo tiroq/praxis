@@ -43,5 +43,4 @@ Telegram input can be captured, processed, observed, and recovered reliably with
 ## Notes
 
 - Golden mapper reference: `apps/telegram/main.py::telegram_update_to_payload()`.
-- Existing runtime gap audit: `verify/telegram-runtime-audit.md`.
 - Event/correlation invariants are defined by RFC-013 and RFC-032.

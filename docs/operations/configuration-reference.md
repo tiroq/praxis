@@ -2,7 +2,7 @@
 
 **Complete listing of all `PRAXIS_*` environment variables, organized by subsystem.**
 
-This document is the authoritative reference for Praxis runtime configuration. See [ADR-012](adr/ADR-012-runtime-configuration-naming.md) for rationale and design.
+This document is the authoritative reference for Praxis runtime configuration. See [ADR-012](../adr/ADR-012-runtime-configuration-naming.md) for rationale and design.
 
 ---
 
@@ -333,10 +333,10 @@ Use these canonical replacements:
 
 ## Related Documentation
 
-- [ADR-012: Runtime Configuration Naming Convention](adr/ADR-012-runtime-configuration-naming.md)
-- [ADR-008: Configuration Strategy](adr/ADR-008-configuration-strategy.md)
-- [RFC-030 §13: Cross-Cutting Concerns](../rfcs/030-system-architecture.md)
+- [ADR-012: Runtime Configuration Naming Convention](../adr/ADR-012-runtime-configuration-naming.md)
+- [ADR-008: Configuration Strategy](../adr/ADR-008-configuration-strategy.md)
+- [RFC-030 §13: Cross-Cutting Concerns](../../rfcs/030-system-architecture.md)
 - Service READMEs:
-  - [services/worker/README.md](../services/worker/README.md)
-  - [services/api-kernel/README.md](../services/api-kernel/README.md)
-  - [apps/telegram/README.md](../apps/telegram/README.md)
+  - [services/worker/README.md](../../services/worker/README.md)
+  - [services/api-kernel/README.md](../../services/api-kernel/README.md)
+  - [apps/telegram/README.md](../../apps/telegram/README.md)
