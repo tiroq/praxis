@@ -18,15 +18,36 @@ applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
 
 ## Phase 1: Discover
 
-**Do this first.** Never start without understanding what already exists.
+Do this first. Never start implementation without understanding what already exists.
 
-- List RFCs that might apply
-- Read each completely, quote sections governing this work
-- **STOP if RFCs conflict or ambiguous**
-- Read relevant ADRs and Policies
-- Use Graphify first (graphify query, path, explain)
-- Search for reference implementations (mapper, repository, adapter, etc.)
-- **Prefer evolving existing code**
+- List applicable RFCs.
+- Read each RFC completely and quote the sections governing this work.
+- STOP if RFCs conflict or are ambiguous.
+- Read relevant ADRs and Policies.
+- Use Graphify first (query, path, explain).
+- Search for existing implementations.
+- Never duplicate existing functionality.
+- Prefer extending or reusing existing code.
+
+Discovery must end with exactly one decision:
+
+- IMPLEMENT — the requested capability is missing or incomplete.
+- VERIFY ONLY — the requested capability already exists and satisfies all explicit acceptance criteria.
+
+If the result is VERIFY ONLY:
+
+- Do not modify the repository.
+- Verify the implementation.
+- Produce evidence:
+  - implementation locations,
+  - verification commands,
+  - test results,
+  - runtime output where applicable.
+- Explain why no changes are required.
+
+Do not perform opportunistic refactoring.
+
+A successful implementation may legitimately produce zero code changes.
 
 ---
 
