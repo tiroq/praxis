@@ -1,8 +1,3 @@
----
-name: "Pure Mapper Discipline — Reference"
-description: "Reference documentation. For active Copilot instructions, see .github/copilot-instructions.md"
----
-
 # Pure Mapper Discipline
 
 **Mandatory rule for all transport mapping functions (adapters).**
@@ -156,4 +151,3 @@ Transport contracts remain owned by RFCs.
 Review `docs/architecture/GOLDEN_MAPPER.md` before writing any mapper.
 
 Transport mappers must match the Golden Mapper reference (`apps/telegram/main.py::telegram_update_to_payload()`).
-

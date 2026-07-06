@@ -1,8 +1,3 @@
----
-name: "Validation & Verification Discipline — Reference"
-description: "Reference documentation. For active Copilot instructions, see .github/copilot-instructions.md"
----
-
 # Validation & Verification Discipline
 
 **Execute every applicable verification command. Only skip commands that genuinely do not exist.**
@@ -45,7 +40,7 @@ task report
 
 **During implementation,** before committing code, validate:
 
-- RFC compliance (see implementation.instructions.md)
+- RFC compliance (see [implementation.md](implementation.md))
 - Architecture compliance (no invariant violations)
 - No unnecessary abstractions
 - No unnecessary interfaces
@@ -103,4 +98,3 @@ Prefer reading RFC over guessing. If RFC ambiguous or missing, surface gap rathe
 Do not implement when blocked by ambiguity.
 
 Ask for clarification instead of inventing.
-

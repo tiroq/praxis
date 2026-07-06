@@ -1,8 +1,3 @@
----
-name: "Engineering Laws & Invariants — Reference"
-description: "Reference documentation. For active Copilot instructions, see .github/copilot-instructions.md"
----
-
 # Engineering Laws & Invariants
 
 These are non-negotiable. Any code violating one is wrong by definition. Repair immediately.
@@ -30,7 +25,7 @@ These are non-negotiable. Any code violating one is wrong by definition. Repair 
 
 Abstractions are extracted from existing code or approved RFCs. Never predicted or invented from future needs.
 
-See: architecture-review.instructions.md (Phase 11 — Abstraction Review)
+See: [architecture-review.md](architecture-review.md) (Phase 11 — Abstraction Review)
 
 ### RFC Is Source of Truth
 
@@ -133,4 +128,3 @@ Make reasonable architectural decisions using:
 - RFCs conflict
 - architectural ambiguity makes multiple incompatible implementations equally valid
 - implementation would violate established architecture
-

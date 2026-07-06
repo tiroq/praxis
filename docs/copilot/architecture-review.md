@@ -1,8 +1,3 @@
----
-name: "Architecture Review Discipline — Reference"
-description: "Reference documentation. For active Copilot instructions, see .github/copilot-instructions.md"
----
-
 # Architecture Review Discipline
 
 **Architecture is always more important than implementation.**
@@ -317,4 +312,3 @@ Document findings for the final report:
 - Architectural decisions made
 - Alternative designs considered and rejected
 - Risks and mitigations
-
