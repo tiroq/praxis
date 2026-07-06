@@ -41,6 +41,10 @@ The worker optionally records kernel pipeline execution events to a persistent E
 Event recording is configured via environment variables and is **non-fatal** — if storage
 fails to open, the worker logs a warning and continues without event recording.
 
+The worker also optionally persists conversation history as a **SQLite projection** used for
+reconstructing chat threads. This history is derived from immutable events and is rebuildable.
+The EventStore remains the canonical event source of truth.
+
 - **`PRAXIS_STORAGE_BACKEND`**: Storage backend to use (`memory` or `sqlite`).
   - `memory` — In-memory EventStore; events are not persisted to disk.
   - `sqlite` — SQLite-backed EventStore; events are persisted to the configured database file.
@@ -52,6 +56,11 @@ fails to open, the worker logs a warning and continues without event recording.
 When storage is successfully opened, the worker injects an `EventRecorder` into the kernel via
 `kernel.WithEventRecorder()`. The kernel then records a `kernel.pipeline.completed` event after
 each successful pipeline execution.
+
+When SQLite storage is enabled, the worker also opens a conversation projection store at
+`PRAXIS_SQLITE_PATH` and the subscriber appends both user and assistant messages for each
+processed input. Conversation persistence is non-fatal: failures are logged and the reply loop
+continues.
 
 **Example:**
 

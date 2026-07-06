@@ -77,10 +77,10 @@ func tryOpenStorage(ctx context.Context, logger *slog.Logger) *storage.Storage {
 	return store
 }
 
-// tryOpenConversationStore attempts to open conversation store using environment configuration.
+// tryOpenConversationStore attempts to open the SQLite-backed conversation projection store.
 // If store cannot be opened, logs the error and returns nil (non-fatal).
 // The worker will continue without conversation persistence if store is unavailable.
-func tryOpenConversationStore(ctx context.Context, logger *slog.Logger) conversationstore.ConversationStore {
+func tryOpenConversationStore(ctx context.Context, logger *slog.Logger) *conversationstore.SQLiteStore {
 	// For now, conversation store uses SQLite at the same path as event store.
 	// Environment: PRAXIS_STORAGE_PATH (defaults to build/praxis.db)
 	cfg := storage.ConfigFromEnv()
