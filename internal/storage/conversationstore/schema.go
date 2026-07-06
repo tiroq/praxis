@@ -1,7 +1,8 @@
 package conversationstore
 
 const schema = `
--- Conversations table: canonical conversation objects (RFC-033 Canonical Store)
+-- Conversations table: projection grouping derived from correlation metadata.
+-- Rebuildable from immutable events; not canonical truth.
 CREATE TABLE IF NOT EXISTS conversations (
     id TEXT PRIMARY KEY,
     correlation_id TEXT NOT NULL UNIQUE,
@@ -14,7 +15,7 @@ CREATE TABLE IF NOT EXISTS conversations (
 -- Create index for correlation_id lookups
 CREATE INDEX IF NOT EXISTS idx_conversations_correlation_id ON conversations(correlation_id);
 
--- Messages table: append-only conversation messages (RFC-033 Projection Store)
+-- Messages table: append-only conversation history projection (RFC-033 Projection Store)
 CREATE TABLE IF NOT EXISTS messages (
     id TEXT PRIMARY KEY,
     conversation_id TEXT NOT NULL,
