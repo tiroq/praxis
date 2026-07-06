@@ -1,6 +1,6 @@
-# Engineering Laws & Invariants
+# Praxis Engineering Laws & Invariants
 
-These are non-negotiable. Any code violating one is wrong by definition. Repair immediately.
+These are non-negotiable architectural principles. Any code violating one is wrong by definition. Repair immediately.
 
 ---
 
@@ -25,7 +25,7 @@ These are non-negotiable. Any code violating one is wrong by definition. Repair 
 
 Abstractions are extracted from existing code or approved RFCs. Never predicted or invented from future needs.
 
-See: [architecture-review.md](architecture-review.md) (Phase 11 — Abstraction Review)
+See: [../development/architecture-review.md](../development/architecture-review.md) (Phase 11 — Abstraction Review)
 
 ### RFC Is Source of Truth
 
