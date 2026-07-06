@@ -1,7 +1,6 @@
 ---
-name: "Copilot Autonomous Workflow"
-description: "Orchestration layer for autonomous implementation in Praxis. Coordinates 11 phases from discovery through validation and final report. Delegates rule enforcement to specialized instruction files."
-applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
+name: "Copilot Autonomous Workflow — Reference"
+description: "Reference documentation. For active Copilot instructions, see .github/copilot-instructions.md"
 ---
 
 # Copilot Autonomous Workflow — Orchestration Layer
