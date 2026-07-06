@@ -50,7 +50,7 @@ applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
 
 ## Phase 3: Architecture Review (If Gate = YES)
 
-Complete 11-phase review. See [docs/copilot/architecture-review.md](docs/copilot/architecture-review.md).
+Complete 11-phase review. See [docs/development/architecture-review.md](docs/development/architecture-review.md).
 
 Phases: RFC Review → Existing Arch → Responsibility → Ownership → Layer Validation → Component Categorization → Storage Rules → Dependency Graph → Runtime Data Flow → Public API → Abstraction Review (Extract/Invent).
 
@@ -65,7 +65,7 @@ Phases: RFC Review → Existing Arch → Responsibility → Ownership → Layer 
 Plan must include:
 
 - Relevant RFCs
-- Impacted invariants (see [docs/copilot/engineering-laws.md](docs/copilot/engineering-laws.md))
+- Impacted invariants (see [docs/architecture/principles/engineering-laws.md](docs/architecture/principles/engineering-laws.md))
 - Existing components to reuse
 - New components (each justified)
 - Minimal vertical slice
@@ -82,9 +82,9 @@ Reuse-before-build. Vertical slices: `Command → Event → Projection → Query
 
 ### 5.1 Pure Mapper (If applicable)
 
-Every transport mapper MUST be pure. See [docs/copilot/mapper.md](docs/copilot/mapper.md).
+Every transport mapper MUST be pure. See [docs/architecture/principles/GOLDEN_MAPPER.md](docs/architecture/principles/GOLDEN_MAPPER.md).
 
-7-point verification checklist. Referential transparency. Structural triviality test. Reference: `docs/architecture/GOLDEN_MAPPER.md`
+7-point verification checklist. Referential transparency. Structural triviality test.
 
 ---
 
@@ -134,7 +134,7 @@ task smoke:*
 task report
 ```
 
-See [docs/copilot/validation.md](docs/copilot/validation.md) for full verification rules.
+See [docs/development/validation.md](docs/development/validation.md) and [docs/development/QUALITY_GATES.md](docs/development/QUALITY_GATES.md) for verification rules.
 
 ---
 
@@ -351,12 +351,21 @@ Before finishing, verify:
 
 For detailed guidance, see:
 
-- [docs/copilot/architecture-review.md](docs/copilot/architecture-review.md) — 11-phase architecture review gate
-- [docs/copilot/engineering-laws.md](docs/copilot/engineering-laws.md) — Core principles, invariants, laws
-- [docs/copilot/implementation.md](docs/copilot/implementation.md) — Planning, reuse, vertical slices
-- [docs/copilot/mapper.md](docs/copilot/mapper.md) — Pure mapper verification
-- [docs/copilot/validation.md](docs/copilot/validation.md) — Tests, build, verification
+**Architecture Principles**
+- [docs/architecture/principles/engineering-laws.md](docs/architecture/principles/engineering-laws.md) — Core principles, invariants, laws
+- [docs/architecture/principles/GOLDEN_MAPPER.md](docs/architecture/principles/GOLDEN_MAPPER.md) — Pure mapper verification
+
+**Development Process**
+- [docs/development/architecture-review.md](docs/development/architecture-review.md) — 11-phase architecture review gate
+- [docs/development/implementation-guide.md](docs/development/implementation-guide.md) — Planning, reuse, vertical slices
+- [docs/development/validation.md](docs/development/validation.md) — Tests, build, verification
+- [docs/development/QUALITY_GATES.md](docs/development/QUALITY_GATES.md) — Verification gates and completion criteria
+- [docs/development/workflow-roles.md](docs/development/workflow-roles.md) — Role-based workflow perspective
+
+**Reference & Registry**
+- [docs/architecture/reference/](docs/architecture/reference/) — Reference implementations, patterns, registry
+
+**Source of Truth**
 - [rfcs/](rfcs/) — Architectural source of truth
 - [docs/adr/](docs/adr/) — Architecture Decision Records
-- [docs/architecture/GOLDEN_MAPPER.md](docs/architecture/GOLDEN_MAPPER.md) — Reference mapper
 - [docs/architecture.md](docs/architecture.md) — Overall architecture

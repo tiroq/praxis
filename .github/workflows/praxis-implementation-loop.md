@@ -47,7 +47,7 @@ The loop refuses to advance unless each rule holds:
    requires a new ADR, never a silent deviation.
 3. **Reference Implementation search.** Before building anything, find the closest existing
    component to reuse or extend (services, events, commands, queries, aggregates, projections,
-   adapters; transport mappers follow `docs/architecture/GOLDEN_MAPPER.md`).
+   adapters; transport mappers follow `docs/architecture/principles/GOLDEN_MAPPER.md`).
 4. **Extract, don't invent.** New abstractions are valid only when real duplication exists or an
    approved RFC defines them. "We may need it later" is never sufficient.
 5. **Architecture Guardian checks.** Ownership, layer boundaries, single-category components, and

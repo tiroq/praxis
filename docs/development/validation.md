@@ -40,7 +40,7 @@ task report
 
 **During implementation,** before committing code, validate:
 
-- RFC compliance (see [implementation.md](implementation.md))
+- RFC compliance (see [implementation-guide.md](implementation-guide.md))
 - Architecture compliance (no invariant violations)
 - No unnecessary abstractions
 - No unnecessary interfaces

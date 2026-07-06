@@ -31,7 +31,7 @@ Follow `.github/instructions/praxis-implementation.instructions.md`. Non-negotia
   aggregates, projections, and adapters. Create new only when reuse is genuinely impossible, and say why.
 - **Extract, don't invent.** No speculative abstractions, frameworks, or "future-proof" interfaces.
 - **Vertical slice.** Ship one working path through the layers: `Command → Event → Projection → Query → Verification`.
-- **Golden Mapper.** Transport mappers must match `docs/architecture/GOLDEN_MAPPER.md` — pure, single-responsibility, no side effects.
+- **Golden Mapper.** Transport mappers must match `docs/architecture/principles/GOLDEN_MAPPER.md` — pure, single-responsibility, no side effects.
 
 ## Implementation order
 

@@ -78,11 +78,10 @@ Verification note:
 
 ## Policies / Instructions Applied
 
-- `.github/instructions/praxis-architecture-guardian.instructions.md`
-- `.github/instructions/praxis-implementation.instructions.md`
-- `docs/architecture/GOLDEN_MAPPER.md`
-- `docs/architecture/REFERENCE_REGISTRY.md`
-- `docs/architecture/REFERENCE_IMPLEMENTATIONS.md`
+- `.github/copilot-instructions.md`
+- `docs/architecture/principles/GOLDEN_MAPPER.md`
+- `docs/architecture/reference/REFERENCE_REGISTRY.md`
+- `docs/architecture/reference/REFERENCE_IMPLEMENTATIONS.md`
 
 ## Reference Implementations Used
 

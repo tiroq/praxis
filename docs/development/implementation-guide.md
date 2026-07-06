@@ -1,4 +1,4 @@
-# Implementation Discipline
+# Implementation Guide
 
 RFCs in `./rfcs` are **architectural source of truth**. Implementation follows architecture, never reverse.
 
@@ -11,7 +11,7 @@ Do not write code first. Produce **Implementation Plan** before editing.
 Plan must include:
 
 - **Relevant RFCs** — specific RFC(s) this traces back to
-- **Impacted invariants** — which hard rules this change touches (see [engineering-laws.md](engineering-laws.md))
+- **Impacted invariants** — which hard rules this change touches (see [../architecture/engineering-laws.md](../architecture/engineering-laws.md))
 - **Existing components to reuse** — services, events, commands, queries, aggregates, projections, adapters, storage already defined
 - **New components to create** — only what reuse cannot cover; each justified by RFC or architecture review
 - **Minimal implementation slice** — smallest end-to-end change delivering value

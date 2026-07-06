@@ -40,7 +40,7 @@ Work top to bottom. If any step fails, **STOP** and report the blocker instead o
 - Search the codebase for existing services, packages, repositories, engines, adapters,
   events, commands, queries, aggregates, and projections that already solve part of this.
 - Identify the closest reference implementation to reuse or extend.
-- Golden patterns to check first: `docs/architecture/GOLDEN_MAPPER.md` for transport mappers.
+- Golden patterns to check first: `docs/architecture/principles/GOLDEN_MAPPER.md` for transport mappers.
 
 ### 4. Extract, don't invent
 For every new abstraction the task would introduce, answer:

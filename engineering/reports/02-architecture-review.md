@@ -18,7 +18,7 @@ Date: 2026-07-05
 
 ### Golden Examples
 
-- Mapper invariants: `docs/architecture/GOLDEN_MAPPER.md`
+- Mapper invariants: `docs/architecture/principles/GOLDEN_MAPPER.md`
 
 ### Similar Packages
 
@@ -26,8 +26,8 @@ Date: 2026-07-05
 
 ### Existing Patterns
 
-- Transport Mapper pattern: `docs/architecture/PATTERN_CATALOG.md`
-- Reference registry/search rule: `docs/architecture/REFERENCE_REGISTRY.md`
+- Transport Mapper pattern: `docs/architecture/reference/PATTERN_CATALOG.md`
+- Reference registry/search rule: `docs/architecture/reference/REFERENCE_REGISTRY.md`
 
 ## Stage 2 - Architecture Review
 

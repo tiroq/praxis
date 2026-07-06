@@ -41,7 +41,7 @@ return to `.github/prompts/praxis-implementation.prompt.md`.
   interfaces; only the Composition Root wires unrelated layers.
 - **Categories** — each new component is exactly one of Repository / Engine / Reducer /
   Coordinator / Adapter / Composition Root, with no mixing.
-- **Mappers** — transport mappers stay pure and match `docs/architecture/GOLDEN_MAPPER.md`.
+- **Mappers** — transport mappers stay pure and match `docs/architecture/principles/GOLDEN_MAPPER.md`.
 
 ### Invariants
 - Events immutable; decisions explicit and auditable; reviews never commit decisions.

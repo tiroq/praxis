@@ -117,7 +117,7 @@ Properties
 
 Reference Documentation
 
-docs/architecture/GOLDEN_MAPPER.md
+docs/architecture/principles/GOLDEN_MAPPER.md
 
 ---
 
