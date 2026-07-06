@@ -17,9 +17,12 @@ package main
 import (
 	"context"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/tiroq/praxis/internal/core/kernel"
 	"github.com/tiroq/praxis/internal/storage"
@@ -43,13 +46,46 @@ var defaultKeywords = map[string]string{
 }
 
 // buildKernel wires the default, deterministic pipeline components.
-// No LLM calls, no external dependencies.
+// LLM reply generation is orchestrated by the worker subscriber.
 // Accepts optional kernel.Option parameters for configuration (e.g., WithEventRecorder).
 func buildKernel(opts ...kernel.Option) *kernel.Kernel {
 	reviewer := kernel.NewKeywordReviewer(defaultKeywords, "keyword-reviewer-v1")
 	dm := kernel.NewRuleBasedDecisionMaker(kernel.DefaultConfidenceThreshold, "rule-based-policy-v1", "worker")
 	planner := kernel.NewSimpleActionPlanner(nil)
 	return kernel.New(reviewer, dm, planner, opts...)
+}
+
+type llmRuntimeConfig struct {
+	Enabled  bool
+	Endpoint string
+	Timeout  time.Duration
+}
+
+func llmRuntimeConfigFromEnv() llmRuntimeConfig {
+	timeout := 5 * time.Second
+	if raw := os.Getenv("PRAXIS_LLM_TIMEOUT"); raw != "" {
+		if parsed, err := time.ParseDuration(raw); err == nil && parsed > 0 {
+			timeout = parsed
+		}
+	}
+
+	enabled := true
+	if raw := os.Getenv("PRAXIS_LLM_ENABLED"); raw != "" {
+		if parsed, err := strconv.ParseBool(raw); err == nil {
+			enabled = parsed
+		}
+	}
+
+	endpoint := os.Getenv("PRAXIS_LLM_ROUTER_URL")
+	if endpoint == "" {
+		endpoint = "http://127.0.0.1:8081/v1/reply"
+	}
+
+	return llmRuntimeConfig{
+		Enabled:  enabled,
+		Endpoint: endpoint,
+		Timeout:  timeout,
+	}
 }
 
 // tryOpenStorage attempts to open storage using environment configuration.
@@ -174,6 +210,19 @@ func main() {
 	if convStore != nil {
 		sub.WithConversationStore(convStore)
 		logger.Info("subscriber configured with conversation store")
+	}
+
+	llmCfg := llmRuntimeConfigFromEnv()
+	if llmCfg.Enabled {
+		llmHTTPClient := &http.Client{}
+		llmClient := natsworker.NewLLMRouterClient(llmCfg.Endpoint, llmHTTPClient)
+		sub.WithReplyGenerator(llmClient.GenerateReply, llmCfg.Timeout)
+		logger.Info("subscriber configured with llm reply generator",
+			"llm_router_url", llmCfg.Endpoint,
+			"llm_timeout", llmCfg.Timeout,
+		)
+	} else {
+		logger.Info("llm reply generator disabled")
 	}
 
 	if err := sub.Run(ctx); err != nil {
