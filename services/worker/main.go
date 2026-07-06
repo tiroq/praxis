@@ -216,13 +216,38 @@ func main() {
 	if llmCfg.Enabled {
 		llmClient := llm.NewClient(llmCfg.Endpoint, nil)
 		sub.WithReplyGenerator(func(ctx context.Context, input natstransport.InputMessage, _ kernel.PipelineResult) (string, error) {
-			resp, err := llmClient.Generate(ctx, llm.GenerateRequest{
+			// Build the LLM request with bounded conversation context
+			genReq := llm.GenerateRequest{
 				InputEventID:  input.ID,
 				CorrelationID: input.CorrelationID,
 				Source:        input.Source,
 				UserMessage:   input.Text,
 				Metadata:      input.Metadata,
-			})
+			}
+
+			// If conversation store is available, fetch and populate recent conversation history
+			if convStore != nil && input.CorrelationID != "" {
+				conv, err := convStore.GetConversationByCorrelationID(ctx, input.CorrelationID)
+				if err == nil && conv != nil {
+					// Fetch recent messages (bounded context: last 10 messages)
+					msgs, err := convStore.ListMessages(ctx, conv.ID, conversationstore.ListFilter{Limit: 10})
+					if err == nil && len(msgs) > 0 {
+						// Convert to ConversationMessage structs for llm-router
+						conversationHistory := make([]llm.ConversationMessage, 0, len(msgs))
+						for _, msg := range msgs {
+							if msg.Role == "user" || msg.Role == "assistant" {
+								conversationHistory = append(conversationHistory, llm.ConversationMessage{
+									Role: msg.Role,
+									Text: msg.Content,
+								})
+							}
+						}
+						genReq.Conversation = conversationHistory
+					}
+				}
+			}
+
+			resp, err := llmClient.Generate(ctx, genReq)
 			if err != nil {
 				return "", err
 			}
