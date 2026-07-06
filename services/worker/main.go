@@ -216,13 +216,17 @@ func main() {
 	if llmCfg.Enabled {
 		llmClient := llm.NewClient(llmCfg.Endpoint, nil)
 		sub.WithReplyGenerator(func(ctx context.Context, input natstransport.InputMessage, _ kernel.PipelineResult) (string, error) {
-			return llmClient.GenerateReply(ctx, llm.GenerateReplyInput{
+			resp, err := llmClient.Generate(ctx, llm.GenerateRequest{
 				InputEventID:  input.ID,
 				CorrelationID: input.CorrelationID,
 				Source:        input.Source,
 				UserMessage:   input.Text,
 				Metadata:      input.Metadata,
 			})
+			if err != nil {
+				return "", err
+			}
+			return resp.ReplyText, nil
 		}, llmCfg.Timeout)
 		logger.Info("subscriber configured with llm reply generator",
 			"llm_router_url", llmCfg.Endpoint,
