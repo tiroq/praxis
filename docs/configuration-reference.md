@@ -2,7 +2,7 @@
 
 **Complete listing of all `PRAXIS_*` environment variables, organized by subsystem.**
 
-This document is the authoritative reference for Praxis runtime configuration. See [ADR-012](docs/adr/ADR-012-runtime-configuration-naming.md) for rationale and design.
+This document is the authoritative reference for Praxis runtime configuration. See [ADR-012](adr/ADR-012-runtime-configuration-naming.md) for rationale and design.
 
 ---
 
@@ -314,16 +314,29 @@ PRAXIS_LOG_LEVEL=debug python apps/telegram/main.py 2>&1 | grep config
 
 ## Migration
 
-See [MIGRATION_GUIDE-ADR-012.md](docs/MIGRATION_GUIDE-ADR-012.md) for guidance on migrating from old variable names (e.g., `NATS_URL`, `TELEGRAM_BOT_TOKEN`) to new `PRAXIS_*` names.
+Legacy variable names (for example `NATS_URL` and `TELEGRAM_BOT_TOKEN`) are deprecated.
+
+Use these canonical replacements:
+
+- `NATS_URL` -> `PRAXIS_NATS_URL`
+- `NATS_STREAM` -> `PRAXIS_NATS_STREAM`
+- `NATS_INPUT_SUBJECT` -> `PRAXIS_NATS_INPUT_SUBJECT`
+- `NATS_OUTPUT_SUBJECT` -> `PRAXIS_NATS_OUTPUT_SUBJECT`
+- `NATS_DURABLE` -> `PRAXIS_NATS_DURABLE`
+- `NATS_ACK_WAIT_SECONDS` -> `PRAXIS_NATS_ACK_WAIT_SECONDS`
+- `NATS_MAX_DELIVER` -> `PRAXIS_NATS_MAX_DELIVER`
+- `PRAXIS_SQLITE_PATH` -> `PRAXIS_STORAGE_SQLITE_PATH`
+- `TELEGRAM_BOT_TOKEN` -> `PRAXIS_TELEGRAM_BOT_TOKEN`
+- `PRAXIS_INPUT_SUBJECT` -> `PRAXIS_NATS_INPUT_SUBJECT`
 
 ---
 
 ## Related Documentation
 
-- [ADR-012: Runtime Configuration Naming Convention](docs/adr/ADR-012-runtime-configuration-naming.md)
-- [ADR-008: Configuration Strategy](docs/adr/ADR-008-configuration-strategy.md)
-- [RFC-030 §13: Cross-Cutting Concerns](rfcs/030-system-architecture.md)
+- [ADR-012: Runtime Configuration Naming Convention](adr/ADR-012-runtime-configuration-naming.md)
+- [ADR-008: Configuration Strategy](adr/ADR-008-configuration-strategy.md)
+- [RFC-030 §13: Cross-Cutting Concerns](../rfcs/030-system-architecture.md)
 - Service READMEs:
-  - [services/worker/README.md](services/worker/README.md)
-  - [services/api-kernel/README.md](services/api-kernel/README.md)
-  - [apps/telegram/README.md](apps/telegram/README.md)
+  - [services/worker/README.md](../services/worker/README.md)
+  - [services/api-kernel/README.md](../services/api-kernel/README.md)
+  - [apps/telegram/README.md](../apps/telegram/README.md)

@@ -2,50 +2,33 @@
 
 Status: ACTIVE
 
----
+This file is the single source of truth for approved architectural patterns and reference implementations.
 
-# Purpose
+## Purpose
 
-Reference Registry is the canonical catalog of all approved Reference Implementations.
+The registry prevents architectural drift by making the preferred implementation style explicit.
 
-It exists to prevent architectural drift.
+A reference implementation is not a framework or reusable base class. It is an approved example of ownership, boundaries, and implementation style.
 
-A Reference Implementation is not reusable code.
+## Principles
 
-It is an approved example of ownership, responsibility,
-boundaries and implementation style.
-
-Every engineer must search the registry before inventing a new implementation.
-
----
-
-# Principles
-
-Reference Implementations are:
+Reference implementations must be:
 
 - concrete
 - reviewed
-- production quality
 - minimal
+- production quality
 - RFC compliant
 
-Reference Implementations are NOT:
+Reference implementations are never:
 
-- frameworks
-- reusable libraries
-- templates
+- speculative templates
 - inheritance hierarchies
 - mandatory copy-paste
 
-They exist to demonstrate correct engineering decisions.
+## Pattern Catalog
 
----
-
-# Categories
-
-Reference Implementations are organized by architectural role.
-
-Current categories:
+Approved architectural pattern categories:
 
 - Transport Mapper
 - Repository
@@ -68,216 +51,77 @@ Current categories:
 - Tests
 - Benchmark
 
----
+## Registry
 
-# Registry
+### Transport Mapper
 
----
+- Status: ACTIVE
+- Reference: `apps/telegram/main.py`
+- Symbol: `telegram_update_to_payload()`
+- Documentation: `docs/architecture/principles/GOLDEN_MAPPER.md`
+- Purpose: Translate Telegram Update into Praxis InputMessage
+- Properties: pure, deterministic, single-responsibility, no business logic, no infrastructure side effects
 
-## Transport Mapper
+### Repository
 
-Status
+- Status: TBD
+- Reference: None
 
-ACTIVE
+### Worker
 
-Reference
+- Status: TBD
+- Reference: None
 
-apps/telegram/main.py
+### Adapter
 
-Function
+- Status: TBD
+- Reference: None
 
-telegram_update_to_payload()
+### Configuration Loader
 
-Documentation
+- Status: TBD
+- Reference: None
 
-architecture/GOLDEN_MAPPER.md
+### Event Publisher
 
-Purpose
+- Status: TBD
+- Reference: None
 
-Translate Telegram Update into Praxis InputMessage.
+### Event Subscriber
 
-Properties
+- Status: TBD
+- Reference: None
 
-- pure
-- deterministic
-- one translation
-- one input
-- one output
-- no business logic
-- no infrastructure
+### Storage Backend
 
----
+- Status: TBD
+- Reference: None
 
-## Repository
+### Projection Builder
 
-Status
+- Status: TBD
+- Reference: None
 
-TBD
+## Usage Rules
 
-Reference
+Before implementing any new component:
 
-None
+1. Search this registry for a matching category.
+2. Reuse the documented style where possible.
+3. Justify every deviation in architecture review.
 
----
+## Promotion Rules
 
-## Worker
+A candidate becomes a reference implementation only if it is:
 
-Status
-
-TBD
-
-Reference
-
-None
-
----
-
-## Adapter
-
-Status
-
-TBD
-
-Reference
-
-None
-
----
-
-## Configuration Loader
-
-Status
-
-TBD
-
-Reference
-
-None
-
----
-
-## Event Publisher
-
-Status
-
-TBD
-
-Reference
-
-None
-
----
-
-## Event Subscriber
-
-Status
-
-TBD
-
-Reference
-
-None
-
----
-
-## Storage Backend
-
-Status
-
-TBD
-
-Reference
-
-None
-
----
-
-## Projection Builder
-
-Status
-
-TBD
-
-Reference
-
-None
-
----
-
-# Promotion Rules
-
-A candidate becomes a Reference Implementation only if:
-
-- production quality
 - architecturally reviewed
-- RFC compliant
+- RFC and ADR compliant
 - simpler than alternatives
-- reviewed multiple times
-- demonstrates correct ownership
-- demonstrates correct boundaries
+- clear about ownership and boundaries
 
-Anything else is rejected.
+## Replacement Rules
 
----
-
-# Replacement Rules
-
-A Reference Implementation may replace an older reference only if it is:
-
-- simpler
-- clearer
-- less coupled
-- easier to review
-- equally RFC compliant
-
-Novelty alone never justifies replacement.
-
----
-
-# Search Rule
-
-Before implementing:
-
-Search the Reference Registry.
-
-If a matching category exists:
-
-1. Study it.
-2. Compare with current task.
-3. Reuse implementation style.
-4. Justify every deviation.
-
-Failure to search is an architecture violation.
-
----
-
-# Review Questions
-
-Every implementation review asks:
-
-Does this category already have a Reference Implementation?
-
-Can it be adapted?
-
-Why is this implementation different?
-
-Is the difference required?
-
-Would copying the reference be simpler?
-
----
-
-# Candidate Promotion
-
-Engineering Learning may nominate:
-
-Reference Candidate
-
-Reason
-
-Advantages
-
-Differences
+A new reference replaces an existing one only if it is clearly simpler, clearer, and at least equally compliant.
 
 Review Outcome
 

@@ -26,7 +26,7 @@ Date: 2026-07-05
 
 ### Existing Patterns
 
-- Transport Mapper pattern: `docs/architecture/reference/PATTERN_CATALOG.md`
+- Transport Mapper pattern: `docs/architecture/reference/REFERENCE_REGISTRY.md`
 - Reference registry/search rule: `docs/architecture/reference/REFERENCE_REGISTRY.md`
 
 ## Stage 2 - Architecture Review

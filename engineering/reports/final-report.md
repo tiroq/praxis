@@ -81,7 +81,6 @@ Verification note:
 - `.github/copilot-instructions.md`
 - `docs/architecture/principles/GOLDEN_MAPPER.md`
 - `docs/architecture/reference/REFERENCE_REGISTRY.md`
-- `docs/architecture/reference/REFERENCE_IMPLEMENTATIONS.md`
 
 ## Reference Implementations Used
 

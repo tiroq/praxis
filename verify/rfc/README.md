@@ -77,8 +77,8 @@ draft invariant extraction, simple RFC dependency graph.
 
 **Unsafe (NOT here — blocked on ADQ decisions):** Canonical Object store, Artifact store,
 review-target typing, Memory/Knowledge services, Workflow engine, Action persisted state machine,
-the canonical invariant ID registry, and any edits to RFC files. See
-[`docs/PHASE_0_RFC_CLEANUP.md`](../../docs/PHASE_0_RFC_CLEANUP.md).
+the canonical invariant ID registry, and any edits to RFC files. These are tracked in
+[`docs/ARCHITECTURE_DECISION_QUEUE.md`](../../docs/ARCHITECTURE_DECISION_QUEUE.md).
 
 ## Note on `_common.py`
 
