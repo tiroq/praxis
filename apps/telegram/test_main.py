@@ -63,6 +63,14 @@ class ReplyPipelineTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(
             render_reply_text({
                 "status": "ok",
+                "assistant_reply": "Hello from LLM",
+                "result": {"decision": {"outcome": "approve"}, "actions": [{"id": "a1"}]},
+            }),
+            "Hello from LLM",
+        )
+        self.assertEqual(
+            render_reply_text({
+                "status": "ok",
                 "result": {"decision": {"outcome": "approve"}, "actions": [{"id": "a1"}]}
             }),
             "Decision: approve\nActions: 1",

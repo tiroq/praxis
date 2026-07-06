@@ -304,6 +304,10 @@ def render_reply_text(output: dict[str, Any]) -> str:
         error = output.get("error") or "pipeline failed"
         return f"Praxis error: {error}"
 
+    assistant_reply = output.get("assistant_reply")
+    if isinstance(assistant_reply, str) and assistant_reply.strip():
+        return assistant_reply.strip()
+
     result = output.get("result")
     if isinstance(result, dict):
         decision = result.get("decision")
