@@ -18,36 +18,41 @@ applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
 
 ## Phase 1: Discover
 
-Do this first. Never start implementation without understanding what already exists.
+**Do this first.** Never start without understanding what already exists.
 
 - List applicable RFCs.
-- Read each RFC completely and quote the sections governing this work.
-- STOP if RFCs conflict or are ambiguous.
-- Read relevant ADRs and Policies.
-- Use Graphify first (query, path, explain).
+- Read every applicable RFC completely.
+- Quote the sections that govern the requested work.
+- **STOP immediately** if RFCs conflict or are ambiguous.
+- Read all relevant ADRs.
+- Read all relevant Policies.
+- Use Graphify first:
+  - `graphify query`
+  - `graphify path`
+  - `graphify explain`
 - Search for existing implementations.
+- Prefer evolving existing code over creating new code.
 - Never duplicate existing functionality.
-- Prefer extending or reusing existing code.
 
 Discovery must end with exactly one decision:
 
-- IMPLEMENT — the requested capability is missing or incomplete.
-- VERIFY ONLY — the requested capability already exists and satisfies all explicit acceptance criteria.
+- **IMPLEMENT** — capability is missing or incomplete.
+- **VERIFY ONLY** — capability already exists and satisfies every explicit acceptance criterion.
 
-If the result is VERIFY ONLY:
+If discovery concludes **VERIFY ONLY**:
 
 - Do not modify the repository.
 - Verify the implementation.
-- Produce evidence:
+- Produce evidence including:
   - implementation locations,
+  - governing RFCs,
   - verification commands,
-  - test results,
-  - runtime output where applicable.
-- Explain why no changes are required.
+  - executed test results,
+  - runtime evidence where applicable.
+- Explain why no repository changes are required.
+- Stop the workflow after reporting the verification.
 
-Do not perform opportunistic refactoring.
-
-A successful implementation may legitimately produce zero code changes.
+A successful task may legitimately produce zero code changes.
 
 ---
 
@@ -86,6 +91,7 @@ Phases: RFC Review → Existing Arch → Responsibility → Ownership → Layer 
 Plan must include:
 
 - Relevant RFCs
+- Discovery decision (IMPLEMENT or VERIFY ONLY)
 - Impacted invariants (see [docs/architecture/principles/engineering-laws.md](../docs/architecture/principles/engineering-laws.md))
 - Existing components to reuse
 - New components (each justified)
@@ -142,6 +148,8 @@ After implementation, review for:
 
 ## Phase 8: Verification
 
+- Verify that the implemented behavior (or existing implementation) satisfies every explicit acceptance criterion from the task.
+
 Execute every applicable command:
 
 ```bash
@@ -189,6 +197,7 @@ Verify:
 
 Document:
 
+- Discovery Outcome — IMPLEMENT or VERIFY ONLY
 - **Summary** — what, why
 - **Files Changed**
 - **Architecture Decisions** — key choices and why
@@ -337,6 +346,7 @@ For repository architecture, ownership, dependencies, implementation locations:
 Before finishing, verify:
 
 - [ ] All relevant RFCs read
+- [ ] Discovery outcome recorded (IMPLEMENT or VERIFY ONLY)
 - [ ] Phase 1: Discovery complete
 - [ ] If new abstraction: Phase 2 gate passed
 - [ ] If new abstraction: Phase 3 review complete
@@ -359,12 +369,11 @@ Before finishing, verify:
 
 # 🚀 DEVELOPER WORKFLOW
 
-1. **Provide Sprint Task** — developer gives feature
-2. **Execute Phases 1-11** — copilot autonomous execution
-3. **Stop only if blocked** — RFC ambiguity, architectural ambiguity, or architecture violation
-4. **Produce Final Report** — always deliver complete report
-
-**Expectation:** Provide task. Copilot executes complete workflow autonomously. No intermediate confirmations unless blocked.
+1. Developer provides a task.
+2. Execute Phase 1 Discovery.
+3. If Discovery concludes VERIFY ONLY, verify, produce evidence, and finish.
+4. Otherwise execute Phases 2–11.
+5. Stop only for RFC ambiguity, architectural violations, or missing information.
 
 ---
 
