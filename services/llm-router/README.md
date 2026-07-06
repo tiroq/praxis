@@ -5,8 +5,8 @@ Minimal Sprint 3 implementation for worker reply generation.
 ## Endpoints
 
 - POST `/v1/reply`
-	- Request JSON: `{"input_text": "..."}`
-	- Response JSON: `{"assistant_reply": "...", "provider": "ollama", "model": "..."}`
+  - Request JSON: `{"user_message": "...", "conversation": [{"role": "user", "text": "..."}]}`
+  - Response JSON: `{"reply_text": "...", "provider": "ollama", "model": "..."}`
 - GET `/health`
 
 ## Runtime Config

@@ -1,7 +1,7 @@
 """Minimal LLM router service for assistant reply generation.
 
 This service intentionally implements a single concrete vertical slice:
-POST /v1/reply -> Ollama chat -> assistant_reply JSON.
+POST /v1/reply -> Ollama chat -> reply_text JSON.
 """
 
 from __future__ import annotations
@@ -80,6 +80,35 @@ def _generate_reply(input_text: str, cfg: dict[str, Any]) -> str:
     return content.strip()
 
 
+def _build_input_text(payload: dict[str, Any]) -> str:
+    user_message = payload.get("user_message")
+    if not isinstance(user_message, str) or not user_message.strip():
+        # Legacy compatibility with older workers.
+        user_message = payload.get("input_text", "")
+    if not isinstance(user_message, str) or not user_message.strip():
+        return ""
+
+    conversation = payload.get("conversation")
+    if not isinstance(conversation, list) or len(conversation) == 0:
+        return user_message.strip()
+
+    lines: list[str] = []
+    for item in conversation:
+        if not isinstance(item, dict):
+            continue
+        role = item.get("role")
+        text = item.get("text")
+        if not isinstance(role, str) or not isinstance(text, str):
+            continue
+        role = role.strip()
+        text = text.strip()
+        if role and text:
+            lines.append(f"{role}: {text}")
+
+    lines.append(f"user: {user_message.strip()}")
+    return "\n".join(lines)
+
+
 class LLMRouterHandler(BaseHTTPRequestHandler):
     config = _router_config()
 
@@ -101,9 +130,9 @@ class LLMRouterHandler(BaseHTTPRequestHandler):
             self._write_json(HTTPStatus.BAD_REQUEST, {"error": "invalid json"})
             return
 
-        input_text = payload.get("input_text", "")
-        if not isinstance(input_text, str) or not input_text.strip():
-            self._write_json(HTTPStatus.BAD_REQUEST, {"error": "input_text is required"})
+        input_text = _build_input_text(payload)
+        if not input_text:
+            self._write_json(HTTPStatus.BAD_REQUEST, {"error": "user_message is required"})
             return
 
         try:
@@ -115,6 +144,7 @@ class LLMRouterHandler(BaseHTTPRequestHandler):
         self._write_json(
             HTTPStatus.OK,
             {
+                "reply_text": assistant_reply,
                 "assistant_reply": assistant_reply,
                 "provider": "ollama",
                 "model": self.config["model"],
