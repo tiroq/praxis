@@ -215,12 +215,12 @@ func main() {
 	llmCfg := llmRuntimeConfigFromEnv()
 	if llmCfg.Enabled {
 		llmClient := llm.NewClient(llmCfg.Endpoint, nil)
-		replyGen := llm.NewReplyGenerator(llmClient, convStore)
+		responder := llm.NewConversationResponder(llmClient, convStore)
 
 		sub.WithReplyGenerator(func(ctx context.Context, input natstransport.InputMessage, _ kernel.PipelineResult) (string, error) {
 			// Delegate context assembly and reply generation to the LLM layer.
 			// The worker only provides semantic inputs; the LLM layer owns context assembly.
-			resp, err := replyGen.GenerateReply(ctx, llm.ReplyRequest{
+			resp, err := responder.Respond(ctx, llm.RespondRequest{
 				CorrelationID: input.CorrelationID,
 				UserMessage:   input.Text,
 				Source:        input.Source,
