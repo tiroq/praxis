@@ -70,8 +70,10 @@ The loop refuses to advance unless each rule holds:
 
 ## Reference material
 
-- Architecture Guardian rules — [`.github/instructions/praxis-architecture-guardian.instructions.md`](../instructions/praxis-architecture-guardian.instructions.md)
-- Implementation discipline — [`.github/instructions/praxis-implementation.instructions.md`](../instructions/praxis-implementation.instructions.md)
+- Orchestration instructions — [`.github/copilot-instructions.md`](../copilot-instructions.md)
+- Architecture review discipline — [`docs/development/architecture-review.md`](../../docs/development/architecture-review.md)
+- Implementation discipline — [`docs/development/implementation-guide.md`](../../docs/development/implementation-guide.md)
+- Validation discipline — [`docs/development/validation.md`](../../docs/development/validation.md)
 - RFCs — `rfcs/`
 - ADRs — `docs/adr/`
 - Canonical commands — `Taskfile.yml`
