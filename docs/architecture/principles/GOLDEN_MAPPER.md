@@ -590,4 +590,4 @@ One concrete, audited "golden mapper" is more valuable than dozens of abstract a
 
 **Last Updated:** 2026-07-04
 
-**Related:** [Praxis Architecture Guardian](../../.github/instructions/praxis-architecture-guardian.instructions.md), [Pure Mapping Verification](../../.github/instructions/praxis-architecture-guardian.instructions.md#pure-mapping-verification)
+**Related:** [Architecture Review Discipline](../../development/architecture-review.md), [Copilot Orchestration Instructions](../../../.github/copilot-instructions.md)

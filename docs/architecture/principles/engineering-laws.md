@@ -25,7 +25,7 @@ These are non-negotiable architectural principles. Any code violating one is wro
 
 Abstractions are extracted from existing code or approved RFCs. Never predicted or invented from future needs.
 
-See: [../development/architecture-review.md](../development/architecture-review.md) (Phase 11 — Abstraction Review)
+See: [../../development/architecture-review.md](../../development/architecture-review.md) (Phase 11 — Abstraction Review)
 
 ### RFC Is Source of Truth
 
