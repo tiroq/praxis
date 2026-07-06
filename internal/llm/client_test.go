@@ -39,17 +39,17 @@ func TestClientGenerateReply(t *testing.T) {
 		defer server.Close()
 
 		client := NewClient(server.URL, server.Client())
-		reply, err := client.GenerateReply(context.Background(), GenerateReplyInput{
+		resp, err := client.Generate(context.Background(), GenerateRequest{
 			InputEventID:  "evt_1",
 			CorrelationID: "corr_1",
 			Source:        "telegram",
 			UserMessage:   "hello",
 		})
 		if err != nil {
-			t.Fatalf("GenerateReply() error = %v", err)
+			t.Fatalf("Generate() error = %v", err)
 		}
-		if reply != "generated reply" {
-			t.Fatalf("expected generated reply, got %q", reply)
+		if resp.ReplyText != "generated reply" {
+			t.Fatalf("expected generated reply, got %q", resp.ReplyText)
 		}
 	})
 
@@ -66,7 +66,7 @@ func TestClientGenerateReply(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Millisecond)
 		defer cancel()
 
-		_, err := client.GenerateReply(ctx, GenerateReplyInput{
+		_, err := client.Generate(ctx, GenerateRequest{
 			InputEventID:  "evt_timeout",
 			CorrelationID: "corr_timeout",
 			UserMessage:   "hello",
@@ -85,7 +85,7 @@ func TestClientGenerateReply(t *testing.T) {
 		defer server.Close()
 
 		client := NewClient(server.URL, server.Client())
-		reply, err := client.GenerateReply(context.Background(), GenerateReplyInput{UserMessage: "hello"})
+		reply, err := client.GenerateReply(context.Background(), GenerateRequest{UserMessage: "hello"})
 		if err != nil {
 			t.Fatalf("GenerateReply() error = %v", err)
 		}
