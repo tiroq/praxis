@@ -1,255 +1,60 @@
 ---
 name: "Praxis Copilot Instructions"
-description: "Complete autonomous implementation workflow for Praxis. Coordinates 11 phases from discovery through final report with architecture gates, RFC compliance, and verification rules."
+description: "Active Copilot instruction entry point. Coordinates 11 phases for RFC-first, Extract-Don't-Invent implementation."
 applyTo: ["services/**", "packages/**", "apps/**", "scripts/**", "infra/**"]
 ---
 
 # Praxis Copilot Instructions
 
-**Single active entry point for all Copilot-driven implementation in Praxis.**
+**ONLY active Copilot instruction file.** Single entry point for all implementation tasks.
 
-**Default Assumption:** The user expects complete implementation, not just analysis or planning.
-
----
-
-# 🎯 THE 11-PHASE AUTONOMOUS WORKFLOW
-
-**Phase execution order is strict. Do not skip phases. Do not proceed if stop conditions are reached.**
-
-## Phase 1: Discover — RFCs, Architecture, and Existing Code
-
-**Do this first.** Never start coding without understanding what already exists.
-
-### 1.1 RFC Discovery
-
-- List all RFCs that might apply to this task
-- Read each RFC completely
-- Quote specific sections governing this work
-- Identify RFC ambiguities, gaps, or contradictions
-- **STOP if RFCs conflict.** Surface the conflict and wait for clarification
-
-### 1.2 Architecture Context
-
-- Read relevant ADRs (in `./docs/adr/`)
-- Read relevant Policies
-- Identify architectural invariants (see Engineering Laws section)
-- Identify project instructions
-
-### 1.3 Graphify for Architecture Questions
-
-Use Graphify before manual search: `graphify query`, `graphify path`, `graphify explain`
-
-For architecture, ownership, dependencies: Graphify first.
-
-### 1.4 Reference Implementation Search
-
-Search for existing implementations:
-
-- mapper, repository, worker, adapter, storage backend, transport, bootstrap, configuration loader, service, reducer, projection, event, command, query, aggregate
-
-If reference implementation exists → **prefer evolving it**.
+**Default assumption:** User expects complete implementation via 11-phase autonomous workflow.
 
 ---
 
-## Phase 2: Architectural Feasibility Gate — Is New Abstraction Needed?
+# 🎯 11-PHASE WORKFLOW
 
-**MANDATORY gate if creating:** new package, repository, service, engine, adapter, projection, public interface, composition root, interface, DTO, exported type, or manager.
+**Strict execution order. Do not skip. Do not proceed past stop conditions.**
 
-**Skip to Phase 4 if only modifying existing components.**
+## Phase 1: Discover
 
-### 2.1 Three-Point Validity Check
+**Do this first.** Never start without understanding what already exists.
 
-New abstraction justified ONLY IF at least one applies:
-
-1. **Two or more independent implementations already exist** in the current codebase
-2. **Duplicated behavior exists** and extraction reduces complexity
-3. **Approved RFC explicitly defines** the abstraction by name and contract
-
-### 2.2 Prohibited Justifications
-
-- "We may need it later"
-- Speculative extensibility
-- Future integrations (Kafka, Slack, Email, Postgres, Redis, etc.)
-- Theoretical flexibility without current concrete use
-
-**If none apply** → do not create abstraction. Use concrete implementation.
+- List RFCs that might apply
+- Read each completely, quote sections governing this work
+- **STOP if RFCs conflict or ambiguous**
+- Read relevant ADRs and Policies
+- Use Graphify first (graphify query, path, explain)
+- Search for reference implementations (mapper, repository, adapter, etc.)
+- **Prefer evolving existing code**
 
 ---
 
-## Phase 3: Complete Architecture Review (If Gate Applied)
+## Phase 2: Architectural Feasibility Gate
 
-**Only if Phase 2 = YES. Complete all 11 phases in order. Do not skip any.**
+**IF creating** new package/service/engine/adapter/projection/interface/DTO/manager: Apply **Extract, Don't Invent** test.
 
-### 3.1 RFC Review
+**Abstraction justified ONLY IF:**
 
-- List all relevant RFCs
-- Quote specific sections governing this work
-- Confirm no RFC prohibits proposed approach
-- **STOP** if RFCs conflict or ambiguous
+1. Two+ independent implementations already exist, OR
+2. Duplicated behavior exists and extraction reduces complexity, OR
+3. Approved RFC explicitly defines it
 
-### 3.2 Existing Architecture Review
+**Prohibited:** "We may need it later", speculative extensibility, future integrations.
 
-- List existing services, packages, repositories, engines, adapters
-- List existing events, commands, queries, aggregates, projections
-- List existing public interfaces and exported types
-- **STOP** if existing component satisfies need (reuse instead)
+**If gate fails** → do not create abstraction. Use concrete implementation.
 
-### 3.3 Responsibility Analysis
+**Skip to Phase 4** if only modifying existing components.
 
-For proposed component, explicitly state:
+---
 
-- What it owns (data, logic, behavior)
-- What it does NOT own
-- What it depends on
-- What depends on it
+## Phase 3: Architecture Review (If Gate = YES)
 
-**STOP** if responsibilities overlap with existing components.
+Complete 11-phase review. See [docs/copilot/architecture-review.md](docs/copilot/architecture-review.md).
 
-### 3.4 Ownership Analysis
+Phases: RFC Review → Existing Arch → Responsibility → Ownership → Layer Validation → Component Categorization → Storage Rules → Dependency Graph → Runtime Data Flow → Public API → Abstraction Review (Extract/Invent).
 
-- Identify single owner of each responsibility
-- Confirm no shared ownership
-- Confirm no orphaned responsibilities
-
-**STOP** if ownership is ambiguous or duplicated.
-
-### 3.5 Layer Validation
-
-Classify component into exactly one layer:
-
-```
-Domain          ← business logic, entities, value objects
-  ↓
-Application     ← use cases, orchestration, commands, queries
-  ↓
-Infrastructure  ← storage, transport, adapters, external systems
-  ↓
-Composition Root ← wiring, dependency injection, main()
-```
-
-Validate:
-
-- Infrastructure never depends on Domain
-- Domain has zero infrastructure imports
-- Application depends only on Domain interfaces
-- Only Composition Root wires unrelated layers
-
-**STOP** if violations exist.
-
-### 3.6 Component Categorization
-
-Assign component to exactly one category:
-
-- **Repository** — storage interface, no business logic
-- **Engine** — stateless logic processor, no storage
-- **Reducer** — event → state transformation, pure function
-- **Coordinator** — orchestrates across services, no domain logic
-- **Adapter** — translates between layers, no domain logic
-- **Composition Root** — wiring only, no behavior
-
-Reject designs mixing categories.
-
-Invalid: Repository containing business logic, Engine storing state, Reducer calling services, Coordinator implementing domain logic.
-
-**STOP** if mixed.
-
-### 3.7 Storage Rules Validation
-
-If storage-related, confirm it does NOT own:
-
-- ❌ Business logic
-- ❌ Replay logic
-- ❌ Orchestration
-- ❌ Reducers
-- ❌ Workflows
-- ❌ Event sourcing logic
-
-Storage owns: Persist data, Retrieve data, Transactions, Referential integrity.
-
-**Projection-specific:** Projection Repository stores snapshots only. Replay → Replay Engine. Projection construction → Reducers. Checkpoints → Checkpoint Store.
-
-**STOP** if violations.
-
-### 3.8 Dependency Graph Validation
-
-Produce dependency graph showing:
-
-- New component
-- What it imports
-- What imports it
-- Transitive dependencies
-
-Validate:
-
-- No circular dependencies
-- No cross-layer violations
-- No hidden coupling
-- Dependencies flow in one direction
-
-**STOP** if violations.
-
-### 3.9 Runtime Data Flow
-
-Trace how data moves at runtime:
-
-```
-HTTP Request
-  → Command Handler
-    → Aggregate (load from EventStore)
-    → Aggregate.Apply(command)
-    → Emit Event
-    → EventStore.Append(event)
-    → EventBus.Publish(event)
-  → HTTP Response
-
-Async:
-  EventBus
-    → Projection Reducer
-      → Projection Repository.Save(snapshot)
-```
-
-Validate:
-
-- Data flow matches RFC specifications
-- No bypasses of boundaries
-- State changes are auditable
-- Events drive projections (not direct writes)
-
-**STOP** if violations.
-
-### 3.10 Public API Review
-
-For every exported function, type, interface, method:
-
-- Justify why public
-- Confirm required by immediate production caller
-- Confirm does not expose internals
-- Confirm follows RFC naming
-
-Reject: Speculative abstractions, generic frameworks, "future-proof" interfaces, exported internals.
-
-**STOP** if speculative elements.
-
-### 3.11 Abstraction Review — Extract, Don't Invent
-
-For every new interface, DTO, repository, service, adapter, engine, manager, or public API:
-
-| Question | Answer |
-|---|---|
-| Why does this abstraction exist today? | _(required)_ |
-| Which existing duplication does it remove? | _(required)_ |
-| How many concrete implementations currently exist? | _(required)_ |
-| Which approved RFC requires it? | _(required)_ |
-| Can a concrete implementation be used instead? | _(required)_ |
-| Would removing this abstraction simplify the architecture? | _(required)_ |
-
-**Validity:** At least one must be true:
-
-1. Two or more independent implementations already exist
-2. Duplicated behavior exists and extraction reduces complexity
-3. Approved RFC explicitly defines this abstraction
-
-**STOP** if any abstraction cannot be justified. The abstraction MUST be removed.
+**Stop if any phase fails.** Abstraction MUST be removable or justified.
 
 ---
 
@@ -260,10 +65,10 @@ For every new interface, DTO, repository, service, adapter, engine, manager, or 
 Plan must include:
 
 - Relevant RFCs
-- Impacted invariants (see Engineering Laws)
+- Impacted invariants (see [docs/copilot/engineering-laws.md](docs/copilot/engineering-laws.md))
 - Existing components to reuse
-- New components to create (each justified)
-- Minimal implementation slice
+- New components (each justified)
+- Minimal vertical slice
 - Verification strategy
 - Risks
 
@@ -271,88 +76,21 @@ Plan must include:
 
 ---
 
-## Phase 5: Implementation — Build Minimal Vertical Slice
+## Phase 5: Implementation — Minimal Vertical Slice
 
-Key rules:
+Reuse-before-build. Vertical slices: `Command → Event → Projection → Query → Verification`
 
-- Reuse existing code, packages, architecture
-- Prefer deletion over addition
-- Prefer concrete implementations
-- Avoid speculative abstractions
-- Smallest end-to-end slice: `Command → Event → Projection → Query → Verification`
+### 5.1 Pure Mapper (If applicable)
 
-### 5.1 Pure Mapper Rule (If Applicable)
+Every transport mapper MUST be pure. See [docs/copilot/mapper.md](docs/copilot/mapper.md).
 
-**Every transport mapping function MUST be pure with no side effects.**
-
-#### Mapper Shape (Required)
-
-```
-Input:  external transport object (e.g., Telegram Update, HTTP request)
-Output: Praxis wire contract dict (internal/transport/nats.InputMessage)
-```
-
-#### Mapper MUST NOT
-
-- ❌ Publish messages
-- ❌ Call HTTP endpoints
-- ❌ Call NATS or storage
-- ❌ Access environment variables
-- ❌ Perform retries
-- ❌ Mutate global state
-- ❌ Generate business identifiers
-- ❌ Execute business logic
-- ❌ Call repositories, databases, HTTP services, LLMs
-
-#### Allowed Complexity Only
-
-- ✅ Rename fields
-- ✅ Copy fields
-- ✅ Drop unused fields
-- ✅ Normalize formatting
-- ✅ Convert primitive types
-- ✅ Construct transport DTOs
-- ✅ Perform deterministic serialization
-- ✅ Validate transport-level preconditions
-- ✅ Create deterministic identifiers derived from input only
-
-#### Referential Transparency Invariant
-
-Given the same input, MUST always produce the same output. No side effects permitted.
-
-#### Verification Checklist
-
-For every mapper:
-
-| Question | Answer |
-|---|---|
-| Does mapper accept only the external transport object? | _(must be YES)_ |
-| Does mapper return only a dict (wire contract)? | _(must be YES)_ |
-| Does mapper call any I/O function? | _(must be NO)_ |
-| Does mapper access any global state? | _(must be NO)_ |
-| Does mapper perform any retry logic? | _(must be NO)_ |
-| Can mapper be called 1,000,000 times with same input and produce identical output? | _(must be YES)_ |
-| Is mapper completely free of business logic? | _(must be YES)_ |
-
-**STOP** if any fails purity. Refactor before proceeding.
-
-#### Structural Triviality Test
-
-- Can every output field be traced directly to input fields?
-- Is every transformation deterministic?
-- Would another engineer understand it in under one minute?
-- Could it be rewritten as simple field mappings?
-- If removed, would business behavior remain unchanged?
-
-If any "No", stop and perform architecture review.
-
-Reference: `docs/architecture/GOLDEN_MAPPER.md`
+7-point verification checklist. Referential transparency. Structural triviality test. Reference: `docs/architecture/GOLDEN_MAPPER.md`
 
 ---
 
-## Phase 6: Continuous Validation — RFC and Architecture Compliance
+## Phase 6: Continuous Validation
 
-Before committing code, validate:
+Before committing code:
 
 - Does this violate any RFC? → **STOP if YES**
 - Does this duplicate existing concept? → **STOP if YES**
@@ -363,9 +101,9 @@ Before committing code, validate:
 
 ---
 
-## Phase 7: Self-Review — Architecture Verification
+## Phase 7: Self-Review
 
-After implementation, review independently for:
+After implementation, review for:
 
 - RFC violations
 - ADR violations
@@ -374,14 +112,14 @@ After implementation, review independently for:
 - Duplicated ownership
 - Dependency violations
 - Speculative abstractions
-- Unnecessary interfaces, DTOs, services
+- Unnecessary interfaces/DTOs/services
 - Hidden business logic
 
 **Immediately repair detected issues.**
 
 ---
 
-## Phase 8: Verification — Run All Tests and Validation
+## Phase 8: Verification
 
 Execute every applicable command:
 
@@ -396,91 +134,87 @@ task smoke:*
 task report
 ```
 
-Rules:
-
-- Only skip commands that genuinely do not exist
-- Never claim commands passed unless executed
-- Build/graphify-out should never be committed
+See [docs/copilot/validation.md](docs/copilot/validation.md) for full verification rules.
 
 ---
 
-## Phase 9: Repair Loop — Fix Issues Automatically
+## Phase 9: Repair Loop
 
 If verification fails:
 
 1. Analyze failure
-2. Repair issue
+2. Repair
 3. Verify again
 4. Repeat
 
-**Maximum iterations: 5.**
-
-If cannot fix in 5 iterations, surface blocker and document.
+**Maximum iterations: 5.** If unfixable, surface blocker.
 
 ---
 
-## Phase 10: Final Review — Verify Architecture Health
+## Phase 10: Final Review
 
 Verify:
 
-- Architecture remains simpler (fewer files, fewer abstractions, fewer layers)
-- Ownership remains correct (single owner per responsibility)
-- Boundaries remain intact (no cross-layer violations)
-- No duplication introduced
-- No unnecessary abstractions added
-- Code follows project conventions
+- Architecture simpler (fewer files, abstractions, layers)
+- Ownership correct (single owner per responsibility)
+- Boundaries intact (no cross-layer violations)
+- No duplication
+- No unnecessary abstractions
+- Code follows conventions
 
 ---
 
-## Phase 11: Final Report — Document Complete Implementation
+## Phase 11: Final Report
 
-Always finish with:
+Document:
 
-- **Summary** — what was implemented, what problem it solves
-- **Files Changed** — all modified/added files
+- **Summary** — what, why
+- **Files Changed**
 - **Architecture Decisions** — key choices and why
-- **RFC Compliance** — which RFCs implemented, were they satisfied
-- **ADR Compliance** — which ADRs followed
-- **Policy Compliance** — which policies applied
-- **Reference Implementations Used** — existing code extended/reused
-- **Commands Executed** — all build and verification commands run
-- **Test Results** — pass/fail status
-- **Validation Results** — lint, style, coverage results
-- **Remaining Technical Debt** — incomplete work, workarounds, future improvements
-- **Risks** — what could break, mitigation strategies
-- **Next Recommended Slice** — what to build next
+- **RFC Compliance** — which RFCs, satisfied?
+- **ADR Compliance**
+- **Policy Compliance**
+- **Reference Implementations Used**
+- **Commands Executed** — all build/verification commands run
+- **Test Results**
+- **Validation Results**
+- **Remaining Technical Debt**
+- **Risks** — what could break, mitigations
+- **Next Recommended Slice**
 
 **Never finish with only "Done".**
 
 ---
 
-# 🚫 STOP CONDITIONS — These Always Stop Workflow
+# 🚫 STOP CONDITIONS
 
-- **RFCs conflict or ambiguous** → Stop and wait for clarification
-- **Multiple equally valid implementations possible** → Stop and ask
-- **Would violate established architecture** → Stop immediately
-- **Genuinely blocked by missing information** → Stop and explain
-- **New abstraction fails Extract, Don't Invent test** → Stop (do not create)
-- **Any phase of architecture review fails** → Stop (do not proceed)
-- **RFC compliance fails** → Stop and fix
-- **Repair loop exceeds 5 iterations** → Stop and document
+These always stop the workflow:
+
+- **RFCs conflict or ambiguous** → Stop, wait for clarification
+- **Multiple equally valid implementations** → Stop, ask
+- **Violates established architecture** → Stop immediately
+- **Blocked by missing information** → Stop, explain
+- **Abstraction fails Extract, Don't Invent** → Stop, do not create
+- **Architecture review phase fails** → Stop, do not proceed
+- **RFC compliance fails** → Stop, fix
+- **Repair loop exceeds 5 iterations** → Stop, document
 
 ---
 
 # 🏛️ ARCHITECTURAL INVARIANTS
 
-These are non-negotiable. Any code violating one is wrong by definition. Repair immediately.
+Non-negotiable. Repair immediately if violated:
 
-- **Events are immutable.** Never mutate or delete; correct via new events.
-- **Decisions are explicit and auditable.** Every Decision records who/what, why, inputs.
-- **Reviews never commit Decisions.** Reviews produce findings; cannot enact Decision.
-- **Agents never mutate canonical state directly.** They propose; system commits.
-- **Agents never call LLM providers directly.** All model access through LLM router.
-- **Prompt versions are immutable after release.** Released prompts frozen; ship new version.
-- **Memory is policy-bound.** Reads/writes honor governing policy; no ad-hoc access.
-- **Spaces are bounded contexts.** Keep models, data, logic within their space.
-- **Cross-space communication is explicit.** Use defined contracts/events; no hidden coupling.
-- **Derived stores are rebuildable.** Never treat projection/cache as source of truth.
+- Events are immutable (never mutate; correct via new events)
+- Decisions are explicit and auditable
+- Reviews never commit Decisions (only findings)
+- Agents never mutate canonical state directly (propose only)
+- Agents never call LLM providers directly (use LLM router)
+- Prompt versions immutable after release
+- Memory is policy-bound (no ad-hoc access)
+- Spaces are bounded contexts
+- Cross-space communication explicit
+- Derived stores rebuildable (never source of truth)
 
 ---
 
@@ -488,39 +222,30 @@ These are non-negotiable. Any code violating one is wrong by definition. Repair 
 
 ### RFC Is Source of Truth
 
-RFCs in `./rfcs/` are **immutable architectural contracts**.
+RFCs in `./rfcs/` are immutable contracts.
 
-- Never reinterpret them
+- Never reinterpret
 - Never extend with assumptions
 - Never fill gaps with "reasonable" guesses
-- Never implement behavior not explicitly specified
-
-If RFC is ambiguous, incomplete, or contradictory:
-
-- **STOP immediately**
-- Document specific ambiguity
-- Explain what cannot be determined
-- Wait for clarification
-
-Do not proceed when architecture is unclear.
+- If ambiguous → **STOP, wait for clarification**
 
 ### Extract, Don't Invent
 
-Abstractions **MUST** be extracted from existing code or approved RFCs. Never invented from anticipated future needs.
+Abstractions extracted from code or RFCs. Never invented.
 
-**Validity Criteria:** At least one must be true:
+**Validity:** At least one must be true:
 
-1. Two or more independent implementations already exist in codebase
-2. Duplicated behavior exists and extraction reduces complexity
-3. Approved RFC explicitly defines the abstraction
+1. Two+ implementations exist
+2. Duplicated behavior reduced by extraction
+3. RFC explicitly defines abstraction
 
 ### Reference First
 
-If a Reference Implementation exists, follow it. Consistency is preferred over novelty.
+If reference implementation exists, follow it. Consistency > novelty.
 
 ### Single Ownership Rule
 
-Every responsibility has exactly one owner. Never duplicate ownership.
+Every responsibility has exactly one owner.
 
 ### Boundary Rule
 
@@ -532,49 +257,30 @@ Every responsibility has exactly one owner. Never duplicate ownership.
 
 ### Simplicity Rule
 
-Prefer:
-
-- Fewer files
-- Fewer abstractions
-- Fewer interfaces
-- Fewer services
-- Fewer layers
-- Less indirection
+Prefer: fewer files, abstractions, interfaces, services, layers, indirection.
 
 **Architecture should become simpler after every implementation.**
 
 ### Minimize Architectural Debt
 
-- Prefer deleting code over adding abstractions
+- Prefer deleting over adding abstractions
 - Prefer composition over inheritance
-- Prefer explicit behavior over magic
-- Prefer deterministic behavior over convenience
+- Prefer explicit over magic
+- Prefer deterministic over convenient
 
 ### Challenge Assumptions
 
-Do not blindly implement requested design. If simpler solution satisfies RFCs, explain and recommend it. If request contradicts long-term architecture, explain why.
+Don't blindly implement. If simpler solution satisfies RFCs, explain and recommend. If request contradicts architecture, explain why.
 
-### Leave the Repository Healthier
+### Leave Repository Healthier
 
-Every change should improve: documentation, verification, naming, comments, tests, architecture consistency, or dead-code removal.
-
----
-
-# ❌ AVOID
-
-- Speculative implementation of future features
-- Generic frameworks or unused abstractions
-- Placeholder services
-- Speculative config
-- Ad-hoc build scripts
-- Exporting internal implementation details
-- "Future-proof" interfaces
-
-Everything must be justified by existing RFC or accepted implementation slice.
+Every change improves: documentation, verification, naming, comments, tests, architecture, or dead-code removal.
 
 ---
 
-# 🔍 CONTEXT GATHERING DEFAULTS
+---
+
+# 🔍 CONTEXT GATHERING
 
 ### Use Graphify First
 
@@ -584,72 +290,73 @@ For repository architecture, ownership, dependencies, implementation locations:
 - `graphify path` for dependency questions
 - `graphify explain` for architectural concepts
 
-Only inspect source files when implementation required, debugging, or Graphify lacks detail.
-
 ### When Unsure
 
 - Prefer reading RFC over guessing
-- If RFC ambiguous or missing, surface gap rather than filling with assumed behavior
+- If RFC ambiguous/missing, surface gap (don't fill with assumptions)
 - Do not implement when blocked by ambiguity
 - Ask for clarification instead of inventing
 
 ---
 
-# 📋 BUILD AND VERIFICATION RULES
+# 📋 BUILD & VERIFICATION RULES
 
 - **Prefer Taskfile commands** over raw go/python commands
 - **Use `task test`** for normal validation
 - **Use `task build`** before claiming binaries compile
-- **Use `task verify:rfc`** after changing RFCs or docs under `rfcs/`
-- **Use `task graph:rebuild`** after changing graph-relevant docs or code
+- **Use `task verify:rfc`** after RFC changes
+- **Use `task graph:rebuild`** after graph-relevant changes
 - **Never commit** `build/` or `graphify-out/`
-- **Do not create ad-hoc build scripts** unless Taskfile cannot express operation
+- **No ad-hoc build scripts** unless Taskfile cannot express operation
 
 ---
 
-# ✅ DEFAULT CHECKLIST FOR EVERY IMPLEMENTATION
+# ✅ DEFAULT CHECKLIST
 
 Before finishing, verify:
 
-- [ ] All relevant RFCs read and understood
+- [ ] All relevant RFCs read
 - [ ] Phase 1: Discovery complete
-- [ ] If new abstraction: Phase 2 feasibility gate passed
-- [ ] If new abstraction: Phase 3 (11-phase architecture review) complete
-- [ ] Phase 4: Implementation plan produced and followed
-- [ ] Phase 5: Minimal vertical slice implemented
+- [ ] If new abstraction: Phase 2 gate passed
+- [ ] If new abstraction: Phase 3 review complete
+- [ ] Phase 4: Plan produced and followed
+- [ ] Phase 5: Vertical slice implemented
 - [ ] Phase 6: RFC compliance verified
 - [ ] Phase 7: Self-review completed
-- [ ] Phase 8: All tests and verification commands executed
-- [ ] Phase 9: Issues fixed in repair loop
+- [ ] Phase 8: Verification commands executed
+- [ ] Phase 9: Repair loop complete
 - [ ] Phase 10: Final review passed
 - [ ] Phase 11: Final report produced
-- [ ] No RFC violations remain
-- [ ] No ADR violations remain
-- [ ] No invariant violations remain
-- [ ] Architecture remains simpler
-- [ ] Ownership remains correct
-- [ ] Boundaries remain intact
+- [ ] No RFC violations
+- [ ] No ADR violations
+- [ ] No invariant violations
+- [ ] Architecture simpler
+- [ ] Ownership correct
+- [ ] Boundaries intact
 
 ---
 
-# 📖 HOW TO USE THIS WORKFLOW
+# 🚀 DEVELOPER WORKFLOW
 
-1. **Get a Sprint Task** — Developer provides feature to implement
-2. **Run the 11 Phases** — Execute Phase 1 through Phase 11 automatically
-3. **Stop only if genuinely blocked** — missing RFC clarity, architectural ambiguity, or implementation would violate architecture
-4. **Produce Final Report** — Never stop at implementation; always produce complete report
+1. **Provide Sprint Task** — developer gives feature
+2. **Execute Phases 1-11** — copilot autonomous execution
+3. **Stop only if blocked** — RFC ambiguity, architectural ambiguity, or architecture violation
+4. **Produce Final Report** — always deliver complete report
 
-**Developer expectation:** Provide task. Copilot executes complete workflow autonomously from discovery through final report.
+**Expectation:** Provide task. Copilot executes complete workflow autonomously. No intermediate confirmations unless blocked.
 
 ---
 
-# 🔗 REFERENCE DOCUMENTS
+# 📚 REFERENCE DOCUMENTS
 
-For detailed context on specific topics, see:
+For detailed guidance, see:
 
-- `rfcs/` — Architectural source of truth
-- `docs/adr/` — Architecture Decision Records
-- `docs/architecture/GOLDEN_MAPPER.md` — Reference mapper implementation
-- `docs/architecture.md` — Overall architecture
-- `docs/domain-model.md` — Domain model reference
-- `.github/instructions/` — Detailed reference documentation (not active instructions)
+- [docs/copilot/architecture-review.md](docs/copilot/architecture-review.md) — 11-phase architecture review gate
+- [docs/copilot/engineering-laws.md](docs/copilot/engineering-laws.md) — Core principles, invariants, laws
+- [docs/copilot/implementation.md](docs/copilot/implementation.md) — Planning, reuse, vertical slices
+- [docs/copilot/mapper.md](docs/copilot/mapper.md) — Pure mapper verification
+- [docs/copilot/validation.md](docs/copilot/validation.md) — Tests, build, verification
+- [rfcs/](rfcs/) — Architectural source of truth
+- [docs/adr/](docs/adr/) — Architecture Decision Records
+- [docs/architecture/GOLDEN_MAPPER.md](docs/architecture/GOLDEN_MAPPER.md) — Reference mapper
+- [docs/architecture.md](docs/architecture.md) — Overall architecture
