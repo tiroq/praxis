@@ -89,7 +89,7 @@ Every new environment variable introduced into Praxis **must** satisfy all of th
 1. **Naming convention:** Uses the pattern `PRAXIS_<SUBSYSTEM>_<SETTING_NAME>` with no exceptions
 2. **Subsystem assignment:** Belongs to exactly one existing subsystem or justifies a new subsystem bounded by an RFC or ADR
 3. **Ownership:** Has exactly one documented architectural owner (from the subsystem's defining RFC/ADR)
-4. **Documentation:** Documented in the service README AND in `docs/configuration-reference.md`
+4. **Documentation:** Documented in the service README AND in `docs/operations/configuration-reference.md`
 5. **Default or required:** Has either a safe default value OR explicit "(required)" designation with explanation
 6. **Migration coverage:** If a variable is renamed, a deprecation phase and migration guide are provided
 7. **No ADR violations:** Does not contradict this ADR or any superseding ADR
@@ -563,7 +563,7 @@ When reviewing any change that introduces or modifies environment variables, the
 **Governance Compliance:**
 - [ ] Does it follow the pattern `PRAXIS_<SUBSYSTEM>_<SETTING_NAME>`?
 - [ ] Does it have a documented owner (from an RFC or ADR)?
-- [ ] Is it documented in the service README and in `docs/configuration-reference.md`?
+- [ ] Is it documented in the service README and in `docs/operations/configuration-reference.md`?
 - [ ] Does it have either a safe default or explicit "(required)" designation?
 - [ ] Does it violate ADR-012, ADR-008, or any other architecture decision?
 
@@ -584,7 +584,7 @@ When reviewing any change that introduces or modifies environment variables, the
 - [ ] Create `MIGRATION_GUIDE.md` documenting old → new variable mapping.
 - [ ] Update `docker-compose.yml` to use new names (comment out old names with notes).
 - [ ] Update service READMEs (worker, api, cli, etc.) with env var tables using new names.
-- [ ] Create `docs/configuration-reference.md` listing all `PRAXIS_*` variables by subsystem.
+- [ ] Create `docs/operations/configuration-reference.md` listing all `PRAXIS_*` variables by subsystem.
 - [ ] Add CHANGELOG entry: "Phase 1: Parallel support for old and new environment variable names. Deprecation warnings added."
 
 ### Step 3: Monitoring and Feedback (Phase 1)
@@ -601,7 +601,7 @@ When reviewing any change that introduces or modifies environment variables, the
 ### Step 5: Ongoing Governance (for all future services)
 - [ ] Every new service must use `PRAXIS_*` naming from day 1; no compatibility mode.
 - [ ] Code review checklist item: "Environment variable names follow `PRAXIS_<SUBSYSTEM>_*` convention."
-- [ ] New subsystems must be documented in `docs/configuration-reference.md` before release.
+- [ ] New subsystems must be documented in `docs/operations/configuration-reference.md` before release.
 
 ---
 
@@ -627,7 +627,7 @@ When reviewing any change that introduces or modifies environment variables, the
 - [ ] Update `services/worker/README.md`: env var table with new names
 - [ ] Update `services/api-kernel/README.md`: env var table
 - [ ] Create/update `MIGRATION_GUIDE.md` with old→new mapping
-- [ ] Create/update `docs/configuration-reference.md` with all `PRAXIS_*` variables
+- [ ] Create/update `docs/operations/configuration-reference.md` with all `PRAXIS_*` variables
 - [ ] Add section to main `README.md`: link to configuration reference
 - [ ] Update any other service-specific README files
 
@@ -655,7 +655,7 @@ When reviewing any change that introduces or modifies environment variables, the
 **Documentation:**
 - [ ] Remove all references to old variable names from READMEs
 - [ ] Update `MIGRATION_GUIDE.md` with Phase 2 breaking change notice
-- [ ] Update `docs/configuration-reference.md` if needed
+- [ ] Update `docs/operations/configuration-reference.md` if needed
 - [ ] Add CHANGELOG entry with breaking change and link to migration guide
 
 **Tests:**
@@ -724,7 +724,7 @@ When a new service or subsystem is introduced:
 
 1. Choose a **subsystem abbreviation** (2–6 chars, no underscores): e.g., `LLM`, `REDIS`, `S3`.
 2. Define variables as `PRAXIS_<SUBSYSTEM>_<SETTING>`.
-3. Document in `docs/configuration-reference.md` before release.
+3. Document in `docs/operations/configuration-reference.md` before release.
 4. Reference this ADR in the service README.
 
 **Example:** if Redis caching is added:
@@ -779,7 +779,7 @@ ADR-012 must be reviewed and potentially amended whenever:
 
 ### When ADR-012 Does NOT Need to Change
 
-- **Adding a new environment variable that follows the convention:** Just document it in the service README and `docs/configuration-reference.md`. No ADR change needed.
+- **Adding a new environment variable that follows the convention:** Just document it in the service README and `docs/operations/configuration-reference.md`. No ADR change needed.
 - **Changing the default value of an existing variable:** Document in release notes and service README. No ADR change needed (unless the meaning changes; see Compatibility Rule).
 - **Deprecating a variable:** Use Phase 1 (both names work) then Phase 2 (old name errors). Update `MIGRATION_GUIDE.md`. No ADR change needed unless the pattern changes.
 - **Adding a new service or application:** If it uses only existing subsystem variables, no ADR change needed.
@@ -813,9 +813,9 @@ All of the following MUST be true before this ADR transitions from PROPOSED to A
 ### Documentation Completeness
 
 - [ ] This ADR documents the full naming convention with examples.
-- [ ] All current Praxis configuration variables are listed in `docs/configuration-reference.md` organized by subsystem.
+- [ ] All current Praxis configuration variables are listed in `docs/operations/configuration-reference.md` organized by subsystem.
 - [ ] `MIGRATION_GUIDE.md` exists and includes old→new variable mapping with deployment examples (docker-compose, Kubernetes).
-- [ ] Each subsystem section in `docs/configuration-reference.md` identifies the owner and purpose of each variable.
+- [ ] Each subsystem section in `docs/operations/configuration-reference.md` identifies the owner and purpose of each variable.
 
 ### Phase 1 Implementation Ready
 
