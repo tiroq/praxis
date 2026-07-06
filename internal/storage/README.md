@@ -14,6 +14,7 @@ Storage in Praxis follows strict architectural boundaries defined in RFC-033:
 ## EventStore
 
 The EventStore is the append-only persistent store for immutable Event Records.
+It is the canonical event source used for replay and reconstruction of derived state.
 
 ### Interface
 
@@ -47,6 +48,12 @@ type EventStore interface {
 3. **Ordered** — List returns events deterministically (occurred_at ASC, id ASC)
 4. **Validated** — required fields and JSON payload are validated on Append
 5. **Isolated** — no direct coupling to Kernel or other domain logic
+
+## Conversation History Projection
+
+Conversation history persistence in `internal/storage/conversationstore` is a concrete
+SQLite-backed projection for read/reconstruction convenience. It is derived from immutable
+events and can be rebuilt. It is not canonical truth.
 
 ## Storage Registry
 
