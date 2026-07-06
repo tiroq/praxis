@@ -23,6 +23,7 @@ import (
 
 	"github.com/tiroq/praxis/internal/core/kernel"
 	"github.com/tiroq/praxis/internal/storage"
+	"github.com/tiroq/praxis/internal/storage/conversationstore"
 	natstransport "github.com/tiroq/praxis/internal/transport/nats"
 	"github.com/tiroq/praxis/internal/transport/natsworker"
 )
@@ -76,6 +77,37 @@ func tryOpenStorage(ctx context.Context, logger *slog.Logger) *storage.Storage {
 	return store
 }
 
+// tryOpenConversationStore attempts to open conversation store using environment configuration.
+// If store cannot be opened, logs the error and returns nil (non-fatal).
+// The worker will continue without conversation persistence if store is unavailable.
+func tryOpenConversationStore(ctx context.Context, logger *slog.Logger) conversationstore.ConversationStore {
+	// For now, conversation store uses SQLite at the same path as event store.
+	// Environment: PRAXIS_STORAGE_PATH (defaults to build/praxis.db)
+	cfg := storage.ConfigFromEnv()
+	if cfg.Backend != storage.BackendSQLite {
+		logger.Warn("conversation store only supports SQLite backend; skipping initialization",
+			"backend", cfg.Backend,
+		)
+		return nil
+	}
+
+	logger.Info("attempting to open conversation store",
+		"backend", cfg.Backend,
+		"sqlite_path", cfg.SQLitePath,
+	)
+
+	store, err := conversationstore.OpenStore(ctx, cfg.SQLitePath)
+	if err != nil {
+		logger.Warn("failed to open conversation store; worker will continue without conversation persistence",
+			"err", err,
+		)
+		return nil
+	}
+
+	logger.Info("conversation store opened successfully")
+	return store
+}
+
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
@@ -105,6 +137,18 @@ func main() {
 		}()
 	}
 
+	// Attempt to open conversation store; non-fatal if it fails
+	convStore := tryOpenConversationStore(ctx, logger)
+	if convStore != nil {
+		defer func() {
+			if err := convStore.Close(); err != nil {
+				logger.Error("failed to close conversation store", "err", err)
+			} else {
+				logger.Info("conversation store closed")
+			}
+		}()
+	}
+
 	client, err := natstransport.NewClient(cfg)
 	if err != nil {
 		logger.Error("failed to connect to NATS", "err", err)
@@ -127,6 +171,10 @@ func main() {
 	}
 
 	sub := natsworker.NewSubscriber(js, cfg, k, pub, logger)
+	if convStore != nil {
+		sub.WithConversationStore(convStore)
+		logger.Info("subscriber configured with conversation store")
+	}
 
 	if err := sub.Run(ctx); err != nil {
 		logger.Error("subscriber exited with error", "err", err)
