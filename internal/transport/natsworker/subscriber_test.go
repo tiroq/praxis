@@ -101,8 +101,8 @@ func TestOutputBuilders(t *testing.T) {
 	if ok.CorrelationID != "corr_1" || ok.Metadata["chat_id"] != "5" {
 		t.Fatalf("ok correlation/metadata = %#v", ok)
 	}
-	if ok.AssistantReply != "hello from llm" {
-		t.Fatalf("ok assistant_reply = %#v", ok)
+	if ok.ReplyText != "hello from llm" {
+		t.Fatalf("ok reply_text = %#v", ok)
 	}
 
 	errOut := newOutputError("evt_2", "corr_2", map[string]string{"chat_id": "7"}, errors.New("boom"))
@@ -196,7 +196,7 @@ func TestHandleMessageContracts(t *testing.T) {
 		if len(pub.published) != 1 {
 			t.Fatalf("expected one published output, got %d", len(pub.published))
 		}
-		if pub.published[0].AssistantReply != "LLM says hi" {
+		if pub.published[0].ReplyText != "LLM says hi" {
 			t.Fatalf("expected assistant reply to be published, got %#v", pub.published[0])
 		}
 	})
@@ -222,7 +222,7 @@ func TestHandleMessageContracts(t *testing.T) {
 		if len(pub.published) != 1 {
 			t.Fatalf("expected one published output, got %d", len(pub.published))
 		}
-		if pub.published[0].AssistantReply == "" {
+		if pub.published[0].ReplyText == "" {
 			t.Fatalf("expected fallback assistant reply, got %#v", pub.published[0])
 		}
 		if pub.published[0].InputEventID != "evt_llm_err" || pub.published[0].CorrelationID != "corr_llm_err" {
@@ -252,7 +252,7 @@ func TestHandleMessageContracts(t *testing.T) {
 		if len(pub.published) != 1 {
 			t.Fatalf("expected one published output, got %d", len(pub.published))
 		}
-		if pub.published[0].AssistantReply == "" {
+		if pub.published[0].ReplyText == "" {
 			t.Fatalf("expected timeout fallback assistant reply, got %#v", pub.published[0])
 		}
 		if pub.published[0].InputEventID != "evt_llm_timeout" || pub.published[0].CorrelationID != "corr_llm_timeout" {

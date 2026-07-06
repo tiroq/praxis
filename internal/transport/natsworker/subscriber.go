@@ -283,7 +283,7 @@ func (s *Subscriber) handleMessage(ctx context.Context, msg natsMsg) {
 
 	// Optionally persist output message to conversation store (RFC-033: Message Projection)
 	if s.conversationStore != nil && conversationID != "" && out.Status == "ok" {
-		assistantText := strings.TrimSpace(out.AssistantReply)
+		assistantText := strings.TrimSpace(out.ReplyText)
 		if assistantText == "" {
 			assistantText = string(out.Result)
 		}
@@ -358,13 +358,13 @@ func newOutputOK(inputEventID string, correlationID string, metadata map[string]
 	}
 
 	return natstransport.OutputMessage{
-		InputEventID:   inputEventID,
-		CorrelationID:  correlationID,
-		Status:         "ok",
-		Result:         payload,
-		AssistantReply: strings.TrimSpace(assistantReply),
-		Metadata:       cloneMetadata(metadata),
-		ProcessedAt:    time.Now().UTC(),
+		InputEventID:  inputEventID,
+		CorrelationID: correlationID,
+		Status:        "ok",
+		Result:        payload,
+		ReplyText:     strings.TrimSpace(assistantReply),
+		Metadata:      cloneMetadata(metadata),
+		ProcessedAt:   time.Now().UTC(),
 	}
 }
 
