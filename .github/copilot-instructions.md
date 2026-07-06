@@ -195,22 +195,46 @@ Verify:
 
 ## Phase 11: Final Report
 
-Document:
+Document one of the following report types.
 
-- Discovery Outcome — IMPLEMENT or VERIFY ONLY
-- **Summary** — what, why
-- **Files Changed**
-- **Architecture Decisions** — key choices and why
-- **RFC Compliance** — which RFCs, satisfied?
-- **ADR Compliance**
-- **Policy Compliance**
-- **Reference Implementations Used**
-- **Commands Executed** — all build/verification commands run
-- **Test Results**
-- **Validation Results**
-- **Remaining Technical Debt**
-- **Risks** — what could break, mitigations
-- **Next Recommended Slice**
+### IMPLEMENT Report
+
+Use when Discovery Outcome = IMPLEMENT.
+
+Include:
+
+- Discovery Outcome — IMPLEMENT
+- Summary — what was implemented and why
+- Files Changed
+- Architecture Decisions — key choices and rationale
+- RFC Compliance
+- ADR Compliance
+- Policy Compliance
+- Reference Implementations Used
+- Commands Executed
+- Test Results
+- Validation Results
+- Remaining Technical Debt
+- Risks — what could break and mitigations
+- Next Recommended Slice
+
+### VERIFY ONLY Report
+
+Use when Discovery Outcome = VERIFY ONLY.
+
+Include:
+
+- Discovery Outcome — VERIFY ONLY
+- Summary
+- Existing Implementation Locations
+- Governing RFCs
+- Governing ADRs (if applicable)
+- Verification Commands Executed
+- Test Results
+- Runtime Evidence (where applicable)
+- Why No Repository Changes Were Required
+
+Do not include implementation-specific sections such as Files Changed, Architecture Decisions, Remaining Technical Debt, or Next Recommended Slice when no repository changes were made.
 
 **Never finish with only "Done".**
 
