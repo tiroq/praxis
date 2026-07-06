@@ -11,6 +11,7 @@ import (
 
 	"github.com/nats-io/nats.go"
 	"github.com/tiroq/praxis/internal/core/kernel"
+	"github.com/tiroq/praxis/internal/storage/conversationstore"
 	natstransport "github.com/tiroq/praxis/internal/transport/nats"
 )
 
@@ -27,15 +28,17 @@ type MessagePublisher interface {
 
 // Subscriber wraps a JetStream pull-subscribe loop and routes each message
 // through the kernel pipeline before publishing the result.
+// Optionally persists conversation history to a ConversationStore.
 type Subscriber struct {
-	js        nats.JetStreamContext
-	cfg       natstransport.Config
-	kernel    KernelRunner
-	publisher MessagePublisher
-	logger    *slog.Logger
+	js                nats.JetStreamContext
+	cfg               natstransport.Config
+	kernel            KernelRunner
+	publisher         MessagePublisher
+	logger            *slog.Logger
+	conversationStore conversationstore.ConversationStore // optional; nil if not provided
 }
 
-// NewSubscriber constructs a Subscriber. All parameters are required.
+// NewSubscriber constructs a Subscriber. Parameters are required except conversationStore which is optional.
 func NewSubscriber(
 	js nats.JetStreamContext,
 	cfg natstransport.Config,
@@ -44,12 +47,20 @@ func NewSubscriber(
 	logger *slog.Logger,
 ) *Subscriber {
 	return &Subscriber{
-		js:        js,
-		cfg:       cfg,
-		kernel:    k,
-		publisher: pub,
-		logger:    logger,
+		js:                js,
+		cfg:               cfg,
+		kernel:            k,
+		publisher:         pub,
+		logger:            logger,
+		conversationStore: nil,
 	}
+}
+
+// WithConversationStore sets the ConversationStore for persisting conversation history.
+// Returns the Subscriber for method chaining.
+func (s *Subscriber) WithConversationStore(store conversationstore.ConversationStore) *Subscriber {
+	s.conversationStore = store
+	return s
 }
 
 type pullSubscription interface {
@@ -150,8 +161,40 @@ func (s *Subscriber) handleMessage(ctx context.Context, msg natsMsg) {
 	}
 
 	event := toKernelEvent(input)
-	result, kernelErr := s.kernel.Run(ctx, event)
 	correlationID := event.CorrelationID
+
+	// Optionally persist input message to conversation store (RFC-033: Message Projection)
+	var conversationID string
+	if s.conversationStore != nil {
+		conv, err := s.conversationStore.GetConversationByCorrelationID(ctx, correlationID)
+		if err != nil {
+			s.logger.Warn("nats: failed to get/create conversation",
+				"correlation_id", correlationID,
+				"err", err,
+			)
+			// Non-fatal; continue without persistence
+		} else {
+			conversationID = conv.ID
+			inputMsg := conversationstore.NewMessage(
+				conv.ID,
+				input.ID,
+				"user",
+				input.Text,
+				input.Timestamp.Format(time.RFC3339Nano),
+				input.Metadata,
+			)
+			if err := s.conversationStore.AppendMessage(ctx, inputMsg); err != nil {
+				s.logger.Warn("nats: failed to persist input message",
+					"event_id", input.ID,
+					"conversation_id", conversationID,
+					"err", err,
+				)
+				// Non-fatal; continue without persistence
+			}
+		}
+	}
+
+	result, kernelErr := s.kernel.Run(ctx, event)
 
 	var out natstransport.OutputMessage
 	if kernelErr != nil {
@@ -189,6 +232,26 @@ func (s *Subscriber) handleMessage(ctx context.Context, msg natsMsg) {
 
 		_ = msg.Nak()
 		return
+	}
+
+	// Optionally persist output message to conversation store (RFC-033: Message Projection)
+	if s.conversationStore != nil && conversationID != "" && out.Status == "ok" {
+		outputMsg := conversationstore.NewMessage(
+			conversationID,
+			out.InputEventID,
+			"assistant",
+			string(out.Result),
+			out.ProcessedAt.Format(time.RFC3339Nano),
+			out.Metadata,
+		)
+		if err := s.conversationStore.AppendMessage(ctx, outputMsg); err != nil {
+			s.logger.Warn("nats: failed to persist output message",
+				"event_id", out.InputEventID,
+				"conversation_id", conversationID,
+				"err", err,
+			)
+			// Non-fatal; continue
+		}
 	}
 
 	if err := msg.Ack(); err != nil {
