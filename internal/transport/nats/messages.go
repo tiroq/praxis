@@ -54,8 +54,8 @@ type OutputMessage struct {
 	// Result holds the full pipeline result JSON on success.
 	Result json.RawMessage `json:"result,omitempty"`
 
-	// AssistantReply holds the LLM-generated user-facing reply text when available.
-	AssistantReply string `json:"assistant_reply,omitempty"`
+	// ReplyText holds the LLM-generated user-facing reply text when available.
+	ReplyText string `json:"reply_text,omitempty"`
 
 	// Error holds the error string on failure.
 	Error *string `json:"error,omitempty"`
