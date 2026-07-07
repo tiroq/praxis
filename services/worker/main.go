@@ -27,6 +27,7 @@ import (
 	"github.com/tiroq/praxis/internal/llm"
 	"github.com/tiroq/praxis/internal/storage"
 	"github.com/tiroq/praxis/internal/storage/conversationstore"
+	"github.com/tiroq/praxis/internal/storage/userfacts"
 	natstransport "github.com/tiroq/praxis/internal/transport/nats"
 	"github.com/tiroq/praxis/internal/transport/natsworker"
 )
@@ -144,6 +145,34 @@ func tryOpenConversationStore(ctx context.Context, logger *slog.Logger) *convers
 	return store
 }
 
+// tryOpenUserFactStore attempts to open the SQLite-backed candidate user fact store.
+// If store cannot be opened, logs the error and returns nil (non-fatal).
+func tryOpenUserFactStore(ctx context.Context, logger *slog.Logger) *userfacts.SQLiteStore {
+	cfg := storage.ConfigFromEnv()
+	if cfg.Backend != storage.BackendSQLite {
+		logger.Warn("user fact store only supports SQLite backend; skipping initialization",
+			"backend", cfg.Backend,
+		)
+		return nil
+	}
+
+	logger.Info("attempting to open user fact store",
+		"backend", cfg.Backend,
+		"sqlite_path", cfg.SQLitePath,
+	)
+
+	store, err := userfacts.OpenStore(ctx, cfg.SQLitePath)
+	if err != nil {
+		logger.Warn("failed to open user fact store; worker will continue without fact persistence",
+			"err", err,
+		)
+		return nil
+	}
+
+	logger.Info("user fact store opened successfully")
+	return store
+}
+
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
@@ -185,6 +214,17 @@ func main() {
 		}()
 	}
 
+	factStore := tryOpenUserFactStore(ctx, logger)
+	if factStore != nil {
+		defer func() {
+			if err := factStore.Close(); err != nil {
+				logger.Error("failed to close user fact store", "err", err)
+			} else {
+				logger.Info("user fact store closed")
+			}
+		}()
+	}
+
 	client, err := natstransport.NewClient(cfg)
 	if err != nil {
 		logger.Error("failed to connect to NATS", "err", err)
@@ -215,12 +255,13 @@ func main() {
 	llmCfg := llmRuntimeConfigFromEnv()
 	if llmCfg.Enabled {
 		llmClient := llm.NewClient(llmCfg.Endpoint, nil)
-		responder := llm.NewConversationResponder(llmClient, convStore)
+		responder := llm.NewConversationResponder(llmClient, convStore, factStore)
 
 		sub.WithReplyGenerator(func(ctx context.Context, input natstransport.InputMessage, _ kernel.PipelineResult) (string, error) {
 			// Delegate context assembly and reply generation to the LLM layer.
 			// The worker only provides semantic inputs; the LLM layer owns context assembly.
 			resp, err := responder.Respond(ctx, llm.RespondRequest{
+				InputEventID:  input.ID,
 				CorrelationID: input.CorrelationID,
 				UserMessage:   input.Text,
 				Source:        input.Source,

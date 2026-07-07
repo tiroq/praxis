@@ -7,6 +7,9 @@ Minimal Sprint 3 implementation for worker reply generation.
 - POST `/v1/reply`
   - Request JSON: `{"user_message": "...", "conversation": [{"role": "user", "text": "..."}]}`
   - Response JSON: `{"reply_text": "...", "provider": "ollama", "model": "..."}`
+- POST `/v1/extract-facts`
+  - Request JSON: `{"latest_user_message": "...", "conversation": [{"role": "user", "text": "..."}]}`
+  - Response JSON: `{"facts": [{"type": "location", "value": "Bangkok", "confidence": 0.94}], "provider": "ollama", "model": "..."}`
 - GET `/health`
 
 ## Runtime Config
