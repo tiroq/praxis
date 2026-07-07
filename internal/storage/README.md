@@ -55,6 +55,18 @@ Conversation history persistence in `internal/storage/conversationstore` is a co
 SQLite-backed projection for read/reconstruction convenience. It is derived from immutable
 events and can be rebuilt. It is not canonical truth.
 
+## Candidate User Facts
+
+Candidate user fact persistence in `internal/storage/userfacts` is a concrete SQLite-backed
+side store for extracted, unvalidated user facts. It is separate from the conversation
+projection and is not used for retrieval, prompting, summarization, embeddings, or reply
+generation.
+
+Candidate facts now carry an explicit validation lifecycle state:
+`observed -> extracted -> correlated -> reviewed -> human_approved -> canonical`.
+The store persists the current lifecycle stage and appends validation transitions for
+auditability.
+
 ## Storage Registry
 
 The Storage Registry is the composition point for all Praxis persistence. It owns the construction of backend-specific stores and provides a single point of configuration and lifecycle management.
